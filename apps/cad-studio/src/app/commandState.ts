@@ -11,6 +11,10 @@ export function missingCommandField(fields: readonly Field[], values: Values): F
   return undefined;
 }
 
+export function awaitingMirrorPlane(command: string, values: Values): boolean {
+  return command === 'mirror' && values.pickPlane === 'yes';
+}
+
 type FilletScope = { picked: readonly string[]; added: readonly string[] } & (
   { radius: number; pickedRadii?: never } | { radius?: never; pickedRadii: readonly [number, number] }
 );

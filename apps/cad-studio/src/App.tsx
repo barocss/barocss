@@ -81,7 +81,7 @@ import { bandHighlight } from './app/bandHighlight';
 import { activateDraftOutline, draftShapeOrder, sketchCutInputs, TOOLS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
 import { detachRoundedInsetRecipe, resizeRoundedInsetSource, roundedInsetSourceWidth, validateRoundedInsetDocument } from '@barocss/cad-model/sketch/internal/roundedInsetRecipe';
-import { activeKey, type Active } from './app/commandState';
+import { awaitingMirrorPlane, activeKey, type Active } from './app/commandState';
 import { canUseHolePresets } from './app/holePresets';
 import { emptySel, NO_CUTS, NO_INSTANCES, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
 import { routeMessage } from './app/routeSession';
@@ -1472,7 +1472,7 @@ export function App() {
     const region = active.cmd.id === 'extrude' && active.values.region !== undefined && active.values.region !== 'all';
     const replaceAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
     const sweep = active.cmd.id === SWEEP_CURVE;
-    if ((active.fillet || toFace || region || replaceAxis || sweep || active.cmd.id === 'split' || active.cmd.id === 'align' || active.cmd.id === OFFSET_FACE_EDIT || active.cmd.id === DRAFT_EDIT) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
+    if ((active.fillet || toFace || region || replaceAxis || sweep || ['split', 'align', 'mirror'].includes(active.cmd.id) || active.cmd.id === OFFSET_FACE_EDIT || active.cmd.id === DRAFT_EDIT) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
     if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
       setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
@@ -1480,7 +1480,7 @@ export function App() {
     }
     if (active.upload) { applyWhenReady.current = null; return; }
     if (!bearingRootCurrent) { applyWhenReady.current = null; return; }
-    if (awaitingExtrudeEndFace(active.cmd.id, active.values) || awaitingRevolveAxis(active.cmd.id, active.values)) {
+    if (awaitingExtrudeEndFace(active.cmd.id, active.values) || awaitingRevolveAxis(active.cmd.id, active.values) || awaitingMirrorPlane(active.cmd.id, active.values)) {
       applyWhenReady.current = null; again.current = null; return;
     }
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
@@ -1850,9 +1850,9 @@ export function App() {
   };
   const pickTransformFace = (hit: ExtrudeEndHit, blocked: boolean): boolean => {
     const current = activeStore.get();
-    if (current?.cmd.id !== 'split' && current?.cmd.id !== 'align') return false;
-    const split = current.cmd.id === 'split';
-    if (!split && !current.ctx.selection.faces.length) return true;
+    if (!current || !['split', 'align', 'mirror'].includes(current.cmd.id)) return false;
+    const split = current.cmd.id === 'split', mirror = current.cmd.id === 'mirror';
+    if (!split && !mirror && !current.ctx.selection.faces.length) return true;
     if (!hit.face && !hit.edge && !hit.vertex && !hit.instance && !hit.direct) return true;
     applyWhenReady.current = null;
     again.current = null;
@@ -1863,17 +1863,18 @@ export function App() {
     }
     const scope = commandPickScope.current;
     const face = !blocked && scope && hit.face && !scope.hidden.has(hit.face.body)
-      ? originalTransformFace(current.ctx, doc, scope.bodies, hit, split) : null;
-    const values = face && current.cmd.onPick?.(current.ctx, current.values, { face, edge: null });
-    if (!values || typeof values.error === 'string') {
-      const hint = typeof values?.error === 'string' ? values.error
+      ? originalTransformFace(current.ctx, doc, scope.bodies, hit, split || mirror) : null;
+    const picked = face && current.cmd.onPick?.(current.ctx, current.values, { face, edge: null });
+    if (!picked || typeof picked.error === 'string') {
+      const hint = typeof picked?.error === 'string' ? picked.error
+        : mirror ? 'Use Pick plane and click an original planar face normal to X, Y or Z.'
         : split ? 'Pick an original planar face normal to X, Y or Z.' : 'Pick an original planar face on another body.';
-      setToast({ title: split ? 'Split plane not selected' : 'Align target not selected', hint, detail: '', inputPick: current.cmd });
+      setToast({ title: `${current.cmd.label} ${split || mirror ? 'plane' : 'target'} not selected`, hint, detail: '', inputPick: current.cmd });
       return true;
     }
     setToast(notice => notice?.inputPick === current.cmd ? null : notice);
     commandPreview.retire();
-    setActive({ ...current, values, preview: 'busy', error: undefined });
+    setActive({ ...current, values: mirror ? { ...picked, pickPlane: '' } : picked, preview: 'busy', error: undefined });
     return true;
   };
   const pickRevolveAxis = (hit: RevolveAxisHit, blocked: boolean): boolean => {
@@ -3358,7 +3359,8 @@ export function App() {
   const changeHudValue = (key: string, value: number | string) => {
     const current = activeStore.get();
     if (!current) return;
-    if (current.cmd.id === 'split' || (current.cmd.id === 'extrude' && (key === 'region'
+    if (current.cmd.id === 'split' || (current.cmd.id === 'mirror' && key === 'pickPlane')
+      || (current.cmd.id === 'extrude' && (key === 'region'
       || (key === 'depth' && (isExtrudeToFace(current.cmd.id, current.values) || value === 'to-face'))))) {
       applyWhenReady.current = null;
       again.current = null;
@@ -3373,7 +3375,7 @@ export function App() {
   const applyHud = (owner: Active) => {
     const current = activeStore.get();
     if (!current || !filletApplyCurrent(owner, current)) return;
-    if (owner !== current && (owner.cmd.id === REVOLVE_AXIS_EDIT || current.cmd.id === REVOLVE_AXIS_EDIT
+    if (owner !== current && (owner.cmd.id === 'mirror' || current.cmd.id === 'mirror' || owner.cmd.id === REVOLVE_AXIS_EDIT || current.cmd.id === REVOLVE_AXIS_EDIT
       || owner.cmd.id === SWEEP_CURVE || current.cmd.id === SWEEP_CURVE
       || owner.cmd.id === OFFSET_FACE_EDIT || current.cmd.id === OFFSET_FACE_EDIT
       || owner.cmd.id === DRAFT_EDIT || current.cmd.id === DRAFT_EDIT

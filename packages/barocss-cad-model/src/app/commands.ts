@@ -792,14 +792,20 @@ const allCommands: Command[] = [
       const b = oneBody(ctx);
       return { plane: 'yz', at: b ? r1(b.mesh.bounds.max[0]) : 0, ...(b?.sheet ? { result: 'combined' } : {}) };
     },
-    derive: (ctx, v, changed) => { const b = oneBody(ctx); if (!b || !changed.includes('plane')) return v; return { ...v, at: r1(b.mesh.bounds.max[MIRROR_AXIS[String(v.plane)]]) }; },
-    steps: (_, v) => [{ label: 'Plane', text: `${String(v.plane).toUpperCase()} at ${'XYZ'[MIRROR_AXIS[String(v.plane)]]} ${String(v.at)} — or click a flat face`, done: true }],
+    derive: (ctx, v, changed) => {
+      if (changed.includes('plane') || changed.includes('at')) v = { ...v, planeFace: '' };
+      const b = oneBody(ctx);
+      if (!b || !changed.includes('plane')) return v;
+      return { ...v, at: r1(b.mesh.bounds.max[MIRROR_AXIS[String(v.plane)]]) };
+    },
+    steps: (_, v) => [{ label: 'Plane', text: `${String(v.plane).toUpperCase()} at ${'XYZ'[MIRROR_AXIS[String(v.plane)]]} ${String(v.at)}`, done: v.pickPlane !== 'yes' },
+      ...(v.planeFace ? [{ label: 'Plane face', text: String(v.planeFace), done: v.pickPlane !== 'yes' }] : [])],
     onPick: (ctx, v, hit) => {
-      const f = hit.face && ctx.bodies[hit.face.body]?.mesh.faces[hit.face.face]; if (!f) return null;
-      const k = [0, 1, 2].find(i => Math.abs(Math.abs(f.normal[i]) - 1) < 1e-6);
-      if (f.kind !== 'plane' || k === undefined) return { error: 'Click a flat face facing X, Y or Z for the mirror plane.' };
-      const next: Values = { ...v, plane: (['yz', 'xz', 'xy'] as const)[k], at: Math.round(f.centroid[k] * 1000) / 1000 };
-      return next;
+      const face = hit.face && ctx.bodies[hit.face.body]?.mesh.faces[hit.face.face];
+      if (!face?.nativePlaneName || !face.nativeAxisPlane) return { error: 'Pick an original planar face normal to X, Y or Z.' };
+      const { axis, at } = face.nativeAxisPlane;
+      const values: Values = { ...v, plane: { x: 'yz', y: 'xz', z: 'xy' }[axis], at, planeFace: face.nativePlaneName };
+      return values;
     },
     handles: (ctx, v) => {
       const b = oneBody(ctx); if (!b) return [];

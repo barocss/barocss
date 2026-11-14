@@ -8,7 +8,7 @@ import { REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { useEffect, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { useStoreValue, type ValueStore } from '../state/valueStore';
 import type { Field, Values } from '@barocss/cad-model/app/commands';
-import { activeKey, type Active } from '../app/commandState';
+import { activeKey, awaitingMirrorPlane, type Active } from '../app/commandState';
 import { commandNumberRule, featureNumberInvalid, featureNumberRange } from '../app/featureNumberInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +44,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
   // (Ended before the App unmounts it.)
   if (!active) return null;
   const replacingAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
+  const pickingMirrorPlane = awaitingMirrorPlane(active.cmd.id, active.values);
   const cutSource = isCutPattern(active.cmd.id) ? cutPatternSourceLabel(active.ctx.doc.nodes, selectedCutPatternSource(active.ctx)) : null;
   const fields = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).filter(f => !(active.fillet?.type === 'edge' && active.fillet.radiusMode === 'constant' && f.key === 'endRadius'));
   const captureFirst = (element: HTMLInputElement | HTMLSelectElement | null) => { first.current = element; };
@@ -126,6 +127,9 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
       {active.cmd.id === 'fill-feature-pattern' && <FillPatternHints />}
       {active.preview === 'error' && active.error && <FeatureFailureNotice error={active.error} />}
       <div className="hud-actions">
+        {active.cmd.id === 'mirror' && <Button variant="ghost" aria-pressed={pickingMirrorPlane}
+          onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') event.stopPropagation(); }}
+          onClick={() => onChange('pickPlane', pickingMirrorPlane ? '' : 'yes')}>Pick plane</Button>}
         <span className="grow" />
         {/* Keep native button activation from also reaching the window's Apply shortcut. */}
         <Button variant="ghost" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }} onClick={onCancel}>Cancel</Button>

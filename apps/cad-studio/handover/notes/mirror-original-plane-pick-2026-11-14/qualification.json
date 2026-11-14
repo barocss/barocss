@@ -1,0 +1,123 @@
+{
+  "decision": "D1200",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "c125cb5bd81bcecd60a3dcf21eb65c1f0e1589cf",
+  "commands": [
+    "gate.sh acquire heavy 600 D1200-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs feature-handles editFields",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/commands.ts apps/cad-studio/src/app/commandState.ts apps/cad-studio/src/state/useCommandPreview.ts apps/cad-studio/src/ui/Hud.tsx",
+    "node --check apps/cad-studio/test/mirror-original-plane-browser.mjs",
+    "D1200_SOURCE_FROZEN=1 node apps/cad-studio/test/mirror-original-plane-browser.mjs <external-evidence>/holed-baseline --baseline",
+    "D1200_SOURCE_FROZEN=1 node apps/cad-studio/test/mirror-original-plane-browser.mjs <external-evidence>/final",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "focused": {
+    "modelPassed": 19,
+    "priorTypeFailure": "TS2322 on contextual Union return of Mirror onPick"
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "merged-mirror-preview",
+        "failure"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "38e96deb9b014d984f39ec24730d6f9d40385309d380a231bd29a4f202f63b14",
+      "sourceManifestSHA256": "d14f2c831797297b2cea843b8bf5353a5e689fc6b4923c3a5dbfe08cf35e966b",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Plain-box control used the expected Z=0; wrong-plane assertion failed.",
+      "observations": []
+    },
+    "holed-baseline": {
+      "status": "FAIL",
+      "states": [
+        "merged-mirror-preview",
+        "clicked-bottom",
+        "mirror-applied",
+        "failure"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "2b7923f29d4812f8cefa9092f8bc2d50c44635ea1dc410e8c08c2d8b95d625b3",
+      "sourceManifestSHA256": "d14f2c831797297b2cea843b8bf5353a5e689fc6b4923c3a5dbfe08cf35e966b",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Bottom face yielded Z=10 and native Z bounds 0–20.",
+      "observations": [
+        {
+          "label": "mirror-native",
+          "volume": 18948.672587712834,
+          "centroid": [
+            20.119372304319153,
+            12.066317946843965,
+            10
+          ],
+          "bounds": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              40,
+              24,
+              20
+            ]
+          ]
+        }
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "merged-mirror-preview",
+        "generated-face-refused",
+        "original-plane-pick-mode",
+        "clicked-bottom",
+        "mirror-applied"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "8797a181efb332379ffd6129cf335d5814a913f6bf3d1e98220a5c2255f7c904",
+      "sourceManifestSHA256": "eccd2421c9109721097408deff331626dce7766472c0d2f5fd5879ed0fa50772",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "mirror-native",
+          "volume": 18948.672587712834,
+          "centroid": [
+            20.119372304319153,
+            12.066317946843965,
+            0
+          ],
+          "bounds": [
+            [
+              0,
+              0,
+              -10
+            ],
+            [
+              40,
+              24,
+              10
+            ]
+          ]
+        }
+      ]
+    }
+  }
+}
