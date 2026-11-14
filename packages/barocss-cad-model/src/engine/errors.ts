@@ -8,6 +8,8 @@ export interface FriendlyError {
   code?: string;
   /** The kernel feature that refused the operation, when reported. */
   feature?: string;
+  /** The linked sketch whose native offset failed. */
+  linkedInsetFeature?: string;
 }
 
 // A refusal maps here by its code: the kernel or model message carries a bracketed one (`[MY_CODE] …`, via the kernel's
@@ -282,7 +284,9 @@ export function friendly(message: string, kind?: string): FriendlyError {
 /** What was thrown, as friendly(): its message and, when it has one, its code (the kernel's errors carry a string `code`). */
 export function friendlyCause(cause: unknown): FriendlyError {
   if (!(cause instanceof Error)) return friendly(String(cause));
-  const { code, feature } = cause as { code?: unknown; feature?: unknown };
+  const { code, feature, details } = cause as Error & { code?: unknown; feature?: unknown; details?: Record<string, unknown> };
   const error = friendly(cause.message, typeof code === 'string' ? code : undefined);
+  if (code === 'BAD_REFERENCE' && details?.field === 'insetMM' && typeof details.linkedInsetFeature === 'string')
+    error.linkedInsetFeature = details.linkedInsetFeature;
   return typeof feature === 'string' && feature ? { ...error, feature } : error;
 }

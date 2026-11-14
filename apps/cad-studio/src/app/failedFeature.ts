@@ -4,6 +4,16 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 
 export type FeatureFailure = FriendlyError & { failedFeature?: string };
 
+export function linkedInsetSourceFailure(error: FriendlyError, nodes: readonly ModelNode[], sourceIndex: number): FeatureFailure | undefined {
+  const id = error.linkedInsetFeature;
+  const sketch = id && nodes[nodeIndexOf(nodes, id)];
+  if (!sketch || sketch.kind !== 'sketch' || sketch.association?.source.node !== sourceIndex) return;
+  const { face, insetMM } = sketch.association;
+  return { ...error, title: 'The linked inset opening closes',
+    hint: `The ${insetMM} mm inset on ${face} fails with the new source size. Increase the source dimension or reset this edit.`,
+    failedFeature: failedFeatureText(id, nodes, nodes) };
+}
+
 /** Resolve a reported feature in the evaluated input and the command's accepted history. */
 export function failedFeatureText(id: string | undefined, evaluated: readonly ModelNode[], history: readonly ModelNode[]): string | undefined {
   if (!id) return undefined;

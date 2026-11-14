@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1213 — name the linked inset blocked by a source dimension](notes/linked-inset-source-dimension-refusal-2026-11-14/README.md).
 - [D1212 — explain the linked inset replacement prerequisite](notes/linked-inset-extrusion-prerequisite-2026-11-14/README.md).
 - [D1211 — distinguish an inset source hole from a curved outer boundary](notes/linked-inset-hole-guidance-2026-11-14/README.md).
 - [D1210 — retry Linked Inset from Offset distance](notes/linked-inset-offset-enter-2026-11-14/README.md).

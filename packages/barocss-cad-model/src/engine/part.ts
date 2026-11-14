@@ -510,7 +510,8 @@ function associativeProfile(doc: StudioDoc, index: number, prefix: readonly CadP
   const reopened = sketchShapes(fp);
   if (!reopened.shape || reopened.done.length) throw associationError('the source face does not have one outer shape.');
   const inset = offsetShape(reopened.shape, -a.insetMM);
-  if ('error' in inset) throw associationError(inset.error, { field: 'insetMM', reason: inset.error });
+  if ('error' in inset) throw associationError(inset.error,
+    { field: 'insetMM', reason: inset.error, linkedInsetFeature: featureId(doc.nodes, index) });
   const profile = profileOf([reopened.shape, inset.shape]);
   if ('error' in profile) throw associationError(profile.error);
   if (profile.node.regions?.length || profile.node.holes?.length !== 1) throw associationError('the inset must produce one enclosed hole.');

@@ -6,6 +6,7 @@ const historySummary = process.argv.includes('--history-summary');
 const narrowDock = process.argv.includes('--narrow-dock');
 const automaticRefusal = process.argv.includes('--automatic-refusal');
 const beforeExtrude = process.argv.includes('--before-extrude');
+const sourceDimension = process.argv.includes('--source-dimension');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
@@ -22,7 +23,7 @@ const seed = {
     { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 24], id: 'n0' },
     { kind: 'extrude', sketch: 0, height: 8, id: 'n1' },
     { kind: 'sketch', profile: 'rectangle', min: [100, 0], max: [160, 24], id: 'n2' },
-    { kind: 'extrude', sketch: 2, height: automaticRefusal ? 3 : 8, id: 'n3' },
+    { kind: 'extrude', sketch: 2, height: automaticRefusal ? 3 : sourceDimension ? 10 : 8, id: 'n3' },
     { kind: 'sketch', profile: 'polygon', points: [[0, 24], [0, 0], [40, 0], [40, 24]],
       holes: [[[2, 22], [2, 2], [38, 2], [38, 22]].map(start => ({ kind: 'line', start }))],
       sideTags: { outer: ['e1', 'e2', 'e3', 'e4'], holes: [['e5', 'e6', 'e7', 'e8']] },
@@ -33,6 +34,9 @@ const seed = {
   ],
   outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' }, b5: { node: 5, side: 'solid' } }, nextId: 6,
 };
+if (sourceDimension) Object.assign(seed.nodes[4].association, {
+  source: { node: 3, side: 'solid' }, sourceFeature: 'n3', face: 'n3.side0', insetMM: 4.5,
+});
 if (beforeExtrude) {
   seed.nodes.pop();
   delete seed.outputs.b5;
@@ -74,6 +78,40 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'inset-focus.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
+  if (sourceDimension) {
+    f.phase = 'upstream Extrude distance closes the linked opening';
+    await f.openFeatureEditor(3);
+    const distance = f.editor().getByLabel('Distance', { exact: true });
+    const orig = await f.snapshot('source-height-before');
+    await distance.fill('9');
+    await button('Apply', f.editor()).click();
+    const notice = f.editor().getByRole('status').filter({ hasText: baseline ? 'The kernel could not build this' : 'The linked inset opening closes' });
+    await notice.waitFor();
+    const rejected = await f.snapshot('source-height-refused');
+    for (const field of ['doc', 'history', 'bodies', 'selection']) assert.deepEqual(rejected[field], orig[field], field);
+    if (baseline) {
+      await notice.getByText(/Undo the last change/).waitFor();
+      throw new Error('Upstream History dimension refusal suggested Undo and omitted the affected link.');
+    }
+    await notice.getByText('The 4.5 mm inset on n3.side0 fails with the new source size. Increase the source dimension or reset this edit.', { exact: true }).waitFor();
+    await notice.getByText(/Failed feature · Sketch · polygon \(n4\)/).waitFor();
+    await distance.fill('12');
+    await button('Apply', f.editor()).click();
+    await f.changed(seed);
+    const accepted = await f.doc();
+    const expected = structuredClone(seed);
+    expected.nodes[3].height = 12;
+    assert.deepEqual(accepted, expected);
+    const volume = (await f.bodies()).bodies.find(body => body.key === 'b5').volume;
+    const want = 4 * (60 * 12 - 51 * 3);
+    assert.ok(Math.abs(volume - want) < 1e-7);
+    f.report.observations.push({ label: 'source-dimension-recovered', height: 12, volume, expected: want });
+    await f.undo();
+    await f.same(seed);
+    await f.redo();
+    await f.same(accepted);
+    return;
+  }
   if (narrowDock) {
     await f.page.setViewportSize({ width: 1024, height: 800 });
     await f.page.getByRole('button', { name: 'Chat', exact: true }).first().click();

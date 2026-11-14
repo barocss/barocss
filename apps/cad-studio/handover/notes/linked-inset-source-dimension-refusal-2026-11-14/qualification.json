@@ -1,0 +1,102 @@
+{
+  "decision": "D1213",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "ef4d8e6a3b8347ca5b85fab04734290ffb44d32a",
+  "commands": [
+    "gate.sh acquire heavy 600 D1213-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --source-dimension --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final --source-dimension",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/refusal --narrow-dock --automatic-refusal",
+    "pnpm --filter @barocss/cad-model test associative-inset-relink sketch-associative-inset",
+    "pnpm --filter @barocss/cad-studio-app test failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/app/failedFeature.ts packages/barocss-cad-model/src/engine/{part,errors}.ts",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "source-height-before",
+        "source-height-refused",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "2d83fe92b1a90e6dafb8309b1140a4302ffefca0dc3110914a77b5517bd24f02",
+      "sourceManifestSHA256": "3d85b10ca7a8464db50561be6a26c117b56bac567ca689b9e52bcd3646185adc",
+      "sourceAfterCleanupSHA256": "3d85b10ca7a8464db50561be6a26c117b56bac567ca689b9e52bcd3646185adc",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "source-height-before",
+        "source-height-refused"
+      ],
+      "observations": [
+        {
+          "label": "source-dimension-recovered",
+          "height": 12,
+          "volume": 2268,
+          "expected": 2268
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "031195dae678d2c6c49c34b55da011ea81e5eccde64c065cd3ff646db37b993e",
+      "sourceManifestSHA256": "4dd2ae463a12a8e908e45a3693acf6ae508b5054d2329d525a7feb85c851342e",
+      "sourceAfterCleanupSHA256": "4dd2ae463a12a8e908e45a3693acf6ae508b5054d2329d525a7feb85c851342e",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "refusal": {
+      "status": "PASS",
+      "states": [
+        "before-automatic-refusal",
+        "automatic-refusal"
+      ],
+      "observations": [
+        {
+          "label": "automatic-refusal",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ],
+          "volume": 960.0000000000016,
+          "hint": "The inset closes on this face. Select a wider planar face and retry."
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "a3db3e5e5ec52186cc064302628db5aac067bebd73df0743e69712f5a106bb31",
+      "sourceManifestSHA256": "4dd2ae463a12a8e908e45a3693acf6ae508b5054d2329d525a7feb85c851342e",
+      "sourceAfterCleanupSHA256": "4dd2ae463a12a8e908e45a3693acf6ae508b5054d2329d525a7feb85c851342e",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "focusedModel": {
+    "status": "PASS",
+    "passed": 20,
+    "failed": 0
+  },
+  "focusedStudio": {
+    "status": "PASS",
+    "passed": 4,
+    "failed": 0
+  }
+}

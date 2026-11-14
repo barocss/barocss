@@ -237,7 +237,7 @@ import { confirmDimension, liveDrafts } from '@barocss/cad-model/chat/drafts';
 import { DraftsPanel } from './ui/DraftsPanel';
 import { retargetSweep, sweepPath, SWEEP_CURVE, extrudeProfile } from '@barocss/cad-model/app/profileCommands';
 import { editCommand } from '@barocss/cad-model/app/editCommand';
-import { failedFeatureText } from './app/failedFeature';
+import { failedFeatureText, linkedInsetSourceFailure } from './app/failedFeature';
 import { useHeldFinishEdge } from './state/useHeldFinishEdge';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { resolveShopRows } from '@barocss/cad-model/engine/shopRows';
@@ -3372,6 +3372,8 @@ export function App() {
           return engine.evaluate(next, request).then(reply => {
             if (!reply || !ownsDraft() || docNow.current !== doc || bearingEditScope.current !== scope) return;
             if (reply.ok) { commit(next); return; }
+            const insetFailure = reply.revision === request ? linkedInsetSourceFailure(reply.error, doc.nodes, editNode) : undefined;
+            if (insetFailure) return insetFailure;
             const failedFeature = reply.revision === request ? failedFeatureText(reply.error.feature, next.nodes, doc.nodes) : undefined;
             if (doc.nodes[editNode]?.kind === 'loft' && reply.error.feature === featureId(next.nodes, editNode)) {
               const reason = reply.error.detail.match(/guide (?:must (?:start on the bottom section|end on the top section|pass through a vertex of section)[^\n]*|(?:endpoints must exactly match)[^\n]*)/i)?.[0];
