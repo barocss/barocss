@@ -11,6 +11,7 @@ import type { WeldJoint } from '../frames/welds';
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
 import { closestDetailRim, fmtMM, resolveDimension, resolveLine, valueText, type Resolved } from './dimensions';
 import { centreMarks } from './centres';
+import type { DrawingCallout } from './callout';
 import { threadMarks } from './threads';
 import type { FaceThread } from '../app/threads';
 import { fitText, textCorners, textWidth } from './text';
@@ -110,7 +111,7 @@ const GAP = 1, OVER = 2;
 /** `sections` (O148 X1): each section's projection and cut-face rings (view coordinates), drawn where the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
 /** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; /** O9: the source revision drawn in the title block. */ source?: string; callout?: (edge: string, diameter?: number, f?: LengthFormat) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; /** O9: the source revision drawn in the title block. */ source?: string; callout?: DrawingCallout; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
   const p = presetFor(settings);
   const groups: MarkGroup[] = [];
   const ambiguous = ambiguousFrameDimensions(settings);
@@ -136,7 +137,22 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   }
   // (A dimension in a view not shown (R14.3) is kept, unresolved, so the issue list names it. O148 X2: one on a section is
   // resolved once the sections are placed, below.)
-  const inViews: Resolved[] = settings.dimensions.filter(d => isViewId(d.view)).map((d): Resolved => layout.views[d.view as ViewId].hidden ? { ok: false, dim: d, reason: `Its view (${d.view}) is not shown.` } : resolveDimension(views, d)).map((r): Resolved => r.ok ? withShownText(r, meta.callout, p) : r);
+  const inViews = settings.dimensions.filter(d => isViewId(d.view)).map((d): Resolved => {
+    const view = d.view as ViewId;
+    if (layout.views[view].hidden) return { ok: false, dim: d, reason: `Its view (${view}) is not shown.` };
+    const resolved = resolveDimension(views, d);
+    if (!resolved.ok) return resolved;
+    if (resolved.kind === 'diameter' && resolved.dim.auto) {
+      const current = meta.callout?.patternQuantity?.(view, resolved.dim.edge, resolved.radius);
+      if (current !== undefined && current !== (d.count ?? 1)) {
+        const action = d.tol || d.basic || attachedFrames.some(frame => frame.dim === d.id)
+          ? 'Review this dimension and its attached controls before replacing it.'
+          : 'Run Auto-dimension to refresh its callouts.';
+        return { ok: false, dim: d, reason: `The hole pattern quantity changed or cannot be verified. ${action}` };
+      }
+    }
+    return withShownText(resolved, meta.callout, p);
+  });
   for (const r of inViews) if (r.ok) {
     const marks = dimensionMarks(layout.views[r.dim.view as ViewId], r, p);
     if (r.dim.basic) marks.push(...basicBox(marks));

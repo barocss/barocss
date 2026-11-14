@@ -15,14 +15,17 @@
 // other side, a row each.
 // What it cannot dimension is listed with the reason, never guessed: a ring's angular position when no hole of it lies on
 // a centre line.
-import type { BrepProjection, ProjectedEdge } from '@barocss/cad';
-import { fmtMM, pitchCircle, resolveDimension, roundIn, snapPoints, type SnapPoint } from './dimensions';
+import type { BrepProjection } from '@barocss/cad';
+import { fmtMM, pitchCircle, resolveDimension, snapPoints, type SnapPoint } from './dimensions';
 import type { SheetLayout } from './views';
 import { baseViewOf, isSectionRef, type DimPoint, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type SectionRef, type ViewId, type XY } from './types';
 import { placementOf, type SheetSection } from './sheet';
 import type { PartElement } from './elementCallouts';
 import { nextFreeId } from '../util/ids';
 import { sameLinearDependency, samePointDependency } from './measurement';
+import type { DrawingCallout } from './callout';
+import { holeCalloutGroups, holesOf, type Hole } from './holeCircles';
+export { holesOf, type Hole } from './holeCircles';
 
 export const AUTO_DIMENSIONS_VERSION = 'cad-studio-auto-dimensions-v1';
 
@@ -52,13 +55,11 @@ export interface AutoDimensionReport {
   needs: Partial<Record<DimView, Record<'above' | 'below' | 'left' | 'right', number>>>;
 }
 
-export interface Hole { view: ViewId; at: XY; radius: number; ref: DimPoint; edge: ProjectedEdge; callout: string | null }
 type Side = 'above' | 'below' | 'left' | 'right';
 type Unplaced = Omit<Extract<DrawingDimension, { kind: 'linear' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>, 'id' | 'place'> | Omit<Extract<DrawingDimension, { kind: 'pcd' }>, 'id' | 'place'>;
 interface Planned { dim: Unplaced; row: number; kind: keyof AutoDimensionReport['added'] | 'keys'; along: 'u' | 'v' | 'leader'; span: [XY, XY]; radius?: number }
 
 const r6 = (v: number) => Math.round(v / SAME) * SAME;
-const sameXY = (a: XY, b: XY) => Math.abs(a[0] - b[0]) <= SAME && Math.abs(a[1] - b[1]) <= SAME;
 
 // ——— O146 (R12c on drawings, S3b): keyseats and keyways dimensioned — a keyseat's width b and the shaft's d − t1 (from the
 // far side of the shaft to the seat's floor), a hub keyway's width and d + t2 (from the far side of the bore to its
@@ -145,38 +146,6 @@ function room(layout: SheetLayout, id: DimView): Record<Side, number> {
   return out;
 }
 
-/** A circle's arcs (by their 3D centre and radius) adding up to a whole turn: one round outline (a hole's rim, a boss). */
-interface Circle { c: readonly number[]; r: number; n: readonly number[]; edge: ProjectedEdge; sweep: number }
-const keyOf = (c: readonly number[], r: number) => [c[0], c[1], c[2], r].map(r6).join(',');
-/** The distance between two centres square to an axis (rims of one hole: 0). */
-function across(a: readonly number[], b: readonly number[], n: readonly number[]): number {
-  const d0 = a[0] - b[0], d1 = a[1] - b[1], d2 = a[2] - b[2], t = d0 * n[0] + d1 * n[1] + d2 * n[2];
-  return Math.hypot(d0 - n[0] * t, d1 - n[1] * t, d2 - n[2] * t);
-}
-
-/** The holes of every orthographic view: whole circles that show round, each in the first view it does (by its 3D centre). */
-export function holesOf(views: DrawingViews, callout: (edge: string) => string | null): Hole[] {
-  const out: Hole[] = [], seen: Circle[] = [];
-  for (const id of ORTHO) {
-    const pr = views[id], circles = new Map<string, Circle>();
-    for (const e of pr.edges) {
-      if (!e.circle || !roundIn(pr, e)) continue;
-      const k = keyOf(e.circle.center, e.circle.radius), had = circles.get(k);
-      if (had) had.sweep += e.circle.sweep;
-      else circles.set(k, { c: e.circle.center, r: e.circle.radius, n: e.circle.normal, edge: e, sweep: e.circle.full ? 2 * Math.PI : e.circle.sweep });
-    }
-    for (const c of circles.values()) {
-      if (c.sweep < 2 * Math.PI - 1e-6) continue;
-      // Both rims of a hole show as one circle: the same radius, centres along its axis.
-      if (seen.some(s => Math.abs(s.r - c.r) <= SAME && across(c.c, s.c, c.n) <= SAME)) continue;
-      seen.push(c);
-      const at: XY = [c.c[0] * pr.right[0] + c.c[1] * pr.right[1] + c.c[2] * pr.right[2], c.c[0] * pr.up[0] + c.c[1] * pr.up[1] + c.c[2] * pr.up[2]];
-      out.push({ view: id, at, radius: c.r, edge: c.edge, ref: { edge: c.edge.name, at: 'center', near: [c.c[0], c.c[1], c.c[2]] }, callout: callout(c.edge.name) });
-    }
-  }
-  return out;
-}
-
 /** Holes of one kind evenly round a point, three or more and not a grid: a ring, with its centre (a point, or the hole on it). */
 interface Ring { members: Hole[]; at: XY; radius: number; centre: DimPoint | null }
 function ringsOf(pr: BrepProjection, holes: readonly Hole[]): Ring[] {
@@ -245,10 +214,10 @@ export function retainedDimensions(settings: DrawingSettings): DrawingDimension[
  * The dimensions Auto-dimension gives the part's views, with retained annotations kept and unedited auto dimensions
  * replaced. `callout`: a hole's callout by an edge of it (null: not a hole feature).
  */
-export function autoDimensions(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements: readonly PartElement[] = [], sections: readonly SheetSection[] = [], locationOwner?: (edge: string) => string | null): { dimensions: DrawingDimension[]; report: AutoDimensionReport } {
+export function autoDimensions(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: DrawingCallout, elements: readonly PartElement[] = [], sections: readonly SheetSection[] = [], locationOwner?: (edge: string) => string | null): { dimensions: DrawingDimension[]; report: AutoDimensionReport } {
   const retained = retainedDimensions(settings);
   const report: AutoDimensionReport = { contract: AUTO_DIMENSIONS_VERSION, added: { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }, keys: 0, kept: retained.length, skipped: [], crowded: [], needs: {} };
-  const holes = holesOf(views, callout), planned: Partial<Record<DimView, Planned[]>> & Record<ViewId, Planned[]> = { front: [], top: [], right: [], iso: [] };
+  const holes = holesOf(views, callout, locationOwner), planned: Partial<Record<DimView, Planned[]>> & Record<ViewId, Planned[]> = { front: [], top: [], right: [], iso: [] };
   // (O146: the keyseats' and the keyways' sizes, each in the view — or, O148 X2, the section — that shows it best.)
   for (const p of keyPlans(views, layout, elements, report, sections)) (planned[p.dim.view] ??= []).push(p);
   // (A section's dimensions are read from its projection, as a view's are from the view's.)
@@ -308,14 +277,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
       }
     }
     // Callouts: one a kind of hole (concentric outer circles of a counterbore or countersink are in the callout).
-    const kinds = new Map<string, Hole[]>();
-    for (const h of all) {
-      const inner = all.find(o => o !== h && sameXY(o.at, h.at) && o.radius < h.radius - SAME && o.callout && /CBORE|CSK/.test(o.callout));
-      if (inner) continue;
-      const key = (h.callout ?? `Ø${r6(2 * h.radius)}`).replace(/^\d+× /, '');
-      kinds.set(key, [...(kinds.get(key) ?? []), h]);
-    }
-    for (const group of kinds.values()) {
+    for (const group of holeCalloutGroups(all, locationOwner, callout.holeKind).values()) {
       const h = [...group].sort((a, b) => a.at[0] - b.at[0] || a.at[1] - b.at[1])[0];
       list.push({ dim: { view: id, kind: 'diameter', edge: h.edge.name, near: h.ref.near, ...(group.length > 1 ? { count: group.length } : {}), auto: true }, row: 0, kind: 'callouts', along: 'leader', span: [h.at, h.at], radius: h.radius });
     }

@@ -15,7 +15,7 @@ import { projectViews } from '../drawing/project';
 import { tableContent } from '../drawing/tables';
 import { bomPanelDataOf } from '../bom/bom';
 import type { Bom } from '../bom/core';
-import { holeCallout, holeCalloutOwnerOf } from '../drawing/callout';
+import { drawingHoleCallouts } from '../drawing/callout';
 import { sectionsCut } from '../drawing/section';
 import { sheetSections } from '../drawing/sheet';
 import { threadsOf } from '../app/threads';
@@ -90,7 +90,8 @@ function readDrawingInputs(doc: StudioDoc, settings: DrawingSettings, includeBom
     return cause.message;
   }
   const scope = drawingScopeOf(settings), source = drawingSourceRevision(scope.kind === 'assembly' ? doc : authored, scope);
-  return { views: r.views, settings, locationOwner: e => holeCalloutOwnerOf(doc, e), fastenerSizes: fastenerSizesOf(doc), elements, callout: withElements(doc, withFit(doc, (e, f) => holeCallout(doc.nodes, e, doc.parameters, f)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), source, threads: threadsOf(doc.nodes, fastenerSizesOf(doc)), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
+  const holes = drawingHoleCallouts(doc, r.views);
+  return { views: r.views, settings, locationOwner: holes.owner, fastenerSizes: fastenerSizesOf(doc), elements, callout: Object.assign(withElements(doc, withFit(doc, holes.callout), elements), { holeKind: holes.holeKind, patternQuantity: holes.patternQuantity }), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), source, threads: threadsOf(doc.nodes, fastenerSizesOf(doc)), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
 }
 
 /** O147 B2: the BOM, when a table or the balloons read it (each document evaluated on its own, synchronously). */

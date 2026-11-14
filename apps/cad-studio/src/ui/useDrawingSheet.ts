@@ -16,7 +16,7 @@ import type { Bom } from '@barocss/cad-model/bom/core';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { buildSheet, sectionExtents, sheetSections } from '@barocss/cad-model/drawing/sheet';
 import { bodyFacesOf } from '@barocss/cad-model/drawing/balloons';
-import { holeCallout, holeCalloutOwnerOf } from '@barocss/cad-model/drawing/callout';
+import { drawingHoleCallouts } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
@@ -95,9 +95,13 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
   // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
   const elements = useMemo(() => elementsOfBodies(doc.nodes, bodies ?? []), [doc.nodes, bodies]);
-  const callout = useMemo(() => withElements(doc, withFit(doc, (edge, f) => holeCallout(doc.nodes, edge, doc.parameters, f)), elements), [doc.nodes, doc.parameters, doc.fits, elements]);
-  // Physical hole ownership is independent of the formatted size/counterbore callout.
-  const locationOwner = useMemo(() => (edge: string) => holeCalloutOwnerOf(doc, edge), [doc]);
+  const calloutsFor = useCallback((projection?: DrawingViews) => {
+    const holes = drawingHoleCallouts(doc, projection);
+    return { callout: Object.assign(withElements(doc, withFit(doc, holes.callout), elements), {
+      holeKind: holes.holeKind, patternQuantity: holes.patternQuantity,
+    }), locationOwner: holes.owner };
+  }, [doc, elements]);
+  const { callout, locationOwner } = useMemo(() => calloutsFor(views ?? undefined), [calloutsFor, views]);
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
   // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
   const followedChanged = useMemo(() => scoped.authored ? followedStale(scoped.authored).map(staleText) : [], [scoped.authored]);
@@ -137,5 +141,5 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), source, callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bodyFaces, bom]);
   const annotations = useMemo<ModelAnnotations | null>(() => active && wantAnnotations && sheet && layout && views ? modelAnnotations({ views, layout, settings, sheet, ...(weldJoints ? { welds: weldJoints } : {}) }) : null,
     [active, wantAnnotations, sheet, layout, views, settings, weldJoints]);
-  return { source, scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
+  return { source, scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, calloutsFor, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
 }

@@ -1,0 +1,181 @@
+{
+  "decision": "D1244",
+  "tier": "SMALL",
+  "parent": "c14ca6cb6e80e368dc1ca69f3e4a80c156f04f96",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1244-<run>",
+    "D1244_SOURCE_FROZEN=1 node apps/cad-studio/test/counterbore-pattern-drawing-browser.mjs <external-evidence>",
+    "pnpm --filter @barocss/cad-model test drawing-parameter-hole-callout auto-dimension auto-layout drawing-issues drawing-independent-locations fit-drawing chat-drawing drawing-standalone-frame-consumer drawing-thread-visibility drawing-units.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint <changed Model sources> apps/cad-studio/src/ui/useDrawingSheet.ts",
+    "node --check apps/cad-studio/test/counterbore-pattern-drawing-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "native-baseline": {
+      "status": "FAIL",
+      "frozenFiles": 888,
+      "receiptSHA256": "b2a16b0d50efeb722cd2db8e4dea71760eaf473343bcf78a6da8307787e7f173",
+      "sourceManifestSHA256": "e1afffe0fa6b007e9a60727c658e8377d52246d5a2b7e5c90ae1d788dbc301df",
+      "sourceAfterCleanupSHA256": "e1afffe0fa6b007e9a60727c658e8377d52246d5a2b7e5c90ae1d788dbc301df",
+      "observations": [
+        {
+          "label": "aligned-four",
+          "texts": [
+            "4\u00d7 \u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP"
+          ],
+          "volume": 18408.31865129536,
+          "sha256": "f28e644a0f4e321a6188d323df9625a00bf18c56e0fb33a05915a9c8f2bbd856"
+        },
+        {
+          "label": "shifted-retained-drawing",
+          "texts": [
+            "4\u00d7 \u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP",
+            "\u00d822.8 PCD \u00b7 4\u00d7 EQ SP"
+          ],
+          "volume": 18295.22131576613,
+          "sha256": "8451124986537135be32965e1b20a7f6f05859d9d8bbc86b6e12af20b6e0aa2c"
+        },
+        {
+          "label": "aligned-undo",
+          "texts": [
+            "4\u00d7 \u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP"
+          ],
+          "volume": 18408.31865129536,
+          "sha256": "f28e644a0f4e321a6188d323df9625a00bf18c56e0fb33a05915a9c8f2bbd856"
+        },
+        {
+          "label": "shifted-new-auto-dimension",
+          "texts": [
+            "7\u00d7 \u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP",
+            "\u00d822.8 PCD \u00b7 4\u00d7 EQ SP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP"
+          ],
+          "volume": 18295.22131576613,
+          "sha256": "77634d0a9856e5855034bfb039a379f9de1fc256b2088c2abc828ec7406d336f"
+        }
+      ]
+    },
+    "final-proof": {
+      "status": "PASS",
+      "frozenFiles": 894,
+      "receiptSHA256": "941d7c50bf20ce662a3491db15bcbe16db75cd07cbcc6033bd57e3f615764aeb",
+      "sourceManifestSHA256": "57eddf693f0cbf12229d682172436dc0886953e8d866f66b736983d42796ce12",
+      "sourceAfterCleanupSHA256": "57eddf693f0cbf12229d682172436dc0886953e8d866f66b736983d42796ce12",
+      "observations": [
+        {
+          "label": "aligned-four",
+          "texts": [
+            "4\u00d7 \u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP"
+          ],
+          "volume": 18408.31865129536,
+          "svgHash": "f28e644a0f4e321a6188d323df9625a00bf18c56e0fb33a05915a9c8f2bbd856",
+          "pdfHash": "743f9fedc4c1ef8ce2a91ff26e3cafa5a2a2a97693f41a5d065897a712292d62"
+        },
+        {
+          "label": "shifted-retained-drawing",
+          "texts": [
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP",
+            "\u00d822.8 PCD \u00b7 4\u00d7 EQ SP"
+          ],
+          "volume": 18295.22131576613,
+          "svgHash": "aff0bac57379134b2783461f4f44fc7ad4bf9facc6763e161354c08de67b3789",
+          "pdfHash": "1d2ec9650f739dca451f8e221d5b32682e973e5fac1322359123c85a5b9a035c"
+        },
+        {
+          "label": "shifted-refreshed-drawing",
+          "texts": [
+            "3\u00d7 \u00d86 \u00d7 3 DEEP",
+            "3\u00d7 \u00d84 THRU",
+            "\u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP"
+          ],
+          "volume": 18295.22131576613,
+          "svgHash": "13c7a303b242b13753ee3332ea39d55c3eca0b52a770d141c16251ffca455dc8",
+          "pdfHash": "d66e0b076c0d30b4f29ecf33803cd4dbee3fb8db190160c938135920a1f86c4c"
+        },
+        {
+          "label": "aligned-undo",
+          "texts": [
+            "4\u00d7 \u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP",
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP"
+          ],
+          "volume": 18408.31865129536,
+          "svgHash": "f28e644a0f4e321a6188d323df9625a00bf18c56e0fb33a05915a9c8f2bbd856",
+          "pdfHash": "743f9fedc4c1ef8ce2a91ff26e3cafa5a2a2a97693f41a5d065897a712292d62"
+        },
+        {
+          "label": "two-recesses-retained-drawing",
+          "texts": [
+            "\u00d816 PCD \u00b7 4\u00d7 EQ SP"
+          ],
+          "volume": 18502.566430903058,
+          "svgHash": "f838b17d68f3104b441bbec2093d197751eb0e0ce8b3fa46bfa645f14a51658c",
+          "pdfHash": "01786140e9cf7c9dbeae97da10fba5acfbfcb6309acda289e814a21fb8c58073"
+        },
+        {
+          "label": "two-recesses-refreshed-drawing",
+          "texts": [
+            "2\u00d7 \u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP",
+            "2\u00d7 \u00d84 THRU"
+          ],
+          "volume": 18502.566430903058,
+          "svgHash": "0c81143e63492e7205ac0b2b2b90efbd86ed0a2348b77b0dd4d606d948351aa0",
+          "pdfHash": "77996d27181c1b2ee802c703b9e8e1c8214b24d4c2688b89df58cbdc14891c60"
+        },
+        {
+          "label": "shifted-new-auto-dimension",
+          "texts": [
+            "3\u00d7 \u00d86 \u00d7 3 DEEP",
+            "3\u00d7 \u00d84 THRU",
+            "\u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP"
+          ],
+          "volume": 18295.22131576613,
+          "svgHash": "cfd77bae8101e1d24787031c6fcb6c489958477f48f7d0f3ac7db239a3bb0a2c",
+          "pdfHash": "459bde35ecfe43f29b2be3245000a593a07949f445a5214e4704481027be9c39"
+        },
+        {
+          "label": "shifted-reopened-drawing",
+          "texts": [
+            "3\u00d7 \u00d86 \u00d7 3 DEEP",
+            "3\u00d7 \u00d84 THRU",
+            "\u00d84 THRU CBORE \u00d86 \u00d7 3 DEEP"
+          ],
+          "volume": 18295.22131576613,
+          "svgHash": "50d911f6fee6e54e85746c5711561ff3fbbbcc73c763c318bc8af01db550823a",
+          "pdfHash": "674c5350f161db0e3d9db074f8df8dad52cc12d4076f7c2ac11f36eedad03f2b"
+        }
+      ],
+      "nativeSaveSHA256": "a4682d4be5c28f4782b440ca00aef62e353fe9eb6ead41c895cd41b27ce8d864"
+    }
+  },
+  "checks": {
+    "focusedModel": {
+      "status": "PASS",
+      "tests": 95
+    },
+    "studioTypeCheck": "PASS",
+    "modelTypeCheck": "PASS",
+    "focusedLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "strictBrep": "PASS",
+    "threadedPcdEdit": "NOT_RUN",
+    "DXF": "NOT_RUN",
+    "asmePdfGolden": "NOT_RUN",
+    "full": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  }
+}

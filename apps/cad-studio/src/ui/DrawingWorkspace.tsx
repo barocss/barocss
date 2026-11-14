@@ -136,7 +136,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       : local;
   }, [wholeSettings, current, drawingSetWantsBom]);
   // (The sheet's pipeline, shared with the viewport's 3D annotations, G24: views, layout, sheet and what they are built from.)
-  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, drawingSetWantsBom, ...(wholeSettings.sheets?.length ? { allSections: sectionsOf(wholeSettings) } : {}) });
+  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, calloutsFor, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, drawingSetWantsBom, ...(wholeSettings.sheets?.length ? { allSections: sectionsOf(wholeSettings) } : {}) });
   /** The whole drawing's next settings, as the file will have them. */
   const commitWhole = (next: DrawingSettings) => {
     if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return false; }
@@ -942,7 +942,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     }
     let result: ReturnType<typeof autoLayout>;
     try {
-      result = autoLayout({ views: base.views, settings: base.settings, elements, callout, locationOwner, fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
+      result = autoLayout({ views: base.views, settings: base.settings, elements, ...calloutsFor(base.views), fitMiss: fitMissOf, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
     } catch (error) {
       if (!isRefusal(error, 'VIEWS_DONT_FIT')) throw error;
       onToast({ title: 'Could not lay out the drawing', hint: error.message.replace(/^\[VIEWS_DONT_FIT\] /, ''), detail: '' });

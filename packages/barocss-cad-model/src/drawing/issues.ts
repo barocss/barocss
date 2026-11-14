@@ -26,6 +26,7 @@
 // Tables (O49) are annotations: TEXT_OVERLAP, TEXT_OVER_LINES (a view's lines or area) and OFF_SHEET, fix: move it
 // (move-table); and an error of their own:
 //   TABLE_SOURCE       a table's source is unknown or gave nothing (drawn with its reason)   (none: fix the part or the table)
+import type { DrawingCallout } from './callout';
 import type { FastenerSizes } from '../app/fasteners';
 import type { PartElement } from './elementCallouts';
 import type { BrepProjection } from '@barocss/cad';
@@ -351,7 +352,7 @@ function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.f
 // The list
 
 export interface IssueContext {
-  views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string, diameter?: number) => string | null;
+  views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: DrawingCallout;
   /** Authored identity for a combined hole callout; text equality cannot establish it. */
   locationOwner?: (edge: string) => string | null;
   /** O7: the document's fastener sizes, which position tolerances read (none loaded: each an estimate). */
@@ -879,7 +880,7 @@ export function coverage(ctx: IssueContext): DrawingIssue[] {
   const along: Record<string, number[]> = {};
   const given = (axis: string) => along[axis] ??= givenAlong(sheet, axis);
   // Holes: a size (its own diameter, or a counted one of its kind), and a position both ways in its view.
-  const holes = holesOf(views, ctx.callout);
+  const holes = holesOf(views, ctx.callout, ctx.locationOwner);
   const sizes = sheet.dimensions.filter((r): r is Extract<Resolved, { ok: true; kind: 'diameter' | 'radius' }> => r.ok && (r.kind === 'diameter' || r.kind === 'radius'));
   const kindOf = (callout: string | null, radius: number) => (callout ?? `Ø${round(2 * radius)}`).replace(/^\d+× /, '');
   let unsized = 0, unlocated = 0; const where: ViewId[] = [];
@@ -897,7 +898,7 @@ export function coverage(ctx: IssueContext): DrawingIssue[] {
   for (const h of holes) {
     if (ctx.layout.views[h.view].hidden) { hiddenOwners.set(h.view, (hiddenOwners.get(h.view) ?? 0) + 1); continue; }
     const own = sizes.some(r => r.dim.view === h.view && Math.abs(r.center[0] - h.at[0]) <= SAME && Math.abs(r.center[1] - h.at[1]) <= SAME && Math.abs(r.radius - h.radius) <= SAME);
-    const ofKind = sizes.some(r => r.dim.count && Math.abs(r.radius - h.radius) <= SAME && kindOf(ctx.callout(r.dim.kind === 'diameter' || r.dim.kind === 'radius' ? r.dim.edge : ''), r.radius) === kindOf(h.callout, h.radius));
+    const ofKind = sizes.some(r => r.dim.count && Math.abs(r.radius - h.radius) <= SAME && kindOf(ctx.callout.holeKind?.(r.dim.edge) ?? ctx.callout(r.dim.edge), r.radius) === kindOf(ctx.callout.holeKind?.(h.edge.name) ?? h.callout, h.radius));
     // (A counterbore's or countersink's outer circle: sized by the callout on its centre.)
     const inCallout = sizes.some(r => r.dim.view === h.view && Math.abs(r.center[0] - h.at[0]) <= SAME && Math.abs(r.center[1] - h.at[1]) <= SAME && r.radius < h.radius && /CBORE|CSK/.test(r.text));
     if (!own && !ofKind && !inCallout) { unsized++; where.push(h.view); }
@@ -974,7 +975,7 @@ function accepted(d: DrawingDimension): DrawingDimension {
 }
 
 /** What a sheet is built from, to build it again after a fix. */
-export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; /** O7: the document's fastener sizes. */ fastenerSizes?: FastenerSizes; /** The part's machine elements (O145): Auto layout's leader notes for keys and pins. */ elements?: readonly PartElement[]; callout: (edge: string, diameter?: number) => string | null; locationOwner?: (edge: string) => string | null; fitMiss?: (edge: string, diameter: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; /** O148 X1: the sections cut (each with its projection; those the settings list are drawn). */ sections?: readonly SheetSection[] }
+export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; /** O7: the document's fastener sizes. */ fastenerSizes?: FastenerSizes; /** The part's machine elements (O145): Auto layout's leader notes for keys and pins. */ elements?: readonly PartElement[]; callout: DrawingCallout; locationOwner?: (edge: string) => string | null; fitMiss?: (edge: string, diameter: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; /** O148 X1: the sections cut (each with its projection; those the settings list are drawn). */ sections?: readonly SheetSection[] }
 
 /** The context of a sheet built from its inputs (its layout from the settings, the sections' extents with it). */
 export function issueContext(i: SheetInputs): IssueContext {

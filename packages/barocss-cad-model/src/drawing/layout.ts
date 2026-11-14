@@ -203,7 +203,7 @@ export function autoLayout(i: SheetInputs): { settings: DrawingSettings; report:
   const sheets: DrawingSettings['sheet'][] = i.settings.sheet === 'A4' ? ['A4', 'A3'] : [i.settings.sheet];
   type Attempt = { settings: DrawingSettings; dims: AutoDimensionReport; left: DrawingIssue[]; errors: number };
   let best: Attempt | null = null, clean: Attempt | null = null, tried = 0;
-  const smallest = Math.min(Infinity, ...holesOf(i.views, i.callout).map(h => 2 * h.radius));
+  const smallest = Math.min(Infinity, ...holesOf(i.views, i.callout, i.locationOwner).map(h => 2 * h.radius));
   const candidates = sheets.map(sheet => {
     const base: DrawingSettings = { ...i.settings, sheet, views: shown, dimensions: retained };
     delete base.room; delete base.scale;

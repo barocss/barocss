@@ -78,14 +78,14 @@ interface Centre { c: readonly number[]; n: readonly number[]; ref?: DimPoint; v
 
 /** The drawing's kinds of hole: each diameter dimension on a hole with the holes it stands for (its count, or itself). */
 function holeKinds(ctx: IssueContext): HoleKind[] {
-  const holes = holesOf(ctx.views, ctx.callout), out: HoleKind[] = [];
+  const holes = holesOf(ctx.views, ctx.callout, ctx.locationOwner), out: HoleKind[] = [];
   const kindOf = (callout: string | null, r: number) => (callout ?? `Ø${Math.round(2 * r * 1e6) / 1e6}`).replace(/^\d+× /, '');
   for (const r of ctx.sheet.dimensions) {
     if (!r.ok || (r.kind !== 'diameter' && r.kind !== 'radius')) continue;
-    const callout = ctx.callout(r.dim.edge), key = kindOf(callout, r.radius);
+    const callout = ctx.callout(r.dim.edge), key = kindOf(ctx.callout.holeKind?.(r.dim.edge) ?? callout, r.radius);
     const own = holes.find(h => h.view === r.dim.view && Math.abs(h.at[0] - r.center[0]) <= SAME && Math.abs(h.at[1] - r.center[1]) <= SAME && Math.abs(h.radius - r.radius) <= SAME);
     if (!own) continue;
-    const members = r.dim.count ? holes.filter(h => Math.abs(h.radius - r.radius) <= SAME && kindOf(h.callout, h.radius) === key) : [own];
+    const members = r.dim.count ? holes.filter(h => Math.abs(h.radius - r.radius) <= SAME && kindOf(ctx.callout.holeKind?.(h.edge.name) ?? h.callout, h.radius) === key) : [own];
     out.push({ dim: r, callout, diameter: Math.round(2 * r.radius * 1e6) / 1e6, centres: members.map(h => ({ c: h.ref.near, n: h.edge.circle!.normal, ref: h.ref, view: h.view })) });
   }
   return out;
