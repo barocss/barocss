@@ -67,6 +67,7 @@ import { committedSettings, committedSheetSettings } from './drawing/commitSetti
 import { StandaloneFramesEditor } from './drawing/StandaloneFramesEditor';
 import { checkDrawingFrames, readFrames, type DrawingFrame } from '@barocss/cad-model/drawing/controls';
 import { ToleranceEditor } from './drawing/ToleranceEditor';
+import { ToleranceStack } from './drawing/ToleranceStack';
 import { NotesList } from './drawing/NotesList';
 import { ExportActions } from './drawing/ExportActions';
 import '../drawing/drawing.css';
@@ -115,8 +116,8 @@ const showDetailHidden = (settings: DrawingSettings, view: DimView) => {
 export interface DrawingReferencePreview { dimensionId: string; edge?: string; candidateNumber?: number }
 export interface DrawingReferenceLabel { dimensionId: string; view: DimView; text: string | null; reason?: string }
 
-export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings: wholeSettings, fileName, onChange: sourceOnChange, onToast, referencePreview, onClearReferencePreview, onReferenceLabels }: {
-  engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
+export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings: wholeSettings, modelInput, workerSession, sourceCurrent, fileName, onChange: sourceOnChange, onToast, referencePreview, onClearReferencePreview, onReferenceLabels }: {
+  engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; modelInput: StudioDoc; workerSession: number; sourceCurrent: boolean; fileName: string;
   onChange(next: DrawingSettings): boolean; onToast(e: FriendlyError): void;
   referencePreview?: DrawingReferencePreview | null; onClearReferencePreview(): void; onReferenceLabels?(labels: readonly DrawingReferenceLabel[]): void;
 }) {
@@ -137,7 +138,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       : local;
   }, [wholeSettings, current, drawingSetWantsBom]);
   // (The sheet's pipeline, shared with the viewport's 3D annotations, G24: views, layout, sheet and what they are built from.)
-  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, calloutsFor, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, drawingSetWantsBom, ...(wholeSettings.sheets?.length ? { allSections: sectionsOf(wholeSettings) } : {}) });
+  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, projectionCurrent, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, calloutsFor, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, modelInput, workerSession, drawingSetWantsBom, ...(wholeSettings.sheets?.length ? { allSections: sectionsOf(wholeSettings) } : {}) });
   /** The whole drawing's next settings, as the file will have them. */
   const commitWhole = (next: DrawingSettings) => {
     if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return false; }
@@ -1173,6 +1174,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} occurrenceReasons={lossByDimension} onReattach={startReattachment} selected={selDim?.id ?? null} onSelect={id => { selectAnnotationRow('dimension', id); setNoteDraft(null); }} remove={id => removeAnnotation({ kind: 'dimension', id })} autoDimension={autoDimension} />
 
         <ToleranceEditor selDim={selDim} settings={settings} tolDraft={tolDraft} setTolDraft={setTolDraft} commitDims={commitDims} setMessage={setMessage} />
+
+        <ToleranceStack key={JSON.stringify([current > 0 ? wholeSettings.sheets?.[current - 1]?.id ?? current : null, scopeKey])}
+          dimensions={sourceCurrent && projectionCurrent && !busy ? sheet?.dimensions ?? null : null} settings={settings} />
 
         <FrameEditor key={selectedFrame ? `frame:${selectedFrame}` : selDim?.id ?? 'none'} dim={selectedFrame ? undefined : selDim?.id} frameId={selectedFrame ?? undefined} settings={settings} onChange={changeFrame} onRefused={setMessage} />
 

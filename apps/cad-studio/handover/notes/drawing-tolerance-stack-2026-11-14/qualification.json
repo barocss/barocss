@@ -1,0 +1,88 @@
+{
+  "decision": "D1256",
+  "tier": "FULL",
+  "parent": "725d0b273e671dcb5c3484e5055532f297bd53dc",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1256-<run>",
+    "D1256_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-tolerance-stack-browser.mjs <external-evidence>/studio-final",
+    "pnpm --filter @barocss/cad-model test tolerance-stack tolerance.test drawing-tolerance-printable drawing-issues drawing-scope",
+    "pnpm --filter @barocss/cad-studio-app test drawing-commit-roundtrip",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/drawing/ToleranceStack.tsx packages/barocss-cad-model/src/drawing/{decimal,standard,toleranceStack}.ts packages/barocss-cad-model/test/tolerance-stack.test.ts",
+    "node --check apps/cad-studio/test/drawing-tolerance-stack-browser.mjs",
+    "node <external-evidence>/mutation.mjs <external-evidence>",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/final-build",
+    "git diff --check"
+  ],
+  "checks": {
+    "model": {
+      "status": "PASS",
+      "tests": 51
+    },
+    "studioDrawingCommit": {
+      "status": "PASS",
+      "tests": 4
+    },
+    "modelTypeCheck": "PASS",
+    "studioTypeCheck": "PASS",
+    "scopedLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "newNavigationLinks": "PASS",
+    "visualReview": "PASS",
+    "fullSuites": "NOT_RUN",
+    "mobile": "NOT_RUN",
+    "liveAi": "NOT_RUN",
+    "liveCurveAndWorkerRestartPathsInStudio": "NOT_RUN"
+  },
+  "mutation": {
+    "status": "PASS",
+    "scriptSHA256": "bcd070c17e3ee31ed69e9953b58e9844dd46f70dc5efbe3392b5356d4dee42f3",
+    "evidenceSHA256": "ea9f6a948ef625615535650ebb873b57cbea16cd95850c94d09e62dbffbda224",
+    "exitByVariant": {
+      "current": 0,
+      "negative-bounds-not-reversed": 1
+    }
+  },
+  "studio": {
+    "status": "PASS",
+    "frozenFiles": 403,
+    "receiptSHA256": "60f90c1eac79ceee94818b7491f1d5aeac66e116d42fea8cb3a3ac3953f496aa",
+    "sourceManifestSHA256": "6ef8f44ac02ec2839a2b4e1a09675376ea782189af03ab4267e1c2fdf331f653",
+    "sourceAfterCleanupSHA256": "6ef8f44ac02ec2839a2b4e1a09675376ea782189af03ab4267e1c2fdf331f653",
+    "savedFileSHA256": "4fba647adbaa334b4d71a0a550128462033e59aea411c2e6119de500d03f47f4",
+    "oracleSHA256": "ca8da0cdaace31b177ee701695dbc949a3b326b31d2f083d3ec28cbf99a7594e",
+    "stateLabels": [
+      "01-clearance",
+      "04-missing-tolerance",
+      "07-reused-id-refused",
+      "08-open-saved",
+      "10-lost-shim"
+    ],
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "oracleChecks": 8,
+    "endpointCombinationsPerCheck": 8,
+    "negativeShimMM": {
+      "label": "01-clearance",
+      "nominal": "10",
+      "minimum": "9.77",
+      "maximum": "10.27",
+      "unit": "mm"
+    },
+    "positiveShimMM": {
+      "label": "02-positive-shim",
+      "nominal": "50",
+      "minimum": "49.83",
+      "maximum": "50.33",
+      "unit": "mm"
+    }
+  }
+}

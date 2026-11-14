@@ -4,6 +4,8 @@
 // ISO 5459 (datum targets; the datum feature's triangle is filled under both standards, so it is not a setting), ISO 1101 (GD&T); ASME Y14.2-2014 (line conventions, arrowheads, 3:1), ASME Y14.5-2018
 // (§1.6.1 zeros, unidirectional text, datum targets, concentricity and symmetry removed), ASME Y14.3 (projection).
 
+import { decimalAt, decimalValue, tickNumber, type DecimalValue } from './decimal';
+
 export type DrawingStandard = 'iso' | 'asme';
 /** The unit lengths are printed in (11 ③b). The model stays in mm; this is display only. */
 export type DrawingUnits = 'mm' | 'inch';
@@ -108,16 +110,8 @@ const KEEP = 0.8;
 const EPS = 1e-9;
 /** The decimals a value was entered with (up to 4). */
 const decimalsOf = (v: number): number => { for (let d = 0; d < 4; d++) if (Math.abs(Math.round(Math.abs(v) * 10 ** d) - Math.abs(v) * 10 ** d) < EPS) return d; return 4; };
-interface DecimalValue { integer: bigint; places: number }
 interface ToleranceZone { upper: bigint; lower: bigint; denominator: bigint; upperEntered: number; lowerEntered: number }
 interface RoundedZone { U: bigint; L: bigint; printable: boolean; adequate: boolean }
-/** Model numbers mean their canonical decimal spelling, before adding the nominal and deviation. */
-function decimalValue(value: number | string): DecimalValue {
-  const [mantissa, power = '0'] = String(value).toLowerCase().split('e'), dot = mantissa.indexOf('.');
-  const places = (dot < 0 ? 0 : mantissa.length - dot - 1) - Number(power), integer = BigInt(mantissa.replace('.', ''));
-  return places < 0 ? { integer: integer * 10n ** BigInt(-places), places: 0 } : { integer, places };
-}
-const decimalAt = (value: DecimalValue, places: number): bigint => value.integer * 10n ** BigInt(places - value.places);
 function toleranceZone(nominal: DecimalValue, upper: number, lower: number, unit: DrawingUnits): ToleranceZone {
   const u = decimalValue(upper), l = decimalValue(lower), places = Math.max(nominal.places, u.places, l.places), n = decimalAt(nominal, places);
   const factor = unit === 'inch' ? 5n : 1n, denominator = 10n ** BigInt(places) * (unit === 'inch' ? 127n : 1n);
@@ -136,13 +130,6 @@ function roundedZone(zone: ToleranceZone, q: bigint, nominal: bigint): RoundedZo
   const point = zone.upper === zone.lower, printable = point ? U === L : U > L;
   const adequate = printable && (point || ((zone.upperEntered === 0 || U !== 0n) && (zone.lowerEntered === 0 || L !== 0n) && 5n * (U - L) * zone.denominator >= 4n * (zone.upper - zone.lower) * q));
   return { U, L, printable, adequate };
-}
-/** Exact decimal text from integer grid ticks; no floating-point conversion of a printed deviation. */
-function tickNumber(value: bigint, digits: number, leadingZero: boolean, trim: boolean): string {
-  const raw = (value < 0n ? -value : value).toString().padStart(digits + 1, '0');
-  let text = digits ? `${raw.slice(0, -digits)}.${raw.slice(-digits)}` : raw;
-  if (trim && text.includes('.')) text = text.replace(/0+$/, '').replace(/\.$/, '');
-  return leadingZero ? text : text.replace(/^0\./, '.');
 }
 function deviationText(value: bigint, truth: number, digits: number, lead: boolean, plain: boolean): string {
   if (value === 0n) return truth === 0 ? '0' : `${truth > 0 ? '+' : '-'}${tickNumber(0n, digits, lead, plain)}`;

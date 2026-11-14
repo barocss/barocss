@@ -27,8 +27,8 @@ import { Lanes } from '../engine/lanes';
 
 export const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
-export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, annotations: wantAnnotations = false, allSections, drawingSetWantsBom = false }: {
-  engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string; annotations?: boolean;
+export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, modelInput, workerSession, annotations: wantAnnotations = false, allSections, drawingSetWantsBom = false }: {
+  engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string; modelInput?: StudioDoc; workerSession?: number; annotations?: boolean;
   /** 11 ④: the whole drawing's sections, cut whichever sheet is shown (a detail on this sheet may enlarge a section on another). Absent: this settings' own. */ allSections?: readonly DrawingSection[];
   drawingSetWantsBom?: boolean;
 }) {
@@ -43,7 +43,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const scoped = useMemo(() => {
     try { return { doc: drawingDocument(sourceDoc, settings), authored: drawingSource(sourceDoc, settings), error: null }; }
     catch (cause) { return { doc: { ...sourceDoc, nodes: [], instances: [] } as StudioDoc, authored: null, error: cause instanceof Error ? cause.message : String(cause) }; }
-  }, [sourceKey, scopeKey]);
+  }, [sourceKey, scopeKey, modelInput]);
   const doc = scoped.doc, model = doc;
   const currentModel = useRef(model); currentModel.current = model;
   /** The sheet's reads on O9 lanes (R4b): its bodies, its views, its BOM — each a reply overtaken comes back stale. */
@@ -59,12 +59,14 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
     return () => lanes.cancel('drawing-bodies');
   }, [active, engine, doc, scoped.error, scope.kind]);
   // The views as projected, with the front side they were projected for (R14.3b): only those of the drawing's side are used.
-  const [projected, setProjected] = useState<{ views: DrawingViews; side: string; model: StudioDoc } | null>(null);
+  const [projected, setProjected] = useState<{ views: DrawingViews; side: string; model: StudioDoc; inputKey: string; engine: EngineClient } | null>(null);
   const views = projected && projected.model === model && projected.side === (settings.orientation ?? 'y-') ? projected.views : null;
   /** The sections as last cut (O148 X1; each with why it could not be cut). */
   const [rawCutsMade, setCutsMade] = useState<SectionCut[] | null>(null);
   const cutsMade = projected?.model === model ? rawCutsMade : null;
   const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList), cutList = allSections ?? sectionList, cutKey = JSON.stringify(cutList), madeOnly = drawsMadeOnly(settings);
+  const projectionKey = JSON.stringify([workerSession, settings.orientation, !!settings.tangent, madeOnly, cutKey]);
+  const projectionCurrent = !!views && !scoped.error && projected?.inputKey === projectionKey && projected.engine === engine;
   const [error, setError] = useState<string | null>(null);
   /** The part has no body yet: the panel says so, and nothing is raised as an error. */
   const [empty, setEmpty] = useState(false);
@@ -81,10 +83,10 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
       const r = reply.result;
       setBusy(false);
       setEmpty(!r.ok && !!r.empty);
-      if (r.ok) { setProjected({ views: r.views, side, model }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
+      if (r.ok) { setProjected({ views: r.views, side, model, inputKey: projectionKey, engine }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
     });
     return () => lanes.cancel('drawing');
-  }, [active, engine, model, scoped.error, settings.tangent, cutKey, settings.orientation, madeOnly]);
+  }, [active, engine, model, scoped.error, settings.tangent, cutKey, settings.orientation, madeOnly, projectionKey]);
 
   const title = settings.title ?? fileName;
   // (The sections the settings list, as cut for them: one whose letter, view or place changed is cut again first.)
@@ -141,5 +143,5 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), source, callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bodyFaces, bom]);
   const annotations = useMemo<ModelAnnotations | null>(() => active && wantAnnotations && sheet && layout && views ? modelAnnotations({ views, layout, settings, sheet, ...(weldJoints ? { welds: weldJoints } : {}) }) : null,
     [active, wantAnnotations, sheet, layout, views, settings, weldJoints]);
-  return { source, scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, calloutsFor, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
+  return { source, scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, projectionCurrent, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, calloutsFor, fitMissOf, followedChanged, threads, wantsBom, bom, bomError, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
 }
