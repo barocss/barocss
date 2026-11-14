@@ -147,18 +147,22 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         if (result.ok) {
           let extrudeResult: Active['extrudeResult'];
           let filletScope: Active['filletScope'];
-          if (shown === candidate && cmd.id === 'fillet' && terminal?.kind === 'fillet'
-            && candidate.nodes.length === ctx.doc.nodes.length + 1 && result.revision === revision
-            && typeof terminal.radius === 'number' && !terminal.section) {
+          let chamferScope: Active['chamferScope'];
+          if (shown === candidate && (terminal?.kind === 'fillet' || terminal?.kind === 'chamfer') && cmd.id === terminal.kind
+            && candidate.nodes.length === ctx.doc.nodes.length + 1 && result.revision === revision) {
             const body = result.bodies.find(body => body.ref?.node === candidate.nodes.length - 1 && body.ref.side === 'solid');
-            const targets = body?.filletTargets, picked = [...new Set(terminal.edges)];
+            const targets = terminal.kind === 'chamfer' ? body?.chamferTargets : body?.filletTargets;
+            const picked = [...new Set(terminal.edges)];
             if (targets && picked.every(edge => targets.includes(edge))) {
               const added = targets.filter(edge => !picked.includes(edge));
-              const [start, end] = terminal.radii ?? [];
-              if (!terminal.radii) filletScope = { picked, added, radius: terminal.radius };
-              else if (terminal.radii.length === 2 && start.atEnd && end.atEnd
-                && typeof start.radius === 'number' && typeof end.radius === 'number')
-                filletScope = { picked, added, pickedRadii: [start.radius, end.radius] };
+              if (terminal.kind === 'chamfer') chamferScope = { picked, added };
+              else if (typeof terminal.radius === 'number' && !terminal.section) {
+                const [start, end] = terminal.radii ?? [];
+                if (!terminal.radii) filletScope = { picked, added, radius: terminal.radius };
+                else if (terminal.radii.length === 2 && start.atEnd && end.atEnd
+                  && typeof start.radius === 'number' && typeof end.radius === 'number')
+                  filletScope = { picked, added, pickedRadii: [start.radius, end.radius] };
+              }
             }
           }
           if (shown === candidate && cmd.id === 'extrude' && candidate.nodes.length > ctx.doc.nodes.length
@@ -180,7 +184,8 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
             const ready = !rolled && JSON.stringify(a.values) === JSON.stringify(values);
             return { ...a, preview: ready ? 'ok' : 'busy', error: undefined,
               extrudeResult: ready && a.values === values ? extrudeResult : undefined,
-              filletScope: ready && a.values === values ? filletScope : undefined };
+              filletScope: ready && a.values === values ? filletScope : undefined,
+              chamferScope: ready && a.values === values ? chamferScope : undefined };
           });
         }
         else if (live && current?.cmd === cmd && current.ctx === ctx && current.values === values) {

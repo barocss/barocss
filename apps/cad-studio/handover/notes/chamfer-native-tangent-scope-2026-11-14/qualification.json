@@ -1,0 +1,156 @@
+{
+  "decision": "D1230",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "parent": "590b3b6c99ef52549c103746abcada014d11cf56",
+  "commands": [
+    "gate.sh acquire heavy 600 D1230-<run>",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/baseline --edit-inset --chamfer-scope --baseline",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/final --edit-inset --chamfer-scope",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/final-mutation --edit-inset --chamfer-scope --mutate-chamfer-scope",
+    "D913_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/final-fillet-control --edit-inset --detached-tangent",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast && node --test --test-concurrency=1 test/edge-finish.test.mjs test/api-part.test.mjs test/api-variable-fillet.test.mjs",
+    "pnpm --filter @barocss/cad type-check",
+    "pnpm --filter @barocss/cad-model test filletNames feature-handles",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app test fillet-family failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad/src/part/{part-finish,part-types,part-model}.ts packages/barocss-cad-model/src/engine/evaluate.ts apps/cad-studio/src/{app/commandState,state/useCommandPreview}.ts apps/cad-studio/src/ui/Hud.tsx",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "node --check packages/barocss-cad/test/edge-finish.test.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [
+        {
+          "label": "straight",
+          "picked": "n2.side[e9]|n2.top",
+          "faces": 3,
+          "volume": 534.1667457223912,
+          "expected": 534.1667457223867
+        },
+        {
+          "label": "arc",
+          "picked": "n2.side[e10]|n2.top",
+          "faces": 8,
+          "volume": 533.9953164836115,
+          "expected": 533.9953164836069
+        }
+      ],
+      "frozenFiles": 884,
+      "receiptSHA256": "bbdc721dd702343abf791acd3b9eeb0d1312d70176565afe38a845a16a494aad",
+      "sourceManifestSHA256": "9563926969922f024b1b35e68e5878f514819aade65d50dd13da96c8cded9337",
+      "sourceAfterCleanupSHA256": "9563926969922f024b1b35e68e5878f514819aade65d50dd13da96c8cded9337",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "straight",
+          "picked": "n2.side[e9]|n2.top",
+          "tangent": [],
+          "faces": 3,
+          "volume": 534.1667457223912,
+          "expected": 534.1667457223867
+        },
+        {
+          "label": "arc",
+          "picked": "n2.side[e10]|n2.top",
+          "tangent": [
+            "n2.side[e9]|n2.top",
+            "n2.side[e11]|n2.top",
+            "n2.side[e12]|n2.top",
+            "n2.side[e13]|n2.top",
+            "n2.side[e14]|n2.top",
+            "n2.side[e15]|n2.top",
+            "n2.side[e16]|n2.top"
+          ],
+          "faces": 8,
+          "volume": 533.9953164836115,
+          "expected": 533.9953164836069
+        }
+      ],
+      "frozenFiles": 885,
+      "receiptSHA256": "f2442897eb3c8710e2b28dafc5ce5046792120a2a790bb646b24a8ba6e00b8a7",
+      "sourceManifestSHA256": "bed1b4672878a0201a314d6554f57abbb0557c09b89901337c9b8334e69dd25c",
+      "sourceAfterCleanupSHA256": "bed1b4672878a0201a314d6554f57abbb0557c09b89901337c9b8334e69dd25c",
+      "savedSHA256": [
+        "7ab52a166f92d69ad0b5ab9c39c65bf31871273dce832505ce3ec73d912c1765",
+        "f3757ccf2af0dfbe2097b5f1e04e9ed442a1fc899ae988ba6a9c560df5815a95"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final-mutation": {
+      "status": "FAIL",
+      "observations": [
+        {
+          "label": "straight",
+          "picked": "n2.side[e9]|n2.top",
+          "tangent": [],
+          "faces": 3,
+          "volume": 534.1667457223912,
+          "expected": 534.1667457223867
+        }
+      ],
+      "frozenFiles": 885,
+      "receiptSHA256": "e2a4f1ed8b090e27cd8d430a505c54c01b22cfd7594bf4ee3851158827a32f8a",
+      "sourceManifestSHA256": "bed1b4672878a0201a314d6554f57abbb0557c09b89901337c9b8334e69dd25c",
+      "sourceAfterCleanupSHA256": "bed1b4672878a0201a314d6554f57abbb0557c09b89901337c9b8334e69dd25c",
+      "savedSHA256": [
+        "7ab52a166f92d69ad0b5ab9c39c65bf31871273dce832505ce3ec73d912c1765"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final-fillet-control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "detached-fillet",
+          "picked": "n2.side[e9]|n2.top",
+          "tangent": [
+            "n2.side[e10]|n2.top",
+            "n2.side[e11]|n2.top",
+            "n2.side[e12]|n2.top",
+            "n2.side[e13]|n2.top",
+            "n2.side[e14]|n2.top",
+            "n2.side[e15]|n2.top",
+            "n2.side[e16]|n2.top"
+          ],
+          "volume": 534.1395697829699,
+          "expectedVolume": 534.139569782967,
+          "removed": 0.10820982472691018
+        }
+      ],
+      "frozenFiles": 884,
+      "receiptSHA256": "f4dab289655ef5a4afa87f894043afd6086355c4f4040740351b5078286be12b",
+      "sourceManifestSHA256": "8545275cbf4a0e3970b2365b9886a3aa2ab6d6e1756033a42adb441c8f097c65",
+      "sourceAfterCleanupSHA256": "8545275cbf4a0e3970b2365b9886a3aa2ab6d6e1756033a42adb441c8f097c65",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

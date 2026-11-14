@@ -43,6 +43,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
   useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement && first.current.type !== 'file') first.current.select(); }, [active?.cmd.id]);
   // (Ended before the App unmounts it.)
   if (!active) return null;
+  const edgeScope = active.preview === 'ok' ? active.filletScope ?? active.chamferScope : undefined;
   const replacingAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
   const pickingMirrorPlane = awaitingMirrorPlane(active.cmd.id, active.values);
   const cutSource = isCutPattern(active.cmd.id) ? cutPatternSourceLabel(active.ctx.doc.nodes, selectedCutPatternSource(active.ctx)) : null;
@@ -86,7 +87,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
         <Icon name={active.placing ? 'radio_button_unchecked' : 'check_circle'} small /><b>Place</b><span>{active.placing ? 'click where it goes (on the ground or a top face)' : 'placed — drag its arrows to size it'}</span></div></div>}
       {active.cmd.steps && <div className="hud-steps">
         {active.cmd.steps(active.ctx, active.values).filter(step =>
-          !(active.preview === 'ok' && active.filletScope && step.label === 'Edges')).map(step => {
+          !(edgeScope && step.label === 'Edges')).map(step => {
           const endFace = step.label === 'End face' && isExtrudeToFace(active.cmd.id, active.values);
           const requiresPreview = endFace || (step.label === 'Axis' && replacingAxis);
           const done = step.done && (!requiresPreview || active.preview === 'ok');
@@ -95,13 +96,13 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
           </div>;
         })}
       </div>}
-      {active.preview === 'ok' && active.filletScope && <div className="hud-steps" role="group" aria-label="Fillet scope">
-        <div className="field"><span>Picked native edges</span><span title={active.filletScope.picked.join('\n')}>{active.filletScope.picked.length}</span></div>
-        <div className="field"><span>Tangent edges added</span><span title={active.filletScope.added.join('\n')}>{active.filletScope.added.length}</span></div>
-        {active.filletScope.pickedRadii ? <>
+      {edgeScope && <div className="hud-steps" role="group" aria-label={active.filletScope ? 'Fillet scope' : 'Chamfer scope'}>
+        <div className="field"><span>Picked native edges</span><span title={edgeScope.picked.join('\n')}>{edgeScope.picked.length}</span></div>
+        <div className="field"><span>Tangent edges added</span><span title={edgeScope.added.join('\n')}>{edgeScope.added.length}</span></div>
+        {active.filletScope && (active.filletScope.pickedRadii ? <>
           <div className="field"><span>Picked start radius</span><span>{active.filletScope.pickedRadii[0]} mm</span></div>
           <div className="field"><span>Picked end radius</span><span>{active.filletScope.pickedRadii[1]} mm</span></div>
-        </> : <div className="field"><span>Radius</span><span>{active.filletScope.radius} mm</span></div>}
+        </> : <div className="field"><span>Radius</span><span>{active.filletScope.radius} mm</span></div>)}
       </div>}
       {active.fillet?.type === 'edge' && onRemoveFilletEdge && active.ctx.selection.edges.length > 0
         && <FilletPickedEdges active={active} onRemove={onRemoveFilletEdge} />}

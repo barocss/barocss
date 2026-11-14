@@ -20,6 +20,8 @@ const detachInset = process.argv[3] === '--detach-inset';
 const editInset = process.argv[3] === '--edit-inset';
 const mixedSelection = process.argv.includes('--mixed-selection');
 const detachedTangent = process.argv.includes('--detached-tangent');
+const chamferScope = process.argv.includes('--chamfer-scope');
+const chamferScopeMutation = process.argv.includes('--mutate-chamfer-scope');
 const dependentInset = process.argv[3] === '--dependent-inset';
 const storedInset = dependentInset || insetRefusals || drawnInset || authorInset || detachInset || editInset || process.argv[3] === '--stored-inset';
 const plannedInset = process.argv[3] === '--planned-inset';
@@ -60,6 +62,16 @@ const initialFiles = [
     'packages/barocss-cad-model/src/app/editFields.ts',
   ] : []),
   ...(authorInset || drawnInset ? ['apps/cad-studio/src/app/roundedInsetCommand.ts'] : []),
+  ...(chamferScope ? [
+    'apps/cad-studio/src/app/commandState.ts',
+    'apps/cad-studio/src/state/useCommandPreview.ts',
+    'apps/cad-studio/src/ui/Hud.tsx',
+    'packages/barocss-cad-model/src/engine/evaluate.ts',
+    'packages/barocss-cad/src/blend/edge-finish.ts',
+    'packages/barocss-cad/src/part/part-finish.ts',
+    'packages/barocss-cad/src/part/part-model.ts',
+    'packages/barocss-cad/src/part/part-types.ts',
+  ] : []),
   ...(plannedInset ? ['packages/barocss-cad-model/src/sketch/internal/roundedRectangleInset.ts'] : []),
   ...(lostCorner ? [
     'apps/cad-studio/src/files/documentFile.ts',
@@ -69,7 +81,8 @@ const initialFiles = [
 ];
 const f = await createFlow({
   name: 'rounded-sketch-offset', envFrozen: reopenedTarget ? 'D1102_SOURCE_FROZEN' : radiusFloor ? 'D1101_SOURCE_FROZEN' : outwardSource ? 'D1100_SOURCE_FROZEN' : nestedOffset ? 'D1099_SOURCE_FROZEN' : dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: reopenedTarget ? 'Distinguish the selected R1 inner target from the R2 outer target after fresh Open.'
+  qualification: chamferScope ? 'Compare the exact original picked and tangent Chamfer targets on a detached rounded inset.'
+    : reopenedTarget ? 'Distinguish the selected R1 inner target from the R2 outer target after fresh Open.'
     : radiusFloor ? 'Verify the inward Offset radius floor and its adjacent admissible input.'
     : outwardSource ? 'Preserve the authored source radius, tangent and H/V constraints when outward Offset makes it a hole.'
     : nestedOffset ? 'Refuse a third nested outline at Offset and retain the valid ring draft.'
@@ -522,7 +535,8 @@ async function verifyStoredInset(stock) {
     return;
   }
   if (editInset) {
-    if (detachedTangent) await verifyDetachedTangent(candidate);
+    if (chamferScope) await verifyChamferScope(candidate);
+    else if (detachedTangent) await verifyDetachedTangent(candidate);
     else if (mixedSelection) await verifyMixedInsetEdges(candidate, check);
     else await verifyInsetEdits(stock, candidate, check);
     return;
@@ -740,6 +754,110 @@ async function verifyDetachedTangent(candidate) {
     assert.ok(await button(hud, 'Apply').isDisabled());
     throw new Error('Detached Fillet did not reach a native preview.');
   }
+}
+
+async function verifyChamferScope(candidate) {
+  const linked = candidate(1);
+  const targets = derivedIds.map(tag => `n2.side[${tag}]|n2.top`);
+  if (chamferScopeMutation) {
+    const newContext = f.browser.newContext.bind(f.browser);
+    f.browser.newContext = async options => {
+      const context = await newContext(options);
+      await context.addInitScript(() => {
+        const descriptor = Object.getOwnPropertyDescriptor(Worker.prototype, 'onmessage');
+        Object.defineProperty(Worker.prototype, 'onmessage', {
+          ...descriptor,
+          set(listener) {
+            descriptor.set.call(this, listener && (event => {
+              for (const body of event.data?.result?.bodies ?? []) {
+                if (body.chamferTargets?.length === 8)
+                  body.chamferTargets = body.chamferTargets.map(name =>
+                    name === 'n2.side[e16]|n2.top' ? 'unrelated.native.edge' : name);
+              }
+              listener.call(this, event);
+            }));
+          },
+        });
+      });
+      return context;
+    };
+  }
+  const cases = [
+    { label: 'straight', point: [10, 1, 10], index: 0, faces: 3 },
+    { label: 'arc', point: [18 + Math.SQRT1_2, 2 - Math.SQRT1_2, 10], index: 1, faces: 8 },
+  ];
+  const d = 0.1;
+  const wedge = 16 * d ** 2 / 2 + ((1 + d) ** 2 + 1) * d - d ** 3 / 3
+    - (1 + d) * (d * Math.sqrt(1 - d ** 2) + Math.asin(d));
+  const full = (44 + 2 * Math.PI) * d ** 2 / 2 + Math.PI * d ** 3 / 3;
+  for (const { label, point, index, faces } of cases) {
+    f.phase = 'Chamfer original native ' + label + ' edge';
+    await open(linked);
+    await f.openFeatureEditor(2);
+    await button(f.editor(), 'Detach inset').click();
+    await f.changed(linked);
+    const detached = await f.doc();
+    const nativeEdges = await f.inspect(label + '-stock-edges', detached, 'edge-names');
+    await f.page.setViewportSize({ width: 1024, height: 800 });
+    const ortho = button(f.page, 'Ortho');
+    if (await ortho.getAttribute('aria-pressed') !== 'true') await ortho.click();
+    await button(f.page.getByRole('group', { name: 'Views', exact: true }), 'Top').click();
+    await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+    const filter = button(f.page, 'Selection filter');
+    for (let i = 0; i < 4 && !(await filter.innerText()).trim().endsWith('Edges'); i++) await filter.click();
+    assert.match((await filter.innerText()).trim(), /Edges$/);
+    const pixel = await f.page.evaluate(p => window.__studioScreenOf(p), point);
+    assert.ok(pixel?.length === 2);
+    await f.page.mouse.click(...pixel);
+    await f.page.waitForFunction(() => window.__studioSelection.selection.edges.length === 1);
+    const [picked] = await f.page.evaluate(() => window.__studioSelection.selection.edges);
+    const name = targets[index];
+    assert.deepEqual(nativeEdges[picked.edge].names, [name]);
+    await clickModelCommand(f.page, 'Modify', 'Chamfer');
+    const hud = f.page.getByRole('dialog', { name: 'Chamfer', exact: true });
+    await hud.getByLabel('Distance', { exact: true }).fill(String(d));
+    await hud.getByText('preview', { exact: true }).waitFor();
+    const preview = await f.snapshot(label + '-chamfer-preview');
+    assert.deepEqual(preview.doc, detached);
+    const scope = hud.getByRole('group', { name: 'Chamfer scope', exact: true });
+    const added = index === 0 ? [] : targets.filter(edge => edge !== name);
+    if (widthBaseline) {
+      assert.match(await hud.innerText(), /Edges\s+1 edge/);
+      assert.equal(await scope.count(), 0);
+    } else {
+      for (const [fieldLabel, names] of [['Picked native edges', [name]], ['Tangent edges added', added]]) {
+        const field = scope.locator('.field').filter({ hasText: fieldLabel }).locator('span[title]');
+        assert.equal(await field.innerText(), String(names.length));
+        assert.deepEqual((await field.getAttribute('title')).split('\n').filter(Boolean).sort(), [...names].sort(),
+          'exact original edge names in ' + fieldLabel);
+      }
+    }
+    assert.deepEqual(preview.selection.selection.edges, [picked]);
+    await button(hud, 'Apply').click();
+    await f.changed(detached);
+    const applied = await f.doc(), edgeFinish = applied.nodes[3];
+    assert.equal(edgeFinish.kind, 'chamfer');
+    assert.deepEqual(edgeFinish.edges, [name]);
+    assert.equal(edgeFinish.distance, d);
+    const result = await f.inspect(label + '-chamfer-native', applied);
+    const expected = ringVolume - (index === 0 ? wedge : full);
+    close(result.volume, expected);
+    close((await f.bodies()).bodies[0].volume, expected);
+    assert.equal(result.faces.filter(face => face.startsWith('n3.face')).length, faces);
+    f.report.observations.push({ label, picked: name, tangent: widthBaseline ? undefined : added, faces, volume: result.volume, expected });
+    await f.undo();
+    await f.same(detached);
+    await f.redo();
+    await f.same(applied);
+    if (!widthBaseline) {
+      const saved = await save(applied);
+      await f.newPage();
+      await open(applied, saved);
+      close((await f.bodies()).bodies[0].volume, expected);
+      await f.snapshot(label + '-chamfer-reopened');
+    }
+  }
+  if (widthBaseline) throw new Error('Both distinct Chamfer previews report only one selected edge.');
 }
 
 async function verifyMixedInsetEdges(candidate, check) {

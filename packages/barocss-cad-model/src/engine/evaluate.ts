@@ -45,8 +45,10 @@ export interface BodyResult {
   ref?: BodyRef;
   /** 'upright' (Z-prismatic: holes, fillets, curved Booleans), 'planar' or 'curved' (general B-rep). */
   family: string; mesh: DisplayMesh;
-  /** The successful constant circular Edge Fillet preview's original native edge targets. */
+  /** The successful circular Edge Fillet preview's original native edge targets. */
   filletTargets?: readonly string[];
+  /** The successful Chamfer preview's original native edge targets. */
+  chamferTargets?: readonly string[];
   /** Mass belongs to the closed radial reference; literal stored coefficient closure is not asserted. */
   cylindricalWrap?: CadPartOutput['cylindricalWrap'];
   /** B2: a band surface's report — exact ruled patches, closed or open, the measured boundary deviation, and the sentence shown (kernel `band`). */
@@ -372,6 +374,7 @@ export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, s
     }
     const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality),
       ...(slot === 'preview' && o.filletTargets ? { filletTargets: o.filletTargets } : {}),
+      ...(slot === 'preview' && o.chamferTargets ? { chamferTargets: o.chamferTargets } : {}),
       ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}), volume: null, mass: null }));
     return { ok: true, revision, bodies, wallTime: (performance.now() - t0) / 1000 };
   } catch (cause) {

@@ -644,6 +644,8 @@ export interface CadPartOutput {
   readonly fillet?: readonly FilletReport[];
   /** Native edge-filleting targets on the original body, including tangent continuation. */
   readonly filletTargets?: readonly string[];
+  /** Native Chamfer targets on the original body, including known tangent continuation. */
+  readonly chamferTargets?: readonly string[];
   /** A mesh body's shell (R11.3, D114): the wall asked for and the wall its offset achieves, measured. */
   readonly shell?: MeshShellReport;
   /** A sheet-metal body's rules and bends (R12.1, D116); carried through holes and cuts (R12.2). */
@@ -708,6 +710,7 @@ export interface Part {
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
   readonly filletTargets?: readonly string[];
+  readonly chamferTargets?: readonly string[];
   readonly shell?: MeshShellReport;
   readonly sheet?: SheetReport;
   readonly member?: FrameMemberReport;

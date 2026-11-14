@@ -15,11 +15,12 @@ export function awaitingMirrorPlane(command: string, values: Values): boolean {
   return command === 'mirror' && values.pickPlane === 'yes';
 }
 
-type FilletScope = { picked: readonly string[]; added: readonly string[] } & (
+type EdgeScope = { picked: readonly string[]; added: readonly string[] };
+type FilletScope = EdgeScope & (
   { radius: number; pickedRadii?: never } | { radius?: never; pickedRadii: readonly [number, number] }
 );
 export type JoinedRevolvePick = { union: number; stock: import('@barocss/cad-model/engine/evaluate').BodyResult };
-export interface Active { joinedRevolvePick?: JoinedRevolvePick; cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error' | 'input'; error?: FeatureFailure; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error'; fillet?: { type: import('./filletFamily').FilletType; radiusMode: import('./filletFamily').RadiusMode }; extrudeResult?: { target: string; pieces: number; solid: boolean }; filletScope?: FilletScope }
+export interface Active { joinedRevolvePick?: JoinedRevolvePick; cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error' | 'input'; error?: FeatureFailure; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error'; fillet?: { type: import('./filletFamily').FilletType; radiusMode: import('./filletFamily').RadiusMode }; extrudeResult?: { target: string; pieces: number; solid: boolean }; filletScope?: FilletScope; chamferScope?: EdgeScope }
 /** Stable numbers for objects (a command's context, its values), for the App's subscription key. */
 const objectIds = new WeakMap<object, number>();
 let nextObjectId = 0;

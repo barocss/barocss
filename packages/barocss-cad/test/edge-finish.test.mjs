@@ -48,6 +48,39 @@ test('constant fillet reports native tangent targets separately from the authore
   assert.deepEqual([...published], ['previous']);
 });
 
+test('chamfer reports exact original targets from its own successful finishing path', () => {
+  const rounded = (x0, x1, y0, y1, r) => [
+    { kind: 'line', start: [x0 + r, y0] },
+    { kind: 'arc', start: [x1 - r, y0], center: [x1 - r, y0 + r], direction: 'ccw' },
+    { kind: 'line', start: [x1, y0 + r] },
+    { kind: 'arc', start: [x1, y1 - r], center: [x1 - r, y1 - r], direction: 'ccw' },
+    { kind: 'line', start: [x1 - r, y1] },
+    { kind: 'arc', start: [x0 + r, y1], center: [x0 + r, y1 - r], direction: 'ccw' },
+    { kind: 'line', start: [x0, y1 - r] },
+    { kind: 'arc', start: [x0, y0 + r], center: [x0 + r, y0 + r], direction: 'ccw' },
+  ];
+  const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+    { id: 'sketch', kind: 'sketch', profile: 'loop', segments: rounded(0, 20, 0, 10, 2), holes: [rounded(1, 19, 1, 9, 1)],
+      sideTags: { outer: Array.from({ length: 8 }, (_, i) => 'outer' + i), holes: [Array.from({ length: 8 }, (_, i) => 'inner' + i)] } },
+    { id: 'stock', kind: 'extrude', sketch: 'sketch', height: 10 },
+  ] };
+  const rim = Array.from({ length: 8 }, (_, i) => `stock.side[inner${i}]|stock.top`);
+  for (const [seed, expected, faces] of [[rim[0], [rim[0]], 3], [rim[1], rim, 8]]) {
+    const chamfer = { id: 'finish', kind: 'chamfer', target: 'stock', edges: [seed], distance: 0.1 };
+    const snapshot = evaluateCadPart({ ...doc, features: [...doc.features, chamfer] });
+    const [output] = snapshot.outputs;
+    assert.equal(checkBrep(output.brep, { strict: true }).valid, true);
+    assert.equal(output.brep.faces.filter(face => face.name.startsWith('finish.face')).length, faces);
+    assert.deepEqual(snapshot.document.features.at(-1).edges, [seed]);
+    assert.deepEqual([...output.chamferTargets].sort(), [...expected].sort());
+    assert.ok(Object.isFrozen(output.chamferTargets));
+    assert.equal(output.filletTargets, undefined);
+    const moved = evaluateCadPart({ ...doc, features: [...doc.features, chamfer,
+      { id: 'moved', kind: 'translate', target: 'finish', offset: [0, 20, 0] }] });
+    assert.equal(moved.outputs.find(body => body.id === 'moved')?.chamferTargets, undefined);
+  }
+});
+
 test('fillets meeting at the corners of a box top form mitres (checked against a direct grid count)', () => {
   const box = prism(rect(0, 0, 20, 10), 5, 'e');
   // Inside test of the finished box: outside a fillet's cylinder within its corner wedge is removed.

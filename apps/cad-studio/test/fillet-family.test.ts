@@ -103,6 +103,7 @@ test('viewport route clears pending family Apply before rejecting hidden or miss
      scene: { active, section: null, sketch: false, bodies: ctx.bodies, selection: ctx.selection, setMenu() {} },
      onExtrudeTargetPick: () => false,
      onRevolveAxisPick: () => false,
+     onTransformFacePick: () => false,
      retargetSweep: () => false,
      onFilletPick: (hit, additive) => {
        assert.equal(prepareFilletPick(active, ctx.bodies, hit, additive, () => { pending = false; }), null);
