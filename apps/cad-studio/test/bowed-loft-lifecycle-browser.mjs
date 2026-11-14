@@ -167,8 +167,8 @@ await f.run(async () => {
   await corner.fill('1');
   await button(f.editor(), 'Apply').click();
   const notice = f.editor().locator('.hud-error');
-  await notice.getByText('Kernel detail', { exact: true }).click();
   await notice.getByText(/guide must pass through a vertex of section 0/i).waitFor();
+  assert.equal(await notice.locator('details').count(), 0);
   const refusal = await notice.innerText();
   assert.match(refusal, /Failed feature · Loft.*\(n1\)/i);
   await same(12, 10);

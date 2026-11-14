@@ -3243,6 +3243,11 @@ export function App() {
             if (!reply || !ownsDraft() || docNow.current !== doc || bearingEditScope.current !== scope) return;
             if (reply.ok) { commit(next); return; }
             const failedFeature = reply.revision === request ? failedFeatureText(reply.error.feature, next.nodes, doc.nodes) : undefined;
+            if (doc.nodes[editNode]?.kind === 'loft' && reply.error.feature === featureId(next.nodes, editNode)) {
+              const reason = reply.error.detail.match(/guide (?:must (?:start on the bottom section|end on the top section|pass through a vertex of section)[^\n]*|(?:endpoints must exactly match)[^\n]*)/i)?.[0];
+              if (reason) return { ...reply.error, title: 'Loft guide does not meet the sections',
+                hint: `${reason[0].toUpperCase()}${reason.slice(1)}. Choose another guide or reset the edit.`, detail: '', failedFeature };
+            }
             return { ...reply.error, failedFeature };
           });
         }} onDelete={doc.nodes[1]?.kind === 'rounded-rectangle-inset' ? undefined : opener => deleteNode(editNode, opener)} onClose={() => { finishEdgeEditor.cancel(); discardDirectCandidateRef.current(); setEditNode(null); }} />}

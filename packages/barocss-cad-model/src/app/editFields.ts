@@ -1,3 +1,4 @@
+import { copyLoftGuide } from './loftGuides';
 import { sewTolerance } from '../engine/sew';
 import { circularPatternCountRange, circularPatternStep } from '../engine/circularPatternSpan';
 import { eligibleFillPatternRegions, fillRegionSnapshot } from '../engine/fillFeaturePattern';
@@ -123,7 +124,7 @@ export type BindableField = Extract<EditField, { kind: 'number' }> & { param(nod
  * Where a part-scoped edit stands (O167, F6), when no assembly input is given: the part draft's bearing context (its
  * occurrence and the other parts, as the bearing command reads it) and the fit tables the draft sees.
  */
-export interface EditScope { readonly context?: BearingAssemblyContext; readonly fits?: StudioFits; readonly doc?: Pick<StudioDoc, 'direct'> & Partial<Pick<StudioDoc, 'parameters'>> }
+export interface EditScope { readonly originalLoft?: Extract<ModelNode, { kind: 'loft' }>; readonly context?: BearingAssemblyContext; readonly fits?: StudioFits; readonly doc?: Pick<StudioDoc, 'direct'> & Partial<Pick<StudioDoc, 'parameters'>> }
 export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
   const node = nodes[i], recipe = nodes[1];
   if (recipe?.kind === 'rounded-rectangle-inset') {
@@ -250,13 +251,42 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
         }
       });
       break;
-    case 'loft':
+    case 'loft': {
       node.sections.forEach((sec, k) => {
         out.push(...sketchFields(nodes, sec.sketch, `Section ${k + 1} · `, parameters));
         if (!Object.hasOwn(sec, 'frame')) number('z' + k, `Section ${k + 1} · height`, 'mm', n => num((n as typeof node).sections[k].z), (n, v) => ({ ...(n as typeof node), sections: (n as typeof node).sections.map((x, j) => j === k && !Object.hasOwn(x, 'frame') && x.frame === undefined ? { ...x, z: v } : x) }));
       });
-      if (node.sections.length >= 3) out.push({ kind: 'toggle', key: 'smooth', label: 'Smooth', get: n => !!self<typeof node>(n).smooth, set: (n, v) => replace(n, i, { ...self<typeof node>(n), smooth: v }) });
+      if (node.sections.length >= 3 && !node.guide && node.sections.every(section => section.frame === undefined))
+        out.push({ kind: 'toggle', key: 'smooth', label: 'Smooth', get: n => !!self<typeof node>(n).smooth, set: (n, v) => replace(n, i, { ...self<typeof node>(n), smooth: v }) });
+      if (node.guide?.kind === 'nurbs' && node.sections.every(section => section.frame === undefined) && scope?.doc?.direct) {
+        const source = scope.doc;
+        const available = source.direct?.objects.flatMap(object => {
+          if (object.hidden) return [];
+          const copied = copyLoftGuide(source, object.id);
+          return copied.ok && copied.guide.kind === 'nurbs' ? [{ value: object.id, label: copied.name, guide: copied.guide }] : [];
+        }) ?? [];
+        if (available.length) {
+          const original = scope.originalLoft?.guide?.kind === 'nurbs' ? scope.originalLoft.guide : node.guide;
+          const same = (a: typeof original, b: typeof original) => JSON.stringify(a) === JSON.stringify(b);
+          out.push({
+            kind: 'choice', key: 'loftGuide', label: 'Guide (copied)',
+            options: [{ value: '', label: 'Current copied guide' }, ...available.map(({ value, label }) => ({ value, label }))],
+            get: n => {
+              const guide = self<typeof node>(n).guide;
+              return guide?.kind === 'nurbs' && !same(guide, original) ? available.find(item => same(guide, item.guide))?.value ?? '' : '';
+            },
+            set: (n, value) => {
+              const guide = value === '' ? original : available.find(item => item.value === value)?.guide;
+              if (!guide) return [...n];
+              const current = self<typeof node>(n);
+              if (current.guide?.kind === 'nurbs' && same(guide, current.guide)) return [...n];
+              return replace(n, i, { ...current, guide });
+            },
+          });
+        }
+      }
       break;
+    }
     case 'hole':
       number('dia', 'Diameter', 'mm', n => num((n as typeof node).radius) * 2, (n, v) => ({ ...(n as typeof node), radius: v / 2 }));
       HOLE_PLANE[node.axis ?? 'z'].forEach((axis, k) => number('c' + k, 'Centre ' + axis.toUpperCase(), 'mm', n => num((n as typeof node).center[k]), (n, v) => { const c = [...(n as typeof node).center] as [Dim, Dim]; c[k] = v; return { ...(n as typeof node), center: c }; }));

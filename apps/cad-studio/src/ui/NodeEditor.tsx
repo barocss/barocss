@@ -45,7 +45,8 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
     setEvaluation(null);
     setModeProblem(null);
   };
-  const fields = editFields(draft, index, parameters, bearingAssembly, { doc }).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
+  const original = nodes[index], originalLoft = original?.kind === 'loft' ? original : undefined;
+  const fields = editFields(draft, index, parameters, bearingAssembly, { doc, originalLoft }).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
   const changeNumber = (field: Extract<(typeof fields)[number], { kind: 'number' }>, text: string) => {
     retireEvaluation();
     setTyped(values => ({ ...values, [field.key]: text }));

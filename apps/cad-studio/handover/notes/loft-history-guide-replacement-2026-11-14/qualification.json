@@ -1,0 +1,165 @@
+{
+  "decision": "D1171",
+  "tier": "FEATURE",
+  "parent": "70f5f1cd2914ffb2054f32be99020d11d0b7eecc",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1171-<run>",
+    "D1171_SOURCE_FROZEN=1 node apps/cad-studio/test/loft-history-guide-replacement-browser.mjs <external-evidence>/<run>",
+    "D1170_SOURCE_FROZEN=1 node apps/cad-studio/test/loft-two-section-mode-browser.mjs <external-evidence>/mode-regression",
+    "D783_SOURCE_FROZEN=1 node apps/cad-studio/test/bowed-loft-lifecycle-browser.mjs <external-evidence>/bowed-final",
+    "cd packages/barocss-cad-model && node scripts/test.mjs loft-guide-command profiles-parameters engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/app/editFields.ts",
+    "node --check apps/cad-studio/test/loft-history-guide-replacement-browser.mjs",
+    "node --check apps/cad-studio/test/bowed-loft-lifecycle-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "1e0e8ee376ebde352a6c0fc911db70765f025fc266c780540fde2c1a3908c8d5",
+      "sourceManifestSHA256": "7b7ae9013db628c86f2a8ea84db44b1290870f66435e5723553abd226a25a9c8"
+    },
+    "first": {
+      "status": "FAIL",
+      "states": [
+        "guide-end-refused",
+        "guide-replaced",
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "e87d0f981140a223b4f7b306f786c696f79dc6d5b650562767f1e96c218e2791",
+      "sourceManifestSHA256": "80c86ea633c1bd808b6b5a2a7d96b4861fe6e51f35bbcb30af854ca4483b14b6"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "guide-end-refused",
+        "guide-replaced",
+        "guide-reopened"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "43415daae149a796c15c460c862da47a477f4a848735e9b4f5f68d3c1ae317b3",
+      "sourceManifestSHA256": "8bcf44316ca46aae488267782d3c750a8687fef12a96f6fd71d258bc4d2374f8",
+      "observations": [
+        {
+          "label": "original-straight-guide",
+          "valid": true,
+          "count": 1,
+          "volume": 2000.0000000000007,
+          "centroid": [
+            4.999999999999998,
+            4.999999999999998,
+            10.000000000000002
+          ],
+          "seams": [
+            [
+              0,
+              0,
+              5
+            ],
+            [
+              0,
+              0,
+              15
+            ]
+          ]
+        },
+        {
+          "label": "replacement-bowed-seam",
+          "valid": true,
+          "count": 1,
+          "volume": 2000.0000000000005,
+          "centroid": [
+            5.999999999999998,
+            4.999999999999999,
+            10
+          ],
+          "seams": [
+            [
+              2,
+              0,
+              5
+            ],
+            [
+              2,
+              0,
+              15
+            ]
+          ]
+        },
+        {
+          "label": "reopened-bowed-seam",
+          "valid": true,
+          "count": 1,
+          "volume": 2000.0000000000005,
+          "centroid": [
+            5.999999999999998,
+            4.999999999999999,
+            10
+          ],
+          "seams": [
+            [
+              2,
+              0,
+              5
+            ],
+            [
+              2,
+              0,
+              15
+            ]
+          ]
+        }
+      ]
+    },
+    "mode-regression": {
+      "status": "PASS",
+      "states": [
+        "ruled-two-section-preview",
+        "ruled-two-section-applied",
+        "history-ruled",
+        "loft-reopened",
+        "legacy-effective-ruled",
+        "three-section-smooth-control"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "05190954bf14877c6b220b41627fd4666ac117845d91444afa3e55099dc024e2",
+      "sourceManifestSHA256": "66aa35513f1c1a6f1f5afdfb29dbb9bc83420e0acb08345a701bcc3b64fc9aaf"
+    },
+    "bowed-regression": {
+      "status": "FAIL",
+      "states": [
+        "01-original",
+        "02-width-edit",
+        "failure"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "72472f336fac9fc94b8c10cbb7811b2101e51b481cd69829302665f7db862448",
+      "sourceManifestSHA256": "ccb952af8a33f48a38eca9b8bd446701d4d487cd151ba3f7d3b9cc416d4f42b4"
+    },
+    "bowed-final": {
+      "status": "PASS",
+      "states": [
+        "01-original",
+        "02-width-edit",
+        "03-refused-corner",
+        "04-first-undo",
+        "05-first-redo",
+        "06-fresh-project-open",
+        "07-post-open-depth-edit"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "a2cbfc1e8330990fc1362cfb8909592ee4cef657cfa72685b6d45d7edd5427c8",
+      "sourceManifestSHA256": "0302fbc8443b8f3809539166e35778093f1e1430c28801ecd9bd3fca150370ee"
+    }
+  }
+}
