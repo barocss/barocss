@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
-const showScope = process.argv[3] === '--scope';
+const removeEdge = process.argv[3] === '--remove';
+const showScope = removeEdge || process.argv[3] === '--scope';
 const scopeMutation = process.env.D1183_MUTATION;
 const pins = [
   'apps/cad-studio/test/fillet-chain-selection-browser.mjs',
@@ -19,12 +20,14 @@ const pins = [
     'packages/barocss-cad/src/part/part-finish.ts', 'packages/barocss-cad/src/part/part-model.ts',
     'packages/barocss-cad/src/part/part-types.ts',
   ] : []),
+  ...(removeEdge ? ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/FilletPickedEdges.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'fillet-chain-selection', output: process.argv[2], envFrozen: showScope ? 'D1183_SOURCE_FROZEN' : 'D901_SOURCE_FROZEN',
+  name: 'fillet-chain-selection', output: process.argv[2], envFrozen: removeEdge ? 'D1185_SOURCE_FROZEN' : showScope ? 'D1183_SOURCE_FROZEN' : 'D901_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Compare stored targets and native geometry after single-edge and tangent-chain Fillet picks.',
-  limits: ['One stadium prism with a full top rim. Desktop WebGPU and the existing constant circular Fillet.',
+  qualification: removeEdge ? 'Remove an authored original edge while the preview has rounded it away.'
+    : 'Compare stored targets and native geometry after single-edge and tangent-chain Fillet picks.',
+  limits: ['One stadium prism. Desktop WebGPU and the existing constant circular Fillet.',
     'The two straight rims and two semicircular rims may have distinct native member and display-edge counts.'],
   inspectorSource: `
 import assert from 'node:assert/strict';
@@ -172,6 +175,73 @@ async function validate(label, doc, seed, wanted) {
   return native;
 }
 
+async function checkScope(hud, picked, added) {
+  const scope = hud.getByRole('group', { name: 'Fillet scope', exact: true });
+  assert.equal(await scope.count(), 1, 'The preview did not distinguish picked edges from native tangent targets');
+  for (const [label, names] of [['Picked native edges', picked], ['Tangent edges added', added]]) {
+    const field = scope.locator('.field').filter({ hasText: label }).locator('span[title]');
+    assert.equal(await field.innerText(), String(names.length));
+    assert.deepEqual((await field.getAttribute('title')).split('\n').filter(Boolean).sort(), [...names].sort());
+  }
+  assert.match(await scope.innerText(), /Radius\s+1 mm/);
+}
+
+async function checkRemoval(seed, stock, top, seedEdge, topNames) {
+  const bottom = stock.displayEdges.filter(edge => edge.names.some(name => name.split('|').includes('n1.bottom')));
+  assert.equal(bottom.length, 4);
+  const straight = bottom.find(edge => edge.straight && [edge.a, edge.b].every(point => point[1] === -4));
+  assert.ok(straight);
+  const bottomNames = bottom.flatMap(edge => edge.names);
+  const pickedNames = [...topNames, ...straight.names];
+  const bottomAdded = bottomNames.filter(name => !straight.names.includes(name));
+  await selectRim(true, top, seedEdge.index);
+  await clickModelCommand(f.page, 'Modify', 'Fillet');
+  const hud = f.page.getByRole('dialog', { name: 'Fillet', exact: true });
+  await hud.getByLabel('Radius', { exact: true }).fill('1');
+  await hud.locator('.status.ok').waitFor();
+  await checkScope(hud, topNames, []);
+
+  f.phase = 'Add the bottom rim with a real Shift-click';
+  const pixel = await f.page.evaluate(() => window.__studioScreenOf([10, -4, 0]));
+  assert.ok(pixel?.length === 2);
+  await f.page.keyboard.down('Shift');
+  try { await f.page.mouse.click(...pixel); } finally { await f.page.keyboard.up('Shift'); }
+  await f.page.waitForFunction(index => {
+    const selection = window.__studioSelection.selection;
+    return selection.edges.length === 5 && selection.edges.some(edge => edge.body === 0 && edge.edge === index);
+  }, straight.index);
+  await hud.locator('.status.ok').waitFor();
+  await checkScope(hud, pickedNames, bottomAdded);
+  await f.same(seed);
+  await f.snapshot('two-rim-preview');
+
+  f.phase = 'Remove the original bottom selection from its live preview';
+  const disclosure = hud.getByText('Edit picked edges', { exact: true });
+  assert.equal(await disclosure.count(), 1, 'The preview does not offer removal of the original edges');
+  await disclosure.click();
+  const remove = button(hud, 'Remove ' + straight.names.join(', '));
+  await remove.focus();
+  await remove.press('Enter');
+  await hud.locator('.status.ok').waitFor();
+  await checkScope(hud, topNames, []);
+  await f.same(seed);
+  await f.snapshot('top-only-preview');
+  await button(hud, 'Apply').click();
+  await f.changed(seed);
+  const accepted = (await f.snapshot('top-only-applied')).doc;
+  const current = await validate('top-only', accepted, seed, topNames);
+  assert.ok(bottomNames.every(name => current.edges.includes(name)), 'The untouched bottom rim keeps its original names');
+  await f.undo();
+  await f.same(seed);
+  await f.redo();
+  await f.same(accepted);
+  const bytes = await save(accepted);
+  await f.newPage();
+  await open(accepted, bytes);
+  await validate('top-only-reopened', accepted, seed, topNames);
+  await f.snapshot('top-only-reopened');
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
@@ -214,6 +284,7 @@ await f.run(async () => {
 
   await f.newPage();
   await open(seed);
+  if (removeEdge) { await checkRemoval(seed, stock, top, edge, names); return; }
   const result = [];
   for (const chain of [false, true]) {
     const label = chain ? 'tangent-chain' : 'single-edge', selected = chain ? names : edge.names;
@@ -227,18 +298,7 @@ await f.run(async () => {
     await f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 60000 });
     await f.same(seed);
     await f.snapshot(`${label}-preview`);
-    if (showScope) {
-      const scope = hud.getByRole('group', { name: 'Fillet scope', exact: true });
-      assert.equal(await scope.count(), 1, 'The preview did not distinguish picked edges from native tangent targets');
-      const checkTargets = async (label, names) => {
-        const field = scope.locator('.field').filter({ hasText: label }).locator('span[title]');
-        assert.equal(await field.innerText(), String(names.length));
-        assert.deepEqual((await field.getAttribute('title')).split('\n').filter(Boolean).sort(), [...names].sort());
-      };
-      await checkTargets('Picked native edges', selected);
-      await checkTargets('Tangent edges added', names.filter(name => !selected.includes(name)));
-      assert.match(await scope.innerText(), /Radius\s+1 mm/);
-    }
+    if (showScope) await checkScope(hud, selected, names.filter(name => !selected.includes(name)));
     await button(hud, 'Apply').click();
     await hud.waitFor({ state: 'hidden' });
     await f.changed(seed);

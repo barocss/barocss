@@ -65,7 +65,7 @@ import { canEditSavedOffsetFace, editSavedOffsetFaceCommand, OFFSET_FACE_EDIT } 
 import { DRAFT_EDIT, editSavedDraftCommand } from '@barocss/cad-model/app/draftEdit';
 import { holePatternEditProblem } from '@barocss/cad-model/app/holePatternInput';
 import { awaitingRevolveAxis, editSavedRevolveAxisCommand, joinedRevolveStock, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
-import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
+import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, pickedFilletSelection, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
 import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
 import { useModelExports } from './files/useModelExports';
@@ -1921,6 +1921,14 @@ export function App() {
     if (!selection) { setToast({ title: 'Selection not changed', hint: 'Choose an unchanged face or edge of the source body. Generated or ambiguous preview references cannot be selected.', detail: 'The accepted selection is unchanged. Apply was not queued.' }); return true; }
     replaceFilletSelection({ current: activeStore.get, context: () => ctx, retire: commandPreview.retire, clearApply: () => { applyWhenReady.current = null; }, set: setActive, select: setSelection }, selection); return true;
   };
+  const removeFilletEdge = (owner: Active, edge: Selection['edges'][number]) => {
+    if (owner !== activeStore.get() || owner.fillet?.type !== 'edge'
+      || docNow.current !== doc || evaluatedRef.current !== evaluated || owner.ctx.doc !== ctx.doc) return;
+    const next = pickedFilletSelection(owner, { face: null, edge }, true);
+    if (!next || next.edges.length !== owner.ctx.selection.edges.length - 1) return;
+    replaceFilletSelection({ current: activeStore.get, context: () => ctx, retire: commandPreview.retire,
+      clearApply: () => { applyWhenReady.current = null; }, set: setActive, select: setSelection }, next);
+  };
   const finishEdgeOpen = openIntent.current;
   const finishEdgeEditor = useHeldFinishEdge({
     doc, index: editNode, problems: refProblems, bodies,
@@ -3324,7 +3332,7 @@ export function App() {
       || (current.cmd.id === 'extrude' && owner.values.region !== current.values.region))) return;
     apply();
   };
-  const hud = active && <Hud store={activeStore} onChange={changeHudValue} onFilletType={changeFillet}
+  const hud = active && <Hud store={activeStore} onChange={changeHudValue} onFilletType={changeFillet} onRemoveFilletEdge={removeFilletEdge}
     onRadiusMode={mode => { const a = activeStore.get(); if (a?.fillet) changeFillet(a.fillet.type, mode); }}
     onFile={uploadFont} onHoleOptions={applyHoleOptions} onApply={applyHud} onCancel={cancel} />;
   return (

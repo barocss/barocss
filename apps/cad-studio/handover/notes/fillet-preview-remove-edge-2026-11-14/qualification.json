@@ -1,0 +1,102 @@
+{
+  "decision": "D1185",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "00c419ac5358e6b4d4100f9beae167cdcbac7d66",
+  "commands": [
+    "gate.sh acquire heavy 600 D1185-<run>",
+    "cd apps/cad-studio && node scripts/test.mjs fillet-family failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/{App.tsx,ui/Hud.tsx,ui/FilletPickedEdges.tsx}",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx",
+    "pnpm exec eslint apps/cad-studio/src/ui/{Hud,FilletPickedEdges}.tsx",
+    "node --check apps/cad-studio/test/fillet-chain-selection-browser.mjs",
+    "D1185_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/<run> --remove",
+    "D1183_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/regression --scope",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "focused": {
+    "studio": 19
+  },
+  "appLint": {
+    "status": "FAIL",
+    "reason": "Existing _k binding in App.tsx",
+    "parentLogSHA256": "36949963cd1ab74a05f0e3e6361d31c8167bd579043049d63c22f91e4831af6f",
+    "currentLogSHA256": "a375bf895317de5b60ec06da38030d71d83a33b42a95e1a10fb45a4eb110d233"
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "two-rim-preview",
+        "failure"
+      ],
+      "frozenFiles": 877,
+      "receiptSHA256": "dde28ed100c9f09a9f33b9234c58c41300bd66c833506db40568db6f0addf52b",
+      "sourceManifestSHA256": "117eb94f93dce36b82f3d126c52722e6a47be0d9f3a724b72f83ac1a9a044fd9",
+      "firstFailure": "No original edge removal control in the live two-rim preview"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "two-rim-preview",
+        "top-only-preview",
+        "top-only-applied",
+        "top-only-reopened"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "b478771238d57056cfcfdc06a5cc08210a5540dc21463f4f5e0da0678b76f15a",
+      "sourceManifestSHA256": "7ef98c77057a6fe433a7b0f9f8c4808141d5aa0654f54720c5d15c861bf6018e",
+      "nativeResult": [
+        {
+          "label": "top-only",
+          "storedEdges": [
+            "n1.side[e1]|n1.top",
+            "n1.side[e4]|n1.top",
+            "n1.side[e2]|n1.top",
+            "n1.side[e3]|n1.top"
+          ],
+          "nativeVolumeMm3": 1247.9164744094264,
+          "expectedVolumeMm3": 1247.9164744094167,
+          "nativeCentroidMm": [
+            10,
+            1.1943261309057176e-14,
+            2.9695921169949107
+          ]
+        },
+        {
+          "label": "top-only-reopened",
+          "storedEdges": [
+            "n1.side[e1]|n1.top",
+            "n1.side[e4]|n1.top",
+            "n1.side[e2]|n1.top",
+            "n1.side[e3]|n1.top"
+          ],
+          "nativeVolumeMm3": 1247.9164744094264,
+          "expectedVolumeMm3": 1247.9164744094167,
+          "nativeCentroidMm": [
+            10,
+            1.1943261309057176e-14,
+            2.9695921169949107
+          ]
+        }
+      ]
+    },
+    "regression": {
+      "status": "PASS",
+      "states": [
+        "single-edge-selected",
+        "single-edge-preview",
+        "single-edge-applied",
+        "tangent-chain-selected",
+        "tangent-chain-preview",
+        "tangent-chain-applied",
+        "tangent-chain-fresh-open"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "d2ebbea6d4285facf636f9a851fe099d17726759988b436375736120c01cc8be",
+      "sourceManifestSHA256": "7ef98c77057a6fe433a7b0f9f8c4808141d5aa0654f54720c5d15c861bf6018e"
+    }
+  }
+}

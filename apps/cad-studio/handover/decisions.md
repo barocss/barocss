@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1185 — remove a picked edge while Fillet is in preview](notes/fillet-preview-remove-edge-2026-11-14/README.md).
 - [D1184 — explain why a STEP edge finish was refused](notes/step-edge-finish-refusal-2026-11-14/README.md).
 - [D1183 — show picked and tangent edges in a Fillet preview](notes/fillet-native-tangent-scope-2026-11-14/README.md).
 - [D1182 — edit the centre of a circular Hole layout in History](notes/hole-circle-history-centre-2026-11-14/README.md).

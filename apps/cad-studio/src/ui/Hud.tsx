@@ -1,4 +1,5 @@
 import { FilletTypeFields } from './FilletTypeFields';
+import { FilletPickedEdges } from './FilletPickedEdges';
 import type { FilletType, RadiusMode } from '../app/filletFamily';
 import { commandIconName } from './commandIcons';
 import { shownFields } from '@barocss/cad-model/app/commands';
@@ -27,6 +28,7 @@ interface Props {
   store: ValueStore<Active | null>;
   onChange(key: string, value: number | string): void; onApply(owner: Active): void; onCancel(): void;
   onFilletType?(type: FilletType): void; onRadiusMode?(mode: RadiusMode): void;
+  onRemoveFilletEdge?(owner: Active, edge: Active['ctx']['selection']['edges'][number]): void;
   onFile?(key: string, file: File): void;
   onHoleOptions(owner: Active, patch: Values): boolean;
 }
@@ -34,7 +36,7 @@ function renderOption(option: { value: string; label: string }) { return <option
 
 /** The floating command HUD: few fields, keyboard-first, with the kernel’s answer inline. (G12f: its fields, choices and
  * actions shadcn's Input, NativeSelect and Button, at the HUD's 26 px in the studio's mono type.) */
-export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, onRadiusMode, onHoleOptions }: Props) {
+export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, onRadiusMode, onRemoveFilletEdge, onHoleOptions }: Props) {
   const active = useStoreValue(store);
   const first = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
   useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement && first.current.type !== 'file') first.current.select(); }, [active?.cmd.id]);
@@ -95,6 +97,8 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
         <div className="field"><span>Tangent edges added</span><span title={active.filletScope.added.join('\n')}>{active.filletScope.added.length}</span></div>
         <div className="field"><span>Radius</span><span>{active.filletScope.radius} mm</span></div>
       </div>}
+      {active.fillet?.type === 'edge' && onRemoveFilletEdge && active.ctx.selection.edges.length > 0
+        && <FilletPickedEdges active={active} onRemove={onRemoveFilletEdge} />}
       {active.preview === 'ok' && active.extrudeResult && <div className="hud-steps" aria-label="Extrude result">
         <div className="field"><span>Target</span><span>{active.extrudeResult.target}</span></div>
         <div className="field"><span>Result</span><span>{active.extrudeResult.pieces}{active.extrudeResult.solid ? ' solid' : ''} piece{active.extrudeResult.pieces === 1 ? '' : 's'}</span></div>
