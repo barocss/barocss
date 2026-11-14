@@ -52,6 +52,7 @@ import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
 import { cutPatternSourceLabel, isCutPattern, selectedCutPatternSource } from './app/cutPatternSource';
 import { rectangularCutEditProblem } from './app/rectangularCutEdit';
+import { moveRenderAppearance } from './app/moveRenderAppearance';
 import { prepareLinearPatternHoleEdit } from './app/patternHoleSpacing';
 import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate, preparePatternNodeCandidate } from './app/directCurveCandidate';
 import { LINKED_INSET_EXTRUDE } from './app/roundedInsetCommand';
@@ -1498,7 +1499,7 @@ export function App() {
       return;
     }
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
-    if (!commit(next)) return;
+    if (!commit(active.cmd.id === 'move' ? moveRenderAppearance(doc, next) : next)) return;
     const clearSelection = active.cmd.id === 'offset-face' || active.cmd.id === OFFSET_FACE_EDIT || active.cmd.id === 'fill-feature-pattern' || active.cmd.id === 'curve-feature-pattern';
     if (clearSelection) setSelection(emptySel);
     if (active.cmd.id === 'thicken' || active.cmd.id === 'sew') setDirectSel([]);

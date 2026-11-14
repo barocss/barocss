@@ -1,0 +1,136 @@
+{
+  "decision": "D1198",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "6ad71bb18ee9508e95439d0195aa6d713727ff22",
+  "commands": [
+    "gate.sh acquire heavy 600 D1198-<run>",
+    "cd apps/cad-studio && node scripts/test.mjs render-focus",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/app/moveRenderAppearance.ts",
+    "node --check apps/cad-studio/test/split-move-appearance-browser.mjs",
+    "D1198_SOURCE_FROZEN=1 node apps/cad-studio/test/split-move-appearance-browser.mjs <external-evidence>/baseline --baseline",
+    "D1198_SOURCE_FROZEN=1 node apps/cad-studio/test/split-move-appearance-browser.mjs <external-evidence>/verified",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "focused": {
+    "studioPassed": 1
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "distinct-split-looks",
+        "render-after-move",
+        "failure"
+      ],
+      "frozenFiles": 391,
+      "receiptSHA256": "907bc9732083e74af5fbad124d39c50b058bca7db40c8e4ba19dd1a8fe518250",
+      "sourceManifestSHA256": "8498f8e2f2c690a1f38cdd83b0b15396c376931008d91a8322af5176c20b1a8a",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Move fell back to default Render appearance.",
+      "observations": [
+        {
+          "negative": {
+            "color": "#a8161a",
+            "roughness": 0.5
+          },
+          "positive": {
+            "color": "#26272a",
+            "roughness": 0.5
+          },
+          "moved": {
+            "color": "#bfc2c8",
+            "roughness": 0.6
+          },
+          "untouched": {
+            "color": "#26272a",
+            "roughness": 0.5
+          }
+        }
+      ]
+    },
+    "final": {
+      "status": "FAIL",
+      "states": [
+        "distinct-split-looks",
+        "render-after-move",
+        "render-after-redo",
+        "failure"
+      ],
+      "frozenFiles": 392,
+      "receiptSHA256": "f17a145d31fac84bab88175b8d52503b29c577146e722733599dda881fb68524",
+      "sourceManifestSHA256": "26c943e80f9d1961e87c726b1e62655fecadbc92174d3a0e5948e9fe47dc68be",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Driver used property-order-sensitive comparison after Open.",
+      "observations": [
+        {
+          "negative": {
+            "color": "#a8161a",
+            "roughness": 0.5
+          },
+          "positive": {
+            "color": "#26272a",
+            "roughness": 0.5
+          },
+          "moved": {
+            "color": "#a8161a",
+            "roughness": 0.5
+          },
+          "untouched": {
+            "color": "#26272a",
+            "roughness": 0.5
+          }
+        }
+      ]
+    },
+    "verified": {
+      "status": "PASS",
+      "states": [
+        "distinct-split-looks",
+        "render-after-move",
+        "render-after-redo",
+        "render-after-open"
+      ],
+      "frozenFiles": 392,
+      "receiptSHA256": "bf272d20161ebc8ae4cf6e78504330ebd123f8df95dfb4940e7e58a658b80b21",
+      "sourceManifestSHA256": "26c943e80f9d1961e87c726b1e62655fecadbc92174d3a0e5948e9fe47dc68be",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "negative": {
+            "color": "#a8161a",
+            "roughness": 0.5
+          },
+          "positive": {
+            "color": "#26272a",
+            "roughness": 0.5
+          },
+          "moved": {
+            "color": "#a8161a",
+            "roughness": 0.5
+          },
+          "untouched": {
+            "color": "#26272a",
+            "roughness": 0.5
+          }
+        }
+      ]
+    }
+  }
+}
