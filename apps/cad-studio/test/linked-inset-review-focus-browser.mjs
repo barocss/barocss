@@ -3,6 +3,7 @@ import { createFlow } from './flow-helper.mjs';
 
 const baseline = process.argv.includes('--baseline');
 const historySummary = process.argv.includes('--history-summary');
+const narrowDock = process.argv.includes('--narrow-dock');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx'];
 const f = await createFlow({
@@ -37,6 +38,14 @@ async function waitFocus(locator) {
   assert.ok(element);
   await f.page.waitForFunction(el => el === document.activeElement, element, { timeout: 5000 });
 }
+async function buttonVisibility(locator) {
+  return locator.evaluate(element => {
+    const rect = element.getBoundingClientRect(), dock = element.closest('.dock-scroll').getBoundingClientRect();
+    const center = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return { y: rect.top, bottom: rect.bottom, dockTop: dock.top, dockBottom: dock.bottom,
+      visible: rect.top >= dock.top && rect.bottom <= dock.bottom && element.contains(center) };
+  });
+}
 async function checkHistorySummary(face) {
   const summary = f.editor().getByRole('group', { name: 'Linked inset', exact: true });
   if (baseline) {
@@ -55,10 +64,17 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'inset-focus.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
+  if (narrowDock) {
+    await f.page.setViewportSize({ width: 1024, height: 800 });
+    await f.page.getByRole('button', { name: 'Chat', exact: true }).first().click();
+    await f.page.locator('.chat-col.open').waitFor();
+    if (await button('Close the dock').isVisible()) await button('Close the dock').click();
+  }
   if (await button('Ortho').getAttribute('aria-pressed') !== 'true') await button('Ortho').click();
   await button('Front', f.page.getByRole('group', { name: 'Views', exact: true })).click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
-  await f.openFeatureEditor(5);
+  if (narrowDock) await historyStep(5).click();
+  else await f.openFeatureEditor(5);
   if (historySummary) {
     f.phase = 'read original Linked Inset binding';
     await checkHistorySummary('n1.top');
@@ -69,6 +85,36 @@ await f.run(async () => {
   assert.ok(await f.page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest('canvas.vp-canvas'), pixel));
   await f.page.mouse.click(...pixel);
   await f.page.waitForFunction(() => window.__studioSelection.selection.faces[0]?.body === 1);
+  if (narrowDock) {
+    if (await button('Open the dock').isVisible()) await button('Open the dock').click();
+    await f.page.locator('.dock.sheet').waitFor();
+    await f.editor().waitFor();
+    f.phase = 'visible first focus in the scrolled desktop Dock';
+    await replace().scrollIntoViewIfNeeded();
+    const scrollTop = await f.page.locator('.dock-scroll').evaluate(dock => dock.scrollTop);
+    assert.ok(scrollTop > 0);
+    assert.ok((await buttonVisibility(replace())).visible);
+    await replace().press('Enter');
+    const cancel = button('Cancel', review());
+    await waitFocus(cancel);
+    const visibility = await buttonVisibility(cancel);
+    f.report.observations.push({ label: 'initial-focus', scrollTop, ...visibility });
+    await f.snapshot('narrow-review-first-focus');
+    if (baseline) {
+      assert.equal(visibility.visible, false);
+      throw new Error('Cancel was focused beyond the visible Dock.');
+    }
+    assert.equal(visibility.visible, true);
+    await f.page.keyboard.press('Escape');
+    await review().waitFor({ state: 'hidden' });
+    await waitFocus(replace());
+    const returned = await buttonVisibility(replace());
+    f.report.observations.push({ label: 'focus-return', ...returned });
+    assert.equal(returned.visible, true);
+    await f.same(seed);
+    await f.snapshot('narrow-review-cancelled');
+    return;
+  }
   const before = await f.snapshot('source-picked');
   for (const key of ['Enter', 'Escape']) {
     f.phase = 'keyboard Cancel with ' + key;

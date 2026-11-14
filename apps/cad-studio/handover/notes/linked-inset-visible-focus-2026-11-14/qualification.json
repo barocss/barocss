@@ -1,0 +1,129 @@
+{
+  "decision": "D1208",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "52ef3fdc2c3551efa56aed68a54d48c7f9616c0d",
+  "commands": [
+    "gate.sh acquire heavy 600 D1208-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline-dock --narrow-dock --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final --narrow-dock",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/wide --history-summary",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/InsetSourceReview.tsx",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline-dock": {
+      "status": "FAIL",
+      "states": [
+        "narrow-review-first-focus",
+        "failure"
+      ],
+      "observations": [
+        {
+          "label": "initial-focus",
+          "scrollTop": 493,
+          "y": -262,
+          "bottom": -244,
+          "dockTop": 36,
+          "dockBottom": 800,
+          "visible": false
+        }
+      ],
+      "frozenFiles": 392,
+      "receiptSHA256": "a36b71ad5c726f4e73f82d40d6d54bc43c69d568e050d5cd47f4731e345f0c0d",
+      "sourceManifestSHA256": "94a2fc817c31ad015b9738eb83b928b0cd46c7b136aa21792bcc0c224c5f9bf2",
+      "sourceAfterCleanupSHA256": "94a2fc817c31ad015b9738eb83b928b0cd46c7b136aa21792bcc0c224c5f9bf2",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "narrow-review-first-focus",
+        "narrow-review-cancelled"
+      ],
+      "observations": [
+        {
+          "label": "initial-focus",
+          "scrollTop": 493,
+          "y": 377,
+          "bottom": 395,
+          "dockTop": 36,
+          "dockBottom": 800,
+          "visible": true
+        },
+        {
+          "label": "focus-return",
+          "y": 461,
+          "bottom": 489,
+          "dockTop": 36,
+          "dockBottom": 800,
+          "visible": true
+        }
+      ],
+      "frozenFiles": 392,
+      "receiptSHA256": "695c115ad71833139c7dba3fd002c3bfefc97a6aab4c4bfe5d68e8957eb00c48",
+      "sourceManifestSHA256": "efabf60da29ae3087f0f43ab63eeda5e2d88fce26cbf5cadc94f420feac08d57",
+      "sourceAfterCleanupSHA256": "efabf60da29ae3087f0f43ab63eeda5e2d88fce26cbf5cadc94f420feac08d57",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "wide": {
+      "status": "PASS",
+      "states": [
+        "linked-history-original",
+        "source-picked",
+        "cancel-Enter",
+        "cancel-Escape",
+        "applied-source",
+        "linked-history-replacement",
+        "linked-history-restored"
+      ],
+      "observations": [
+        {
+          "label": "cancel-Enter",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "cancel-Escape",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "apply",
+          "focused": [
+            "BUTTON",
+            "Extrude 4",
+            ""
+          ],
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 392,
+      "receiptSHA256": "5a9cb3446da0f6dec9da88dd32290cfa1b6c4010c40ee908b17f7d786d424ac6",
+      "sourceManifestSHA256": "efabf60da29ae3087f0f43ab63eeda5e2d88fce26cbf5cadc94f420feac08d57",
+      "sourceAfterCleanupSHA256": "efabf60da29ae3087f0f43ab63eeda5e2d88fce26cbf5cadc94f420feac08d57",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

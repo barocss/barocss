@@ -3115,7 +3115,7 @@ export function App() {
       refuse,
       returnFocus: () => requestAnimationFrame(() => {
         if (current() && opener.isConnected && !opener.disabled && document.activeElement === document.body)
-          opener.focus({ preventScroll: true });
+          opener.focus();
       }),
       apply: ({ association }) => {
         if (!current() || !canChangeDocument()) return;

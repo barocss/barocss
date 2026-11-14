@@ -39,7 +39,7 @@ function RingThumbnail({ rings }: { rings: NonNullable<InsetRelinkReview['previe
 export function InsetSourceReview({ review, apply, cancel }: { review: InsetRelinkReview; apply(): void; cancel(): void }) {
   const { labels, preview } = review;
   const cancelButton = useRef<HTMLButtonElement>(null);
-  useLayoutEffect(() => { cancelButton.current?.focus({ preventScroll: true }); }, []);
+  useLayoutEffect(() => { cancelButton.current?.focus(); }, []);
   const format = (value: number) => Number(value.toPrecision(12));
   return <aside className="card props" aria-label="Inset source replacement" aria-busy={!preview}>
     <div className="card-title">INSET SOURCE</div>
