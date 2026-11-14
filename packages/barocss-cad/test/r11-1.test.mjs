@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, massPropertiesOf } from '../dist/index.js';
+import { boxShellWallLimit } from '../dist/part/part-box-shell.js';
+import { evaluateCadPart, checkBrep, exportStep, faceGeometry, massPropertiesOf } from '../dist/index.js';
 
 // R11.1a (D106): the general shell's slabs grow only across convex edges and across concave edges between two planes
 // (as before). Across a smooth edge they stop (they meet in the normal plane there); across a concave edge beside a curved
@@ -57,4 +58,41 @@ test('R11.1a concave circles beside a surface of revolution: a torus ring half s
   const V = vol(body);
   assert.ok(Math.abs(V / (Math.PI * Rp * Rp * H + Math.PI ** 2 * r * r * R0) - 1) < 1e-11);
   for (const t of [0.5, 1, 2, 3, 3.5]) exactly(shell(body, 'u', t), V - 2 * Math.PI * ((Rp - t) ** 2 / 2 * (H - 2 * t) + R0 * above(r - t, t)), `t ${t}`, 1e-11, r - t <= t ? 2 : 1);
+});
+
+test('one selected opening on imported cardinal stock refuses the wall that fills it', () => {
+  const stock = out([
+    { id: 'profile', kind: 'sketch', profile: 'rectangle', min: [4, -3], max: [14, 7] },
+    { id: 'stock', kind: 'extrude', sketch: 'profile', from: 6, height: 5 },
+  ]);
+  const base = [{ id: 'imported', kind: 'import', step: exportStep(stock.brep) }];
+  const imported = out(base);
+  const topName = imported.brep.faces.find(face => faceGeometry(face).n?.[2] === 1).name;
+  const duplicate = { ...imported.brep, faces: imported.brep.faces.map(face =>
+    faceGeometry(face).n?.[0] === 1 ? { ...face, name: topName } : face) };
+  assert.equal(boxShellWallLimit(duplicate, topName), undefined, 'A shared name cannot identify one opening');
+  for (const [axis, limit, wall] of [[2, 5, 4.999], [0, 2.5, 2.499]]) {
+    const face = imported.brep.faces.find(face => {
+      const g = faceGeometry(face);
+      return g.kind === 'plane' && g.n[axis] === 1;
+    });
+    assert.ok(face?.name);
+    const shellAt = thickness => out([...base,
+      { id: 'shell', kind: 'shell', target: 'imported', thickness, open: [face.name] }]);
+    for (const thickness of [limit, limit + 1]) {
+      assert.throws(() => shellAt(thickness), error => error.code === 'PARAMETER'
+        && error.feature === 'shell' && error.message.includes(`leaves no hollow at ${face.name}`)
+        && error.message.includes(`less than ${limit} mm`));
+    }
+    const result = shellAt(wall), expected = axis === 2
+      ? 500 - (10 - 2 * wall) ** 2 * (5 - wall)
+      : 500 - (10 - 2 * wall) * (5 - 2 * wall) * (10 - wall);
+    assert.ok(checkBrep(result.brep, { strict: true }).valid);
+    assert.ok(Math.abs(massPropertiesOf(result).volume - expected) < 1e-7);
+    const opening = result.brep.faces.find(face => {
+      const g = faceGeometry(face);
+      return g.kind === 'plane' && g.n[axis] === 1 && g.o[axis] === [14, 7, 11][axis];
+    });
+    assert.ok(opening?.loops.some(id => result.brep.loops.find(loop => loop.id === id)?.kind === 'inner'));
+  }
 });

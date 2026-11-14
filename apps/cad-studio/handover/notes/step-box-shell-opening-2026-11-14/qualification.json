@@ -1,0 +1,166 @@
+{
+  "decision": "D1189",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "parent": "5c6a86dc8dae79a0ba20f8de5d5c2e2aa355ea2b",
+  "fixture": {
+    "name": "two-boxes.step",
+    "sha256": "b425a5a94604bd94d4f0b55192368480c217792862552f8cd3a38eedd33c28b7",
+    "source": "Exact native STEP text extracted from the local desktop QA document"
+  },
+  "commands": [
+    "gate.sh acquire heavy 600 D1189-<run>",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast && node --test --test-concurrency=1 test/r11-1.test.mjs test/r11-1b.test.mjs test/r11-1c.test.mjs",
+    "cd packages/barocss-cad-model && node scripts/test.mjs measure",
+    "pnpm --filter @barocss/cad type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad/src/part/{part-shell,part-box-shell}.ts packages/barocss-cad-model/src/engine/errors.ts",
+    "node --check apps/cad-studio/test/step-shell-opening-browser.mjs",
+    "D1189_SOURCE_FROZEN=1 node apps/cad-studio/test/step-shell-opening-browser.mjs <external-evidence>/history-repro <external-fixture>/two-boxes.step",
+    "D1189_GUARDED=1 D1189_SOURCE_FROZEN=1 node apps/cad-studio/test/step-shell-opening-browser.mjs <external-evidence>/latest <external-fixture>/two-boxes.step",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build-final"
+  ],
+  "focused": {
+    "kernel": 10,
+    "model": 12
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "8c6a3a64ad97612cb4e712b50d06c35bded1ee295df7d344176b240bbf217d11",
+      "sourceManifestSHA256": "04056290e2d0056ef51f49d308add10d71a9b3eb16f8c50ec476621ceaf4362a",
+      "firstFailure": "The stock oracle used the cavity formula at zero wall"
+    },
+    "repro": {
+      "status": "FAIL",
+      "states": [
+        "wall-3-applied",
+        "failure"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "5c6303148c3b74407a3b07c050023b3a1035b0974fdc79c64d6ab9e19c6a5bf5",
+      "sourceManifestSHA256": "04056290e2d0056ef51f49d308add10d71a9b3eb16f8c50ec476621ceaf4362a",
+      "firstFailure": "Shell History has an ordinary editor, not a dedicated launcher"
+    },
+    "history-repro": {
+      "status": "FAIL",
+      "states": [
+        "wall-3-applied",
+        "wall-5-result",
+        "failure"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "69e307af14aa594e436fe169573ceb47db54d3973f9761bf47f01a5c00046beb",
+      "sourceManifestSHA256": "04056290e2d0056ef51f49d308add10d71a9b3eb16f8c50ec476621ceaf4362a",
+      "observations": [
+        {
+          "label": "original-native",
+          "wall": 0,
+          "expected": 500,
+          "volume": 499.99999999999994,
+          "other": 144,
+          "openingLoops": [
+            "outer"
+          ]
+        },
+        {
+          "label": "wall-3-native",
+          "wall": 3,
+          "expected": 468,
+          "volume": 468.00000000000006,
+          "other": 144,
+          "openingLoops": [
+            "inner",
+            "outer"
+          ]
+        },
+        {
+          "label": "closed-wall-5-native",
+          "wall": 0,
+          "expected": 500,
+          "volume": 499.99999999999994,
+          "other": 144,
+          "openingLoops": [
+            "outer"
+          ]
+        }
+      ],
+      "firstFailure": "Wall 5 was accepted and filled the selected opening"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "wall-3-applied",
+        "wall-5-result",
+        "small-opening-applied"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "d792cde4fcdd304499204cb95fc33a87d99067070afc43e3ff0e9b1dce90267a",
+      "sourceManifestSHA256": "853056e6fa93f740ae94ab45cebb2b38af0df3c0036f95f6e4b67b89c01799d2"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "creation-wall-5-refused",
+        "wall-3-applied",
+        "wall-5-result",
+        "small-opening-applied"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "8f448099fdd2c90030d61de19da88b3c0b4f477281cb51e3f5052f5c0872bcbb",
+      "sourceManifestSHA256": "31128e015e001c80b4aa20a130aae0e73bedcb0e3218eaef6e6179378095537b"
+    },
+    "latest": {
+      "status": "PASS",
+      "states": [
+        "creation-wall-5-refused",
+        "wall-3-applied",
+        "wall-5-result",
+        "small-opening-applied"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "2901327f3d6391413f7a4d890a16603a34ed63cce7c181dfb4ce52bd62c627fd",
+      "sourceManifestSHA256": "e71a5dba4d21dee8a39593803165c149347a7d36715dbb727f09060436d38f1f",
+      "observations": [
+        {
+          "label": "original-native",
+          "wall": 0,
+          "expected": 500,
+          "volume": 499.99999999999994,
+          "other": 144,
+          "openingLoops": [
+            "outer"
+          ]
+        },
+        {
+          "label": "wall-3-native",
+          "wall": 3,
+          "expected": 468,
+          "volume": 468.00000000000006,
+          "other": 144,
+          "openingLoops": [
+            "inner",
+            "outer"
+          ]
+        },
+        {
+          "label": "small-opening-native",
+          "wall": 4.999,
+          "expected": 499.999999996,
+          "volume": 499.999999996,
+          "other": 144,
+          "openingLoops": [
+            "inner",
+            "outer"
+          ]
+        }
+      ]
+    }
+  }
+}

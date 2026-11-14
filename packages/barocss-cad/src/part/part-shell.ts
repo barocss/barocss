@@ -14,6 +14,7 @@ import { transformBrep } from '../brep/brep-transform.js';
 import { unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { withCavities } from '../brep/brep-glue.js';
 import { generalShell } from '../blend/general-shell.js';
+import { boxShellWallLimit } from './part-box-shell.js';
 import { offsetCavity, offsetShell, smoothOffsetBody } from '../blend/offset-cavity.js';
 import { regionShell } from '../blend/region-shell.js';
 import { meshInnerOffset } from '../mesh/mesh-offset.js';
@@ -123,7 +124,11 @@ function shellPart(part: Part, t: number, open: string[], at: string, fail: Tool
     // Any other body of planes and cylinders: its wall as the union of a slab per face.
     const body = brepOf(part, 'target'), names = new Set(body.faces.map(f => f.name ?? ''));
     for (const n of open) if (!names.has(n)) fail('SELECTION', `no face named ${n} to open; faces: ${[...names].slice(0, 12).join(', ')}`);
-    try { return { kind: 'brep', brep: generalShell(body, t, new Set(open), at) }; }
+    const openings = new Set(open);
+    const limit = openings.size === 1 ? boxShellWallLimit(body, open[0]) : undefined;
+    if (limit !== undefined && t >= limit)
+      fail('PARAMETER', `a wall of ${t} mm leaves no hollow at ${open[0]}; use a wall less than ${limit} mm`);
+    try { return { kind: 'brep', brep: generalShell(body, t, openings, at) }; }
     catch (cause) {
       // A closed body of freeform faces meeting smoothly (a SubD body): its cavity, its faces offset (R11.2a, D110); kept
       // faces trimmed planes and cylinders too, offset exactly, where the opening leaves no sharp edge (R11.2c-1, D112).
