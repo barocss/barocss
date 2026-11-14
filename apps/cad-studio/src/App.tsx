@@ -3426,7 +3426,7 @@ export function App() {
         instanceSelection={assembly.draft ? assembly.highlight.instances : steppedSelection} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : measuredInstanceFaces}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         bodyColors={bodyColors} faceColors={faceColors} pickedVertices={modelUnavailable ? undefined : selection.vertices} hiddenBodies={hiddenBodies}
-        snapStep={snapStep} pickFilter={finishEdgePicking ? 'edge' : active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
+        snapStep={snapStep} pickFilter={finishEdgePicking || (active?.fillet?.type === 'edge' && pickFilter === 'edge') ? 'edge' : active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
         picking={viewportPicking} meshBoxCrossing={meshBoxCrossing} sketchActions={sketchViewportActions} sketchSnaps={{ twoPoint: twoPointSnap.input, extension: arcExtensionSnap.input, crossingBodies, placed: placedSketchSnaps, objectKinds: objectSnapKinds }} onCursor={onCursor}
         boundsBox={fresh && showBox ? (() => {
           const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null;

@@ -1,0 +1,74 @@
+{
+  "decision": "D1188",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "3d559c50ee7f56d51d4b2b63a4fbb9dd5a80c481",
+  "commands": [
+    "gate.sh acquire heavy 600 D1188-<run>",
+    "cd apps/cad-studio && node scripts/test.mjs fillet-family failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx",
+    "node --check apps/cad-studio/test/fillet-chain-selection-browser.mjs",
+    "D1188_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/<run> --preserve-edges",
+    "D1187_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/varying-regression --varying",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "focused": {
+    "studio": 19
+  },
+  "appLint": {
+    "status": "FAIL",
+    "unchanged": true,
+    "logSHA256": "a375bf895317de5b60ec06da38030d71d83a33b42a95e1a10fb45a4eb110d233"
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "two-rim-preview",
+        "edge-filter-before",
+        "edge-filter-after",
+        "failure"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "ab1dbadafe3c3509d550602317313356a951326aed76278adf058649fd309a97",
+      "sourceManifestSHA256": "e8e37b4a8948e9ea31c4bfd5936770deeed01dda65cb7bd4e9643a5a58b3268d",
+      "firstFailure": "Face miss replaced five original edges with one face"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "two-rim-preview",
+        "edge-filter-before",
+        "edge-filter-after",
+        "top-only-preview",
+        "three-picked-one-added-preview",
+        "top-only-applied",
+        "top-only-reopened"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "0722375daaa66313f1d1467f4d9c1e6b42923a14c70b192c10681b2120e7fae2",
+      "sourceManifestSHA256": "85b050effcb21dbc393e52c8b9e6d93063866345647fda94c677b3a1ba2f5ccb",
+      "authoredEdges": [
+        "n1.side[e4]|n1.top",
+        "n1.side[e2]|n1.top",
+        "n1.side[e3]|n1.top"
+      ],
+      "nativeVolume": 1247.9164744094264
+    },
+    "varying-regression": {
+      "status": "PASS",
+      "states": [
+        "closed-rim-refused",
+        "varying-open-preview",
+        "varying-open-applied",
+        "varying-reopened"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "727d2b8c54cde5a735ace970744998c0c9078f6e4ac719df5e12d1a868b353fa",
+      "sourceManifestSHA256": "85b050effcb21dbc393e52c8b9e6d93063866345647fda94c677b3a1ba2f5ccb"
+    }
+  }
+}

@@ -4,7 +4,8 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 
 const removeEdge = process.argv[3] === '--remove';
 const varying = process.argv[3] === '--varying';
-const showScope = varying || removeEdge || process.argv[3] === '--scope';
+const preserveEdges = process.argv[3] === '--preserve-edges';
+const showScope = preserveEdges || varying || removeEdge || process.argv[3] === '--scope';
 const scopeMutation = process.env.D1183_MUTATION;
 const pins = [
   'apps/cad-studio/test/fillet-chain-selection-browser.mjs',
@@ -21,12 +22,13 @@ const pins = [
     'packages/barocss-cad/src/part/part-finish.ts', 'packages/barocss-cad/src/part/part-model.ts',
     'packages/barocss-cad/src/part/part-types.ts',
   ] : []),
-  ...(removeEdge ? ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/FilletPickedEdges.tsx'] : []),
+  ...((removeEdge || preserveEdges) ? ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/FilletPickedEdges.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'fillet-chain-selection', output: process.argv[2], envFrozen: varying ? 'D1187_SOURCE_FROZEN' : removeEdge ? 'D1185_SOURCE_FROZEN' : showScope ? 'D1183_SOURCE_FROZEN' : 'D901_SOURCE_FROZEN',
+  name: 'fillet-chain-selection', output: process.argv[2], envFrozen: preserveEdges ? 'D1188_SOURCE_FROZEN' : varying ? 'D1187_SOURCE_FROZEN' : removeEdge ? 'D1185_SOURCE_FROZEN' : showScope ? 'D1183_SOURCE_FROZEN' : 'D901_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: varying ? 'Report the native scope and endpoint radii of one open variable fillet.'
+  qualification: preserveEdges ? 'Preserve Edge Fillet picks on a face miss and verify three picked and one added.'
+    : varying ? 'Report the native scope and endpoint radii of one open variable fillet.'
     : removeEdge ? 'Remove an authored original edge while the preview has rounded it away.'
     : 'Compare stored targets and native geometry after single-edge and tangent-chain Fillet picks.',
   limits: ['Desktop WebGPU, stadium and rectangular prism controls.',
@@ -223,6 +225,20 @@ async function checkRemoval(seed, stock, top, seedEdge, topNames) {
   await f.same(seed);
   await f.snapshot('two-rim-preview');
 
+  if (preserveEdges) {
+    f.phase = 'Shift-click a face miss in Edges mode with two rims in preview';
+    const facePoint = await f.page.evaluate(() => window.__studioScreenOf([10, -4, 1]));
+    assert.ok(facePoint?.length === 2);
+    const selectionBefore = (await f.snapshot('edge-filter-before')).selection.selection;
+    await f.page.keyboard.down('Shift');
+    try { await f.page.mouse.click(...facePoint); } finally { await f.page.keyboard.up('Shift'); }
+    const state = await f.snapshot('edge-filter-after');
+    assert.deepEqual(state.selection.selection, selectionBefore, 'The face miss replaced the original edges');
+    await hud.locator('.status.ok').waitFor();
+    await checkScope(hud, pickedNames, bottomAdded);
+    await f.same(seed);
+  }
+
   f.phase = 'Remove the original bottom selection from its live preview';
   const disclosure = hud.getByText('Edit picked edges', { exact: true });
   assert.equal(await disclosure.count(), 1, 'The preview does not offer removal of the original edges');
@@ -234,10 +250,20 @@ async function checkRemoval(seed, stock, top, seedEdge, topNames) {
   await checkScope(hud, topNames, []);
   await f.same(seed);
   await f.snapshot('top-only-preview');
+  let authored = topNames;
+  if (preserveEdges) {
+    f.phase = 'Remove one picked top edge and verify its native continuation';
+    authored = topNames.filter(name => !seedEdge.names.includes(name));
+    await button(hud, 'Remove ' + seedEdge.names.join(', ')).click();
+    await hud.locator('.status.ok').waitFor();
+    await checkScope(hud, authored, seedEdge.names);
+    await f.same(seed);
+    await f.snapshot('three-picked-one-added-preview');
+  }
   await button(hud, 'Apply').click();
   await f.changed(seed);
   const accepted = (await f.snapshot('top-only-applied')).doc;
-  const current = await validate('top-only', accepted, seed, topNames);
+  const current = await validate('top-only', accepted, seed, authored);
   assert.ok(bottomNames.every(name => current.edges.includes(name)), 'The untouched bottom rim keeps its original names');
   await f.undo();
   await f.same(seed);
@@ -246,7 +272,7 @@ async function checkRemoval(seed, stock, top, seedEdge, topNames) {
   const bytes = await save(accepted);
   await f.newPage();
   await open(accepted, bytes);
-  await validate('top-only-reopened', accepted, seed, topNames);
+  await validate('top-only-reopened', accepted, seed, authored);
   await f.snapshot('top-only-reopened');
 }
 
@@ -364,7 +390,7 @@ await f.run(async () => {
   await f.newPage();
   await open(seed);
   if (varying) { await checkVarying(seed, top, edge); return; }
-  if (removeEdge) { await checkRemoval(seed, stock, top, edge, names); return; }
+  if (removeEdge || preserveEdges) { await checkRemoval(seed, stock, top, edge, names); return; }
   const result = [];
   for (const chain of [false, true]) {
     const label = chain ? 'tangent-chain' : 'single-edge', selected = chain ? names : edge.names;
