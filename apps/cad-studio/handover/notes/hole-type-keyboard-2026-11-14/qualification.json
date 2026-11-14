@@ -1,0 +1,116 @@
+{
+  "decision": "D1180",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "8eaa05c8aea6036a3cd533507199c34082d8843c",
+  "commands": [
+    "gate.sh acquire heavy 600 D1180-<run>",
+    "D1180_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-pick-position-browser.mjs <external-evidence>/<run> --type-keyboard",
+    "D1178_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-presets-browser.mjs <external-evidence>/preset-regression --keyboard",
+    "cd apps/cad-studio && node scripts/test.mjs hole-presets",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/{Hud,HolePresets}.tsx apps/cad-studio/src/ui/stepNativeSelect.ts",
+    "node --check apps/cad-studio/test/hole-pick-position-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 872,
+      "receiptSHA256": "46f8f89a94c6b12afcd0d0af4d25c936f6f3592109416bb29ca6e6c07b20cb77",
+      "sourceManifestSHA256": "876ec893eca1cb4065bb0acb91f2fe9cb73cf14f4df7452b3c66fc59814dd6bc"
+    },
+    "fixed": {
+      "status": "PASS",
+      "states": [
+        "type-keyboard-preview",
+        "type-keyboard-apply"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "dbf08113709d3e45d9e5f57072a44ffc100a6a0ff0e68344d79ace898423ba4e",
+      "sourceManifestSHA256": "1b7cec1c778f88018b4d2d149ad7c7cf9a987c80c5303496196faa2147789654",
+      "observations": [
+        {
+          "label": "type-keyboard-blind",
+          "depth": 6,
+          "center": [
+            8,
+            8
+          ],
+          "walls": [
+            {
+              "kind": "cylinder",
+              "c": [
+                8,
+                8,
+                6
+              ],
+              "a": [
+                0,
+                0,
+                1
+              ],
+              "r": 2.0000000000000004,
+              "out": -1
+            },
+            {
+              "kind": "cylinder",
+              "c": [
+                7.999999999999998,
+                8.000000000000002,
+                6
+              ],
+              "a": [
+                0,
+                0,
+                1
+              ],
+              "r": 2.0000000000000004,
+              "out": -1
+            }
+          ],
+          "volume": 19124.601776313844,
+          "valid": true
+        }
+      ]
+    },
+    "preset-regression": {
+      "status": "PASS",
+      "states": [
+        "keyboard-use-preview-only",
+        "keyboard-explicit-apply"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "8050fc6ca502a5fb1ab8b0a10e1d5f48fbd7d4fe0c3bea3b19301ff3fa55cd78",
+      "sourceManifestSHA256": "ef1c65e963f4acd71861c467f0c35b028ac24032e9b3b1b5769a0d5cd6a32382"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "type-keyboard-preview",
+        "type-keyboard-apply"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "6cfadf7150f98e9e1a58220ad7f99518243114b195f3dd9710b0146b6ced18c9",
+      "sourceManifestSHA256": "4672178783c8fe5bfdc9f92652c1110c3593d9c323196b6a03176094d9a7c5c4"
+    },
+    "preset-final": {
+      "status": "PASS",
+      "states": [
+        "keyboard-use-preview-only",
+        "keyboard-explicit-apply"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "af8de74248f61c00dec77cce65cf9dfd67694aaf49229eb04f7eb4efd1405357",
+      "sourceManifestSHA256": "017c79e2a734a876414070ee9ce8b9801e93838c574dba5decf959b85a9c37b3"
+    }
+  },
+  "firstTypeCheck": {
+    "status": "FAIL",
+    "error": "TS2339: isComposing is on the native event. Corrected and rechecked.",
+    "logSHA256": "4fe04276a5e7c04f81d842a6c8e42a97937deda5ce930bb075d262d346e2e103"
+  }
+}

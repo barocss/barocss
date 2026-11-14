@@ -16,6 +16,7 @@ import { Icon } from './atoms';
 import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { HolePresets } from './HolePresets';
+import { stepNativeSelect } from './stepNativeSelect';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 
 /** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
@@ -61,7 +62,10 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
     const rangeId = range ? `hud-number-range-${field.key}` : undefined;
     const invalidNumber = numberRule && featureNumberInvalid(value, numberRule);
     let control: ReactNode;
-    if (field.kind === 'choice') control = <NativeSelect className={FIELD} ref={ref} aria-label={field.label} data-key={field.key} data-kind="choice" value={String(value)} onChange={changeValue}>{field.options.map(renderOption)}</NativeSelect>;
+    if (field.kind === 'choice') control = <NativeSelect className={FIELD} ref={ref} aria-label={field.label} data-key={field.key} data-kind="choice" value={String(value)} onChange={changeValue}
+      onKeyDown={active.cmd.id === 'hole' && field.key === 'type' ? event => stepNativeSelect(event, next => onChange(field.key, next)) : undefined}>
+      {field.options.map(renderOption)}
+    </NativeSelect>;
     else if (field.kind === 'text') control = <Input className={FIELD} ref={ref} type="text" aria-label={field.label} data-key={field.key} data-kind="text" maxLength={field.maxLength} value={String(value ?? '')} onChange={changeValue} />;
     else if (field.kind === 'file') control = <span className="min-w-0"><Input className={FIELD} ref={ref} type="file" aria-label={field.label} data-key={field.key} accept={field.accept} disabled={!onFile} onChange={chooseFile} /><span className="muted small">{field.filename(value ?? '') ?? 'No file prepared'}</span></span>;
     else control = <span className="num"><Input className={FIELD + ' pr-7!'} ref={ref} type="number" aria-label={field.label} aria-invalid={invalidCount || invalidNumber || undefined} aria-describedby={rangeId} data-key={field.key} data-kind={field.kind} step={field.kind === 'count' ? 1 : 'any'} min={numberRule === 'nonzero' ? undefined : numberRule === 'positive' ? 0 : field.min} max={field.max} value={String(value ?? '')} onChange={changeValue} />

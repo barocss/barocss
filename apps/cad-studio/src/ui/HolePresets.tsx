@@ -6,6 +6,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { canUseHolePresets, HOLE_PRESET_NAME_LIMIT, holePresetName, holePresetOptions,
   readHolePresets, sameHolePresetName, writeHolePresets, type HoleOptions, type HolePreset } from '../app/holePresets';
 import { browserStore } from './browserStore';
+import { stepNativeSelect } from './stepNativeSelect';
 
 const read = () => readHolePresets(browserStore());
 const FIELD = 'h-[26px]! min-w-0 w-full px-1.5! text-xs!';
@@ -80,14 +81,7 @@ export function HolePresets({ values, onUse, onReset }: Props) {
       <div className="flex items-center gap-1.5">
         <NativeSelect aria-label="Hole preset" className={FIELD} value={selected?.name ?? ''}
           onChange={event => selectPreset(event.currentTarget.value)}
-          onKeyDown={event => {
-            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown'
-              || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-            event.preventDefault();
-            const list = event.currentTarget;
-            const index = Math.max(0, Math.min(list.options.length - 1, list.selectedIndex + (event.key === 'ArrowUp' ? -1 : 1)));
-            selectPreset(list.options[index].value);
-          }}>
+          onKeyDown={event => stepNativeSelect(event, selectPreset)}>
           <option value="">Choose a preset</option>
           {presets.map(preset => <option key={preset.name} value={preset.name}>{preset.name}</option>)}
         </NativeSelect>

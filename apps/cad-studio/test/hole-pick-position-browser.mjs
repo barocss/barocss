@@ -4,10 +4,12 @@ import { createFlow } from './flow-helper.mjs';
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/ViewContextMenu.tsx',
   'apps/cad-studio/src/viewport/useViewportPicking.ts', 'apps/cad-studio/src/viewport/viewportPointerInput.ts',
   'packages/barocss-cad-model/src/app/commands.ts'];
+const typeKeyboard = process.argv[3] === '--type-keyboard';
 const f = await createFlow({
-  name: 'hole-pick-position', output: process.argv[2], envFrozen: 'D1179_SOURCE_FROZEN',
-  initialFiles: pins, requiredFrozen: pins,
-  qualification: 'Verify Hole placement from a second right-click and a fractional picked point with Snap off.',
+  name: 'hole-pick-position', output: process.argv[2], envFrozen: typeKeyboard ? 'D1180_SOURCE_FROZEN' : 'D1179_SOURCE_FROZEN',
+  initialFiles: [...pins, 'apps/cad-studio/src/ui/Hud.tsx'], requiredFrozen: pins,
+  qualification: typeKeyboard ? 'Choose Hole Type by keyboard without committing a preview.'
+    : 'Verify Hole placement from a second right-click and a fractional picked point with Snap off.',
   limits: ['Chromium desktop, cardinal top faces of native stock and a locally generated STEP box.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
@@ -101,6 +103,42 @@ await f.run(async () => {
   await f.same(box);
   await top();
   await selectFace([8, 8, 12]);
+  if (typeKeyboard) {
+    f.phase = 'Use Enter on the focused Hole Type choice';
+    await keyboardHole();
+    const type = field('Type');
+    const history = before => f.page.locator('.history .hs').count().then(count => assert.equal(count, before));
+    const oldCount = await f.page.locator('.history .hs').count();
+    await type.focus();
+    assert.equal(await type.inputValue(), 'through');
+    await type.press('ArrowDown');
+    await type.press('Enter');
+    assert.equal(await hud().isVisible(), true, 'Enter on Type must not apply a Hole');
+    await f.same(box);
+    await history(oldCount);
+    assert.equal(await type.inputValue(), 'blind', 'keyboard changes Type to blind');
+    await preview();
+    await f.snapshot('type-keyboard-preview');
+    const depth = field('Depth');
+    await field('Diameter').fill('4');
+    await depth.fill('6');
+    await preview();
+    await f.same(box);
+    await button('Apply', hud()).focus();
+    await f.page.keyboard.press('Enter');
+    await f.changed(box);
+    const accepted = (await f.snapshot('type-keyboard-apply')).doc;
+    const hole = accepted.nodes.at(-1);
+    assert.deepEqual(hole.center, [8, 8]);
+    assert.equal(hole.depth, 6);
+    const native = await f.inspect('type-keyboard-blind', accepted);
+    assert.ok(native.valid && native.walls.every(wall => Math.abs(wall.r - 2) < 1e-7));
+    assert.ok(Math.abs(native.volume - (19200 - 24 * Math.PI)) < 1e-7);
+    f.report.observations.push({ label: 'type-keyboard-blind', depth: hole.depth, center: hole.center, ...native });
+    await f.undo();
+    await f.same(box);
+    return;
+  }
   f.phase = 'Use right-click Hole after selecting a different point on the same face';
   await clickPoint([24, 24, 12], 'right');
   await f.page.getByRole('menuitem', { name: /^Hole\b/ }).click();
