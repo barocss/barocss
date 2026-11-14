@@ -1,0 +1,125 @@
+{
+  "decision": "D1235",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "5cb35cd54332ae3d3c29e660d7449968430d1469",
+  "commands": [
+    "gate.sh acquire heavy 600 D1235-<run>",
+    "D1202_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/baseline --history --gap-bounds --gap-baseline",
+    "D1202_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/fixed --history --gap-bounds",
+    "D1203_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/draft-control --retarget --target-names --history-preview --delay-history-preview",
+    "pnpm --filter @barocss/cad-studio-app test fillet-family failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/app/featureNumberInput.ts apps/cad-studio/src/ui/NodeEditor.tsx",
+    "node --check apps/cad-studio/test/align-retarget-preview-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 883,
+      "receiptSHA256": "2154a63cc5d8ebeb8655e040c7f709cf5afbdd863d9e53e30caf7fa9bbfe569f",
+      "sourceManifestSHA256": "8b8f9d37e9f382abc7226779e9be6d2239c89cec1ecddc1f2f8ec405146b8e46",
+      "sourceAfterCleanupSHA256": "8b8f9d37e9f382abc7226779e9be6d2239c89cec1ecddc1f2f8ec405146b8e46",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "fixed": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "zero-gap-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -8
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                14.999999999999996
+              ]
+            }
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "e564180d149760a72b7528dc0e2f2513e525e8cff8934798bcca2494966c9e84",
+      "sourceManifestSHA256": "2a8bd38c4a7d17445be05cfdc48518a218f006a813f0d81b946465ede31e4e80",
+      "sourceAfterCleanupSHA256": "2a8bd38c4a7d17445be05cfdc48518a218f006a813f0d81b946465ede31e4e80",
+      "savedSHA256": [
+        "5237281bac180c22052560f5d861800f9e96b062b96ba71cfa396c4396676972"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "draft-control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "history-preview",
+          "movedBounds": {
+            "min": [
+              0,
+              0,
+              12
+            ],
+            "max": [
+              12,
+              10,
+              18
+            ]
+          },
+          "obsoleteReplyExercised": true,
+          "refusedGap": -1
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "86f0083bc3f8ce68a63e210862d2ddd8bfc680797fa3ae0a1b0ef1b9835e8e7b",
+      "sourceManifestSHA256": "2a8bd38c4a7d17445be05cfdc48518a218f006a813f0d81b946465ede31e4e80",
+      "sourceAfterCleanupSHA256": "2a8bd38c4a7d17445be05cfdc48518a218f006a813f0d81b946465ede31e4e80",
+      "savedSHA256": [
+        "13ec4e334cd7dad3783b74943ff8c4ae61f407b107c8138ee3744ce5d3ac55dd"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

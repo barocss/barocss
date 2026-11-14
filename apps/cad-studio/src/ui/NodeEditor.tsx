@@ -20,7 +20,7 @@ import { SweepHistoryInputs } from './SweepHistoryInputs';
 import { HoleHistoryInputs } from './HoleHistoryInputs';
 import { editExtrudeTriangleLength } from '../sketch/fixedTriangleEditor';
 import type { FeatureFailure } from '../app/failedFeature';
-import { featureNumberInvalid, featureNumberRange, historyNumberRule } from '../app/featureNumberInput';
+import { featureNumberBounds, featureNumberInvalid, featureNumberRange, historyNumberRule } from '../app/featureNumberInput';
 function invalidInteger(value: number, range: { min: number; max: number }): boolean {
   return !Number.isInteger(value) || value < range.min || value > range.max;
 }
@@ -244,11 +244,12 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {cutSource && <div className="field"><span>Cut source</span><span>{cutSource}</span></div>}
       {fields.length ? fields.map(f => {
         const rule = f.kind === 'number' ? historyNumberRule(draft, index, f.key) : undefined;
+        const numberBounds = featureNumberBounds(rule);
         const range = f.kind === 'number' && f.integerRange && !invalidCounts.includes(f) ? `Whole number from ${f.integerRange.min} to ${f.integerRange.max}` : rule ? featureNumberRange(rule) : null;
         const rangeId = range ? `history-range-${f.key}` : undefined;
         return (
         <div key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step={f.integerRange ? 1 : "any"} min={f.integerRange?.min ?? (rule === 'positive' ? 0 : undefined)} max={f.integerRange?.max} aria-label={f.label} aria-describedby={rangeId} aria-invalid={typed[f.key]?.trim() === '' || invalidCounts.includes(f) || invalidDimensions.some(item => item.field === f) || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
+          {f.kind === 'number' ? <span className="num"><input type="number" step={f.integerRange ? 1 : "any"} min={f.integerRange?.min ?? numberBounds.min} max={f.integerRange?.max ?? numberBounds.max} aria-label={f.label} aria-describedby={rangeId} aria-invalid={typed[f.key]?.trim() === '' || invalidCounts.includes(f) || invalidDimensions.some(item => item.field === f) || (f.key === 'olen2' && !!lengthProblem) || undefined} value={typed[f.key] ?? f.get(draft)} disabled={ordinaryLocked || !!(f as BindableField).param?.(draft)} onChange={e => changeNumber(f, e.target.value)} />{f.unit && <em>{f.unit}</em>}
             {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={ordinaryLocked} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
               onChange={e => {
                 retireEvaluation();

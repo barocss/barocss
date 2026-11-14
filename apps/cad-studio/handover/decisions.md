@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1235 — validate the Align History Gap before Apply](notes/align-history-gap-input-bounds-2026-11-14/README.md).
 - [D1234 — distinguish an Align target request from a refusal](notes/align-target-waiting-and-recognition-2026-11-14/README.md).
 - [D1233 — explain unavailable tangent scope in mixed Chamfer](notes/mixed-chamfer-scope-unavailable-2026-11-14/README.md).
 - [D1232 — preview the Align draft in History](notes/align-history-draft-preview-2026-11-14/README.md).

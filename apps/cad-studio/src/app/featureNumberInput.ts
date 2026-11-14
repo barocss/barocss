@@ -1,7 +1,8 @@
 import type { ModelNode } from '@barocss/cad-model/engine/doc';
+import { CadPartLimits } from '@barocss/cad';
 import { isSketchAnchoredCut } from '@barocss/cad-model/app/editFields';
 
-export type FeatureNumberRule = 'nonzero' | 'positive';
+export type FeatureNumberRule = 'nonzero' | 'positive' | 'align-gap';
 
 export function commandNumberRule(command: string, key: string, operation?: unknown): FeatureNumberRule | undefined {
   if (command === 'box' && (key === 'w' || key === 'd')) return 'positive';
@@ -12,6 +13,7 @@ export function commandNumberRule(command: string, key: string, operation?: unkn
 
 export function historyNumberRule(nodes: readonly ModelNode[], index: number, key: string): FeatureNumberRule | undefined {
   const node = nodes[index];
+  if (node?.kind === 'align' && key === 'gap') return 'align-gap';
   if (key.endsWith('linkedInsetMM')) return 'positive';
   if (node?.kind === 'extrude' && key === 'h') return isSketchAnchoredCut(nodes, index) ? 'positive' : commandNumberRule('extrude', key);
   if (node?.kind === 'extrude' && node.made?.command === 'box') return commandNumberRule('box', key);
@@ -20,9 +22,17 @@ export function historyNumberRule(nodes: readonly ModelNode[], index: number, ke
 
 export function featureNumberInvalid(value: string | number, rule: FeatureNumberRule): boolean {
   const number = Number(value);
-  return !Number.isFinite(number) || (rule === 'positive' ? number <= 0 : number === 0);
+  if (!Number.isFinite(number)) return true;
+  if (rule === 'align-gap') return number < 0 || number > CadPartLimits.length;
+  return rule === 'positive' ? number <= 0 : number === 0;
 }
 
 export function featureNumberRange(rule: FeatureNumberRule): string {
+  if (rule === 'align-gap') return `From 0 to ${CadPartLimits.length} mm`;
   return rule === 'positive' ? 'Greater than 0 mm' : 'Any number except 0 mm';
+}
+
+export function featureNumberBounds(rule: FeatureNumberRule | undefined): { min?: number; max?: number } {
+  if (rule === 'align-gap') return { min: 0, max: CadPartLimits.length };
+  return rule === 'positive' ? { min: 0 } : {};
 }

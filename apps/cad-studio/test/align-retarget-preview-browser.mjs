@@ -9,6 +9,8 @@ const previewBaseline = process.argv.includes('--preview-baseline');
 const delayHistoryPreview = process.argv.includes('--delay-history-preview');
 const alignWaiting = process.argv.includes('--waiting-state');
 const waitingBaseline = process.argv.includes('--waiting-baseline');
+const gapBounds = process.argv.includes('--gap-bounds');
+const gapBaseline = process.argv.includes('--gap-baseline');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'apps/cad-studio/src/ui/AlignHistoryTarget.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   ...(historyPreview && !previewBaseline ? ['apps/cad-studio/src/app/useAlignHistoryPreview.ts'] : []),
@@ -16,7 +18,8 @@ const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useVi
 const f = await createFlow({
   name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--retarget') ? 'D1203_SOURCE_FROZEN' : process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: alignWaiting ? 'Align distinguishes a missing target from a refused face and recalls a chosen face.'
+  qualification: gapBounds ? 'Align History refuses out-of-range Gap before Apply.'
+    : alignWaiting ? 'Align distinguishes a missing target from a refused face and recalls a chosen face.'
     : historyPreview ? 'Align History previews valid draft changes without changing the accepted document.'
     : targetNames ? 'Align History identifies each target body and exact native face.'
     : 'Align uses the original face the pointer hits after results reorder in preview.',
@@ -204,6 +207,50 @@ await f.run(async () => {
   const gap = f.editor().getByLabel('Gap', { exact: true }), lineup = f.editor().getByLabel('Line up', { exact: true });
   assert.equal(await gap.inputValue(), '2');
   assert.equal(await lineup.inputValue(), 'centre');
+  if (gapBounds) {
+    const apply = button('Apply', f.editor());
+    const hint = f.editor().getByRole('status').getByText('Gap · From 0 to 10000 mm.', { exact: true });
+    await gap.fill('-1');
+    if (gapBaseline) {
+      assert.ok(await apply.isEnabled());
+      assert.equal(await gap.getAttribute('aria-invalid'), null);
+      await f.snapshot('align-history-gap-field-admits-invalid');
+      throw new Error('Align History enables Apply and has no numeric field error for negative Gap.');
+    }
+    for (const value of ['-1', '10000.1']) {
+      await gap.fill(value);
+      await hint.waitFor();
+      assert.equal(await gap.getAttribute('min'), '0');
+      assert.equal(await gap.getAttribute('max'), '10000');
+      assert.ok(await apply.isDisabled());
+      assert.equal(await gap.getAttribute('aria-invalid'), 'true');
+      const description = await gap.getAttribute('aria-describedby');
+      assert.equal(await f.page.locator(`[id="${description}"]`).textContent(), 'From 0 to 10000 mm');
+      await gap.press('Enter');
+      await f.same(applied);
+    }
+    await gap.fill('');
+    await f.editor().getByText('Enter a number for Gap.', { exact: true }).waitFor();
+    assert.ok(await apply.isDisabled());
+    await button('Reset', f.editor()).click();
+    assert.equal(await gap.inputValue(), '2');
+    assert.ok(await apply.isDisabled());
+    await f.same(applied);
+    await gap.fill('0');
+    await f.editor().getByText('Align preview', { exact: true }).waitFor();
+    const zero = structuredClone(applied);
+    zero.nodes.at(-1).gap = 0;
+    const result = await f.applyEditor(applied, 'align-zero-gap');
+    assert.deepEqual(result.doc, zero);
+    await verify('zero-gap-native', zero, 'n5.top', 0);
+    await f.undo();
+    await f.same(applied);
+    await f.redo();
+    await f.same(zero);
+    const { file } = await f.save('align-zero-gap');
+    await f.freshOpen(file, zero, 'align-zero-gap-reopened');
+    return;
+  }
   const expected = structuredClone(applied);
   if (retarget) {
     const chooser = f.editor().getByLabel('Target face', { exact: true });
@@ -260,7 +307,7 @@ await f.run(async () => {
       await clickAt([6, 5, 18]);
       assert.deepEqual(await f.page.evaluate(() => window.__studioSelection), draft.selection);
       await gap.fill('-1');
-      await f.editor().getByText('Change the Align settings or reset this edit.', { exact: true }).waitFor();
+      await f.editor().getByText('Gap · From 0 to 10000 mm.', { exact: true }).waitFor();
       assert.equal(await f.page.evaluate(() => window.__studioSection().historyAlignBounds), null);
       await f.same(applied);
       if (delayHistoryPreview) {
