@@ -106,6 +106,16 @@ test('errors: a too-steep draft and a zero angle name their cause', async () => 
   assert.equal(friendly('n4: the bodies touch along an edge or at a vertex only; the result is not a manifold solid').title, 'The bodies only touch along an edge or a point');
 });
 
+test('Shell refusals report the sharp boundary or failed wall, with raw diagnostics intact', async () => {
+  const { friendly } = await import('../src/engine/errors');
+  const sharp = '[SHELL_REGIONS_SHARP] shell: faces a and b of two smooth regions meet at a sharp edge (at 45, 0, 11.5): shelling there is not supported yet';
+  assert.deepEqual(friendly(sharp), { code: 'SHELL_REGIONS_SHARP', title: 'Shell cannot cross this sharp edge',
+    hint: 'Two smooth regions meet at a sharp edge near 45, 0, 11.5 mm. Shell does not support this junction.', detail: sharp });
+  assert.match(friendly('[SHELL_REGIONS_SHARP] shell: no location').hint, /Two smooth regions meet at a sharp edge/);
+  assert.equal(friendly('[SHELL_WALL_UNION] shell: analytic Boolean: the result is not a manifold solid').title,
+    'Shell could not form a closed wall');
+});
+
 test('measure: between two bodies, the closest points span the gap', () => {
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] });
   doc = withNode(doc, { kind: 'extrude', sketch: 0, height: 10 });

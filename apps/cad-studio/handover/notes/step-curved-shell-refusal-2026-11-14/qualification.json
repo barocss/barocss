@@ -1,0 +1,67 @@
+{
+  "decision": "D1190",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "4e00ad8fe0dd0146acb43cd9abf6a2c42c3134fc",
+  "fixture": {
+    "name": "lid-no-gap.step",
+    "sha256": "417d7aa9e430ae1d9ce134b8878f1d53f917695982b9a8a9f0ade1d20c452e03",
+    "source": "Exact STEP text from the original local desktop Shell QA document"
+  },
+  "commands": [
+    "gate.sh acquire heavy 600 D1190-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs measure",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/errors.ts packages/barocss-cad-model/test/measure.test.ts",
+    "node --check apps/cad-studio/test/step-shell-opening-browser.mjs",
+    "D1190_SOURCE_FROZEN=1 node apps/cad-studio/test/step-shell-opening-browser.mjs <external-evidence>/final <external-fixture>/lid-no-gap.step --curved",
+    "D1189_GUARDED=1 D1189_SOURCE_FROZEN=1 node apps/cad-studio/test/step-shell-opening-browser.mjs <external-evidence>/box-regression <external-fixture>/two-boxes.step",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "focused": {
+    "model": 13
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "curved-wall-1-refused",
+        "curved-wall-3-refused",
+        "failure"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "82a327cb949d9a94bea684364ac07a85b80cf3e2c11f58c4f430cdaeb636587d",
+      "sourceManifestSHA256": "e71a5dba4d21dee8a39593803165c149347a7d36715dbb727f09060436d38f1f",
+      "firstFailure": "Generic kernel title concealed the Shell-specific boundary"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "curved-wall-1-refused",
+        "curved-wall-3-refused"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "d57036f6fbb78f36c3707317b4e94a13970b4065b057d885373d05d22627404b",
+      "sourceManifestSHA256": "9d29fb5b2b3dfe3010626346342849ffe82d6410669027224a707a02cc6cab4a",
+      "refusedSizesMM": [
+        1,
+        3
+      ],
+      "nativeVolumeMm3": 1199.9999999999995
+    },
+    "box-regression": {
+      "status": "PASS",
+      "states": [
+        "creation-wall-5-refused",
+        "wall-3-applied",
+        "wall-5-result",
+        "small-opening-applied"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "fd1d1423ade2da53a4092cbd3426bf0a4184a1aa199614f6454759a93d2ea035",
+      "sourceManifestSHA256": "9d29fb5b2b3dfe3010626346342849ffe82d6410669027224a707a02cc6cab4a"
+    }
+  }
+}

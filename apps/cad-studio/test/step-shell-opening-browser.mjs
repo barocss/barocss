@@ -6,13 +6,15 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 const pins = ['apps/cad-studio/src/ui/Hud.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'packages/barocss-cad-model/src/engine/errors.ts', 'packages/barocss-cad/src/blend/general-shell.ts',
   'packages/barocss-cad/src/part/part-shell.ts'];
+const curved = process.argv[4] === '--curved';
 const revised = process.env.D1189_GUARDED === '1';
 if (revised) pins.push('packages/barocss-cad/src/part/part-box-shell.ts');
 const f = await createFlow({
-  name: 'step-shell-opening', output: process.argv[2], envFrozen: 'D1189_SOURCE_FROZEN',
+  name: 'step-shell-opening', output: process.argv[2], envFrozen: curved ? 'D1190_SOURCE_FROZEN' : 'D1189_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: 'The original top opening must remain when a STEP box Shell is made or edited.',
-  limits: ['Exact two-boxes STEP fixture, top of the 10 × 10 × 5 mm part. Desktop WebGPU.'],
+  qualification: curved ? 'Show the reason and location of an unsupported imported Shell boundary.'
+    : 'The original top opening must remain when a STEP box Shell is made or edited.',
+  limits: ['Exact local STEP fixtures: the two-box stock or the raised curved lid. Desktop WebGPU.'],
   inspectorSource: `
 import { readFileSync } from 'node:fs';
 import { checkBrep, faceGeometry, massPropertiesOf } from '@barocss/cad';
@@ -63,8 +65,61 @@ async function setWall(hud, wall) {
   return hud.locator('.status').innerText();
 }
 
+async function openCurved(step) {
+  assert.equal(sha256(step), '417d7aa9e430ae1d9ce134b8878f1d53f917695982b9a8a9f0ade1d20c452e03');
+  f.report.files.push({ name: 'lid-no-gap.step', sha256: sha256(step) });
+  await f.newPage();
+  const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await chooser.setFiles({ name: 'lid-no-gap.step', mimeType: 'application/step', buffer: step });
+  await f.waitToast(/STEP opened.*1 solid.*millimetres/);
+  await f.ready();
+  const source = await f.doc();
+  assert.equal(source.nodes[0].step, step.toString());
+  const stock = await f.inspect('curved-stock-native', source);
+  assert.equal(stock.length, 1);
+  assert.ok(stock[0].strict && stock[0].solids === 1);
+  near(stock[0].volume, 1200);
+
+  f.phase = 'Pick the flat bottom of the curved imported solid';
+  await button('View cube directions', f.page.getByRole('group', { name: 'View cube' })).click();
+  await f.page.getByRole('menuitem', { name: 'Bottom', exact: true }).click();
+  await f.page.waitForFunction(() => document.querySelector('.view-cube .vc-label')?.textContent === 'BOTTOM');
+  if (await button('Ortho').getAttribute('aria-pressed') !== 'true') await button('Ortho').click();
+  await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  const pixel = await f.page.evaluate(() => window.__studioScreenOf([45, 5, 0]));
+  assert.ok(pixel?.length === 2);
+  await f.page.mouse.click(...pixel);
+  await f.page.waitForFunction(() => window.__studioSelection.selection.faces.length === 1);
+  await clickModelCommand(f.page, 'Modify', 'Shell');
+  const hud = f.page.getByRole('dialog', { name: 'Shell', exact: true });
+  const observed = [];
+  for (const wall of [1, 3]) {
+    f.phase = `Read the curved Shell refusal at Wall ${wall} mm`;
+    assert.equal(await setWall(hud, wall), 'refused');
+    const notice = hud.getByRole('status');
+    assert.equal(await notice.locator('details').getAttribute('open'), null);
+    const copy = await notice.locator(':scope > div').evaluateAll(nodes => nodes.slice(0, 2).map(node => node.textContent));
+    const detail = await notice.locator('code').textContent();
+    assert.match(detail, /\[SHELL_REGIONS_SHARP\].*45, 0, 11\.5/);
+    assert.equal(await button('Apply', hud).isEnabled(), false);
+    await f.same(source);
+    await f.snapshot(`curved-wall-${wall}-refused`);
+    observed.push({ wall, copy, detail });
+  }
+  await button('Cancel', hud).click();
+  await f.same(source);
+  assert.deepEqual(await f.inspect('curved-after-cancel-native', source), stock);
+  f.report.observations.push(...observed);
+  for (const { copy } of observed) {
+    assert.equal(copy[0], 'Shell cannot cross this sharp edge');
+    assert.match(copy[1], /two smooth regions.*45, 0, 11\.5 mm/i);
+    assert.doesNotMatch(copy[1], /undo|thinner wall|overlap/i);
+  }
+}
+
 await f.run(async () => {
   const step = await readFile(process.argv[3]);
+  if (curved) { await openCurved(step); return; }
   assert.equal(sha256(step), 'b425a5a94604bd94d4f0b55192368480c217792862552f8cd3a38eedd33c28b7');
   f.report.files.push({ name: 'two-boxes.step', sha256: sha256(step) });
   await f.newPage();

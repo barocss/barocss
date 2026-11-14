@@ -161,6 +161,9 @@ const rules: { code?: string | readonly string[]; text?: RegExp; title: string; 
   { text: /an edge made by an earlier finish/i,
     title: 'Shell before this finish',
     hint: 'A finish here rounds an edge that an earlier fillet or chamfer made. Move the shell before it.' },
+  { code: ['SHELL_NOT_CLOSED', 'SHELL_WALL_UNION'],
+    title: 'Shell could not form a closed wall',
+    hint: 'Try a smaller Wall. If Shell still fails, inspect the kernel detail for the affected boundary.' },
   { text: /leaves no hollow at .+; use a wall less than /i,
     title: 'The wall is too thick',
     hint: 'Reduce Wall to keep the selected face open.' },
@@ -262,6 +265,13 @@ export function friendly(message: string, kind?: string): FriendlyError {
   const bracketed = FIRST_CODE.exec(detail)?.[1], code = bracketed ?? kind;
   if (bracketed && !detail.startsWith(`[${bracketed}]`)) detail = `[${bracketed}] ${detail.replace(`[${bracketed}] `, '').replace(`[${bracketed}]`, '').trim()}`;
   const extra = code ? { code } : {};
+  if (codes.has('SHELL_REGIONS_SHARP')) {
+    const location = /\(at ((?:-?\d+(?:\.\d+)?(?:e[+-]?\d+)?)(?:, -?\d+(?:\.\d+)?(?:e[+-]?\d+)?){2})\): shelling there is not supported yet/i.exec(detail)?.[1];
+    return { title: 'Shell cannot cross this sharp edge',
+      hint: location ? `Two smooth regions meet at a sharp edge near ${location} mm. Shell does not support this junction.`
+        : 'Two smooth regions meet at a sharp edge. Shell does not support this junction.',
+      detail, ...extra };
+  }
   for (const rule of rules) if (matches(rule, codes, message)) return { title: rule.title, hint: rule.hint, detail, ...extra };
   return { title: 'The kernel could not build this', hint: 'Undo the last change, or adjust the values and try again.', detail, ...extra };
 }
