@@ -470,7 +470,7 @@ function featuresOf(node: ModelNode, index: number, available: number = CadPartL
  * that body away, and with it what is built on it alone (a Boolean with one side gone keeps the other;
  * an intersection or a subtraction from nothing is gone too).
  */
-const associationError = (message: string) => refusal('BAD_REFERENCE', `Associative sketch: ${message}`);
+const associationError = (message: string, details?: Record<string, unknown>) => refusal('BAD_REFERENCE', `Associative sketch: ${message}`, details);
 
 /** Validate the persisted binding before any native prefix evaluation. */
 function associationSource(doc: StudioDoc, index: number): number {
@@ -510,7 +510,7 @@ function associativeProfile(doc: StudioDoc, index: number, prefix: readonly CadP
   const reopened = sketchShapes(fp);
   if (!reopened.shape || reopened.done.length) throw associationError('the source face does not have one outer shape.');
   const inset = offsetShape(reopened.shape, -a.insetMM);
-  if ('error' in inset) throw associationError(inset.error);
+  if ('error' in inset) throw associationError(inset.error, { field: 'insetMM', reason: inset.error });
   const profile = profileOf([reopened.shape, inset.shape]);
   if ('error' in profile) throw associationError(profile.error);
   if (profile.node.regions?.length || profile.node.holes?.length !== 1) throw associationError('the inset must produce one enclosed hole.');

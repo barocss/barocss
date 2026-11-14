@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from 'react';
 import { currentPocketSketch, resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { dropStaleMade, prefixDoc, withNode, NODE_EXTRA_FIELDS, type ModelNode, type SketchNode } from '@barocss/cad-model/engine/doc';
 import { featureId } from '@barocss/cad-model/engine/ids';
+import { isRefusal } from '@barocss/cad-model/engine/refusal';
 import { type SketchAnchor } from '../viewport/Viewport';
 import { planeOf } from '@barocss/cad-model/app/profiles';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
@@ -241,10 +242,10 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     setSketch(draft);
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane);
   };
-  const linkSketchInset = (insetMM: number) => {
+  const linkSketchInset = (insetMM: number): string | undefined => {
     const source = sketch?.anchor?.face?.linkSource;
-    if (!sketch || !source) return;
-    if (!Number.isFinite(insetMM) || insetMM <= 0) { setToast({ title: 'Cannot link face outline', hint: 'Enter a finite positive inset distance.', detail: '' }); return; }
+    if (!sketch || !source || !ownsSketch()) return;
+    if (!Number.isFinite(insetMM) || insetMM <= 0) return 'Enter an Offset distance greater than zero.';
     if (sketch.shape || sketch.done?.length) { setToast({ title: 'Cannot link face outline', hint: 'Start with an empty sketch. Existing shapes are preserved.', detail: '' }); return; }
     try {
       const association = { ...source, insetMM }, index = doc.nodes.length;
@@ -252,7 +253,11 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       const node = resolveAssociativeSketch(candidate, index), { shape, done } = sketchShapes(node);
       const plane = planeOf(node);
       setSketch({ ...sketch, plane, shape, done, base: association.source, association, associationDetached: false });
-    } catch (error) { setToast({ title: 'Cannot link face outline', hint: error instanceof Error ? error.message : String(error), detail: '' }); }
+    } catch (error) {
+      if (isRefusal(error, 'BAD_REFERENCE') && error.details?.field === 'insetMM' && typeof error.details.reason === 'string')
+        return error.details.reason;
+      setToast({ title: 'Cannot link face outline', hint: error instanceof Error ? error.message : String(error), detail: '' });
+    }
   };
   function currentSketchSource() {
     const opened = reopenedDraft.current, index = sketch?.editNode;

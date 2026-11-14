@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { createFlow } from './flow-helper.mjs';
 
 const baseline = process.argv.includes('--baseline');
+const oversize = process.argv.includes('--oversize');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx',
+  'apps/cad-studio/src/sketch/useSketchActions.ts', 'packages/barocss-cad-model/src/engine/insetOutline.ts',
   'packages/barocss-cad-model/src/engine/mesh.ts', 'packages/barocss-cad-model/src/engine/part.ts'];
 const f = await createFlow({
   name: 'linked-inset-face-eligibility', output: process.argv[2], envFrozen: 'D1205_SOURCE_FROZEN',
@@ -44,32 +46,54 @@ await f.run(async () => {
   await f.same(seed);
   if (await button(f.page, 'Ortho').getAttribute('aria-pressed') !== 'true') await button(f.page, 'Ortho').click();
 
-  f.phase = 'rounded top face sketch';
-  await startSketchOnTop(10);
-  const outline = button(f.sketchPanel(), 'Use the face outline');
-  await outline.waitFor();
-  assert.deepEqual(await f.doc(), seed);
-  if (baseline) {
-    await linked().click();
-    await f.page.locator('.toast').getByText(/only native straight boundary edges/).waitFor();
-    await f.snapshot('unsupported-link-offered');
-    throw new Error('Rounded top shows a Linked Inset action that the native evaluator refuses.');
+  if (!oversize) {
+    f.phase = 'rounded top face sketch';
+    await startSketchOnTop(10);
+    const outline = button(f.sketchPanel(), 'Use the face outline');
+    await outline.waitFor();
+    assert.deepEqual(await f.doc(), seed);
+    assert.equal(await linked().count(), 0);
+    await f.sketchPanel().getByText('This outline has curved edges. Use the face outline to copy it.', { exact: true }).waitFor();
+    await f.snapshot('rounded-recovery-guidance');
+    await outline.click();
+    const copied = (await f.finishSketch('independent-rounded-outline')).doc;
+    assert.equal(copied.nodes.length, 5);
+    assert.equal(copied.nodes[4].kind, 'sketch');
+    assert.equal(copied.nodes[4].association, undefined);
+    assert.deepEqual(copied.nodes[4].on, { node: 1, side: 'solid' });
+    await f.undo();
+    await f.same(seed);
   }
-  assert.equal(await linked().count(), 0);
-  await f.sketchPanel().getByText('This outline has curved edges. Use the face outline to copy it.', { exact: true }).waitFor();
-  await f.snapshot('rounded-recovery-guidance');
-  await outline.click();
-  const copied = (await f.finishSketch('independent-rounded-outline')).doc;
-  assert.equal(copied.nodes.length, 5);
-  assert.equal(copied.nodes[4].kind, 'sketch');
-  assert.equal(copied.nodes[4].association, undefined);
-  assert.deepEqual(copied.nodes[4].on, { node: 1, side: 'solid' });
-  await f.undo();
-  await f.same(seed);
 
   f.phase = 'straight top face sketch';
   await startSketchOnTop(50);
-  await f.sketchPanel().getByLabel('Offset distance', { exact: true }).fill('2');
+  const distance = f.sketchPanel().getByLabel('Offset distance', { exact: true });
+  const error = f.sketchPanel().getByRole('alert').filter({ hasText: 'Enter a smaller Offset distance and try again.' });
+  if (oversize) {
+    f.phase = 'inset consumes opening';
+    await distance.fill('6');
+    const before = await f.snapshot('before-oversize');
+    await linked().press('Enter');
+    if (baseline) {
+      await f.page.locator('.toast').getByText(/turns the outline inside out|closes the rectangle/).waitFor();
+      assert.equal(await error.count(), 0);
+      await f.snapshot('oversize-toast');
+      throw new Error('The refusal did not identify Offset distance or keep the guidance next to it.');
+    }
+    await error.waitFor();
+    const after = await f.snapshot('oversize-refused');
+    for (const key of ['doc', 'history', 'bodies', 'selection']) assert.deepEqual(after[key], before[key], key);
+    assert.equal(await distance.inputValue(), '6');
+    assert.equal(await distance.getAttribute('aria-invalid'), 'true');
+    assert.equal(await distance.getAttribute('aria-describedby'), await error.getAttribute('id'));
+    assert.ok(await distance.evaluate(input => input === document.activeElement));
+    assert.equal(await f.page.locator('.toast').getByText('Cannot link face outline', { exact: true }).count(), 0);
+  }
+  await distance.fill('2');
+  if (oversize) {
+    await error.waitFor({ state: 'hidden' });
+    assert.equal(await distance.getAttribute('aria-invalid'), null);
+  }
   await linked().click();
   await f.sketchPanel().getByText(/Linked face outline and inset/).waitFor();
   const saved = (await f.finishSketch('straight-linked-outline')).doc;
