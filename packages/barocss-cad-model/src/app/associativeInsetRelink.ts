@@ -1,5 +1,5 @@
 import { faceGeometry, type CadPartOutput } from '@barocss/cad';
-import { isSolidNode, type SketchNode, type StudioDoc } from '../engine/doc';
+import { featureLabel, isSolidNode, type SketchNode, type StudioDoc } from '../engine/doc';
 import { bodyKeyFor, featureId, featureIdsOf } from '../engine/ids';
 import { partSnapshot, resolveAssociativeSketch } from '../engine/part';
 import { isRefusal, refusal } from '../engine/refusal';
@@ -52,11 +52,17 @@ export function insetRelinkReadiness(doc: StudioDoc, sketchIndex: number) {
   const extrusionIndex = sketchIndex + 1;
   const extrusion = doc.nodes[extrusionIndex], extrusionId = uniqueId(doc, extrusionIndex);
   if (!extrusion) return { problem: 'Make a straight Extrude as a new body before replacing the source.' } as const;
-  if (extrusionIndex !== doc.nodes.length - 1 || extrusion?.kind !== 'extrude' || !extrusionId || extrusion.sketch !== sketchIndex
+  if (extrusion.kind !== 'extrude' || !extrusionId || extrusion.sketch !== sketchIndex
     || extrusion.suppressed || extrusion.held || extrusion.made || typeof extrusion.height !== 'number'
-    || !Number.isFinite(extrusion.height) || extrusion.height <= 0 || (extrusion.from ?? 0) !== 0 || (extrusion.draft ?? 0) !== 0) {
+    || !Number.isFinite(extrusion.height) || extrusion.height <= 0 || (extrusion.draft ?? 0) !== 0) {
     return { problem: 'The linked sketch must feed one final straight extrusion made as a new body.' } as const;
   }
+  if (extrusionIndex < doc.nodes.length - 1) {
+    const later = extrusionIndex + 1, label = featureLabel(doc.nodes[later], later, doc.nodes);
+    const step = later === doc.nodes.length - 1 ? `The later ${label}` : `Later History starting with ${label}`;
+    return { problem: `${step} blocks source replacement. Undo or remove it before replacing the source.` } as const;
+  }
+  if ((extrusion.from ?? 0) !== 0) return { problem: 'Set Start Z to 0 mm before replacing the source.' } as const;
   const outputKey = bodyKeyFor(doc.nodes, extrusionIndex);
   const output = Object.hasOwn(doc.outputs, outputKey) ? doc.outputs[outputKey] : undefined;
   if (output?.node !== extrusionIndex || output.side !== 'solid' || hasNamedReferences(doc, sketchId, extrusionId, outputKey)) {

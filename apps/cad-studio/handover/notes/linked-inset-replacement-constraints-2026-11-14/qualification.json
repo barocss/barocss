@@ -1,0 +1,127 @@
+{
+  "decision": "D1220",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "66016d430f77f13778208fd77a65e21a0bc01b3c",
+  "commands": [
+    "gate.sh acquire heavy 600 D1220-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --start-z --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/start --start-z",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/move --later-move",
+    "pnpm --filter @barocss/cad-model test associative-inset-relink sketch-associative-inset",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/{src/app/associativeInsetRelink.ts,test/associative-inset-relink.test.ts}",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "generic-replacement-prerequisite",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "083ff8923bd4fb63a176eaad172752831c219a62288556a2274a7d30020488d0",
+      "sourceManifestSHA256": "e5bf3a433da49a42b9874f40c447c1310a64b4821d143fe98df8e3daf0a5fed4",
+      "sourceAfterCleanupSHA256": "e5bf3a433da49a42b9874f40c447c1310a64b4821d143fe98df8e3daf0a5fed4",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "start": {
+      "status": "PASS",
+      "states": [
+        "blocked-replacement",
+        "replacement-available"
+      ],
+      "observations": [
+        {
+          "label": "start-z",
+          "guidance": "Set Start Z to 0 mm before replacing the source.",
+          "before": {
+            "key": "b5",
+            "volume": 960.0000000000016,
+            "centroid": [
+              19.999999999999993,
+              11.999999999999986,
+              11
+            ],
+            "massRef": null
+          },
+          "recovered": {
+            "key": "b5",
+            "volume": 960.0000000000016,
+            "centroid": [
+              19.999999999999993,
+              11.999999999999986,
+              10
+            ],
+            "massRef": null
+          }
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "dfe762d639b3261afc608792aeb1fca0653d173768cd7b553b6b7bddf0616cab",
+      "sourceManifestSHA256": "f860a2f9c8d38928f0e19be991db155aa251ecc40cb4082ec685ef4fa224c104",
+      "sourceAfterCleanupSHA256": "f860a2f9c8d38928f0e19be991db155aa251ecc40cb4082ec685ef4fa224c104",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "move": {
+      "status": "PASS",
+      "states": [
+        "blocked-replacement",
+        "replacement-available"
+      ],
+      "observations": [
+        {
+          "label": "later-move",
+          "guidance": "The later Move blocks source replacement. Undo or remove it before replacing the source.",
+          "before": {
+            "key": "b6",
+            "volume": 960.0000000000016,
+            "centroid": [
+              19.999999999999993,
+              46.999999999999986,
+              10
+            ],
+            "massRef": null
+          },
+          "recovered": {
+            "key": "b5",
+            "volume": 960.0000000000016,
+            "centroid": [
+              19.999999999999993,
+              11.999999999999986,
+              10
+            ],
+            "massRef": null
+          }
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "713e7b1cccac02d1aad0b12ac2534d67b5da7cf679b72d3e09269df3a69593a4",
+      "sourceManifestSHA256": "f860a2f9c8d38928f0e19be991db155aa251ecc40cb4082ec685ef4fa224c104",
+      "sourceAfterCleanupSHA256": "f860a2f9c8d38928f0e19be991db155aa251ecc40cb4082ec685ef4fa224c104",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "focusedModel": {
+    "status": "PASS",
+    "passed": 20,
+    "failed": 0
+  }
+}

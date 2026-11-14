@@ -10,6 +10,8 @@ const sourceDimension = process.argv.includes('--source-dimension');
 const editInsetDistance = process.argv.includes('--edit-inset-distance');
 const delayRefusal = process.argv.includes('--delay-refusal');
 const collapsedHistory = process.argv.includes('--collapsed-history');
+const startZ = process.argv.includes('--start-z');
+const laterMove = process.argv.includes('--later-move');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
@@ -57,6 +59,13 @@ if (collapsedHistory) {
     b3: { node: 31, side: 'solid' }, b5: { node: 33, side: 'solid' },
   };
   seed.nextId = 34;
+}
+if (startZ) seed.nodes[5].from = 1;
+if (laterMove) {
+  seed.nodes.push({ kind: 'translate', parent: { node: 5, side: 'solid' }, offset: [0, 35, 0], id: 'n6' });
+  delete seed.outputs.b5;
+  seed.outputs.b6 = { node: 6, side: 'solid' };
+  seed.nextId = 7;
 }
 const button = (name, scope = f.page) => scope.getByRole('button', { name, exact: true });
 const review = () => f.page.getByRole('complementary', { name: 'Inset source replacement', exact: true });
@@ -132,6 +141,48 @@ await f.run(async () => {
   const [chooser] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await chooser.setFiles({ name: 'inset-focus.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
+  if (startZ || laterMove) {
+    await f.openFeatureEditor(5);
+    f.phase = startZ ? 'recover from nonzero Start Z' : 'recover from later Move';
+    const summary = f.editor().getByRole('group', { name: 'Linked inset', exact: true });
+    assert.equal(await replace().count(), 0);
+    if (baseline) {
+      await summary.getByText('The linked sketch must feed one final straight extrusion made as a new body.', { exact: true }).waitFor();
+      await f.snapshot('generic-replacement-prerequisite');
+      throw new Error('History displayed the same generic reason for Start Z and later Move.');
+    }
+    const guidance = startZ ? 'Set Start Z to 0 mm before replacing the source.' : 'The later Move blocks source replacement. Undo or remove it before replacing the source.';
+    await summary.getByText(guidance, { exact: true }).waitFor();
+    await f.same(seed);
+    const before = await f.snapshot('blocked-replacement');
+    const saved = structuredClone(seed);
+    if (startZ) {
+      await f.editor().getByLabel('Start Z', { exact: true }).fill('0');
+      await button('Apply', f.editor()).click();
+      saved.nodes[5].from = 0;
+    } else {
+      await f.openFeatureEditor(6);
+      await button('Delete feature', f.editor()).click();
+      saved.nodes.pop();
+      delete saved.outputs.b6;
+      saved.outputs.b5 = { node: 5, side: 'solid' };
+    }
+    await f.changed(seed);
+    assert.deepEqual(await f.doc(), saved);
+    await f.openFeatureEditor(5);
+    await replace().waitFor();
+    assert.ok(await replace().isEnabled());
+    const recovered = await f.snapshot('replacement-available');
+    const ring = recovered.bodies.bodies.find(body => body.key === 'b5');
+    assert.ok(Math.abs(ring.volume - 960) < 1e-7);
+    assert.ok(Math.abs(ring.centroid[2] - 10) < 1e-7);
+    f.report.observations.push({ label: startZ ? 'start-z' : 'later-move', guidance, before: before.bodies.bodies.at(-1), recovered: ring });
+    await f.undo();
+    await f.same(seed);
+    await f.redo();
+    await f.same(saved);
+    return;
+  }
   if (editInsetDistance) {
     await f.openFeatureEditor(5);
     f.phase = 'edit stored linked inset distance in History';

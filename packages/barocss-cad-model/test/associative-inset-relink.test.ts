@@ -103,7 +103,7 @@ test('relink keeps explicit target custody and refuses downstream geometry or sa
   delete profile(targetless).on;
   assert.throws(() => relinkAssociativeInset(targetless, 4, selected), /explicit earlier solid/);
   const chained = withNode(doc, { kind: 'translate', parent: solid(5), offset: [1, 0, 0] });
-  assert.throws(() => relinkAssociativeInset(chained, 4, selected), /final straight extrusion/);
+  assert.throws(() => relinkAssociativeInset(chained, 4, selected), /later Move blocks source replacement/);
   const colored = { ...doc, bodies: { b5: { faces: { 'n5.top': '#ffffff' } } } };
   assert.throws(() => relinkAssociativeInset(colored, 4, selected), /saved face or edge references/);
   const drawings = { ...doc, drawing: {} } as StudioDoc;
@@ -112,4 +112,6 @@ test('relink keeps explicit target custody and refuses downstream geometry or sa
   assert.equal(extrusion.kind, 'extrude');
   const draft = { ...doc, nodes: [...doc.nodes.slice(0, 5), { ...extrusion, draft: 2 }] };
   assert.throws(() => relinkAssociativeInset(draft, 4, selected), /final straight extrusion/);
+  const start = { ...doc, nodes: [...doc.nodes.slice(0, 5), { ...extrusion, from: 1 }] };
+  assert.throws(() => relinkAssociativeInset(start, 4, selected), /Set Start Z to 0 mm/);
 });
