@@ -31,38 +31,47 @@ function hasNamedReferences(doc: StudioDoc, sketchId: string, extrusionId: strin
   return names.some(name => featureIdsOf(name).some(id => id === sketchId || id === extrusionId));
 }
 
-/** Prepare a v1 source replacement for one linked sketch and its terminal, independent extrusion. */
-export function relinkAssociativeInset(doc: StudioDoc, sketchIndex: number, pick: AssociativeInsetFacePick): {
-  doc: StudioDoc; outputKey: string; resolved: SketchNode;
-} {
+/** Check the authored graph without evaluating the part or choosing a candidate face. */
+export function insetRelinkReadiness(doc: StudioDoc, sketchIndex: number) {
   if (doc.instances?.length || doc.mates?.length || doc.assemblyCuts?.length || doc.drawing !== undefined) {
-    throw refused('Open the part on its own, with no drawing attached.');
+    return { problem: 'Open the part on its own, with no drawing attached.' } as const;
   }
   const sketch = doc.nodes[sketchIndex], sketchId = uniqueId(doc, sketchIndex);
   if (!Number.isInteger(sketchIndex) || sketch?.kind !== 'sketch' || !sketchId || sketch.suppressed || sketch.held
     || sketch.profile === 'band' || sketch.association?.kind !== 'planar-face-outline-inset' || sketch.association.version !== 1) {
-    throw refused('Select one active linked face inset.');
+    return { problem: 'Select one active linked face inset.' } as const;
   }
   const association = sketch.association;
   const on = sketch.on, target = on && doc.nodes[on.node];
   if (!on || !Number.isInteger(on.node) || on.node < 0 || on.node >= sketchIndex || on.side !== 'solid'
     || !target || !isSolidNode(target) || target.suppressed || !uniqueId(doc, on.node)) {
-    throw refused('The linked sketch needs an explicit earlier solid as its application target.');
+    return { problem: 'The linked sketch needs an explicit earlier solid as its application target.' } as const;
   }
 
   // A terminal extrusion keeps downstream topology references outside this operation.
   const extrusionIndex = sketchIndex + 1;
   const extrusion = doc.nodes[extrusionIndex], extrusionId = uniqueId(doc, extrusionIndex);
+  if (!extrusion) return { problem: 'Make a straight Extrude as a new body before replacing the source.' } as const;
   if (extrusionIndex !== doc.nodes.length - 1 || extrusion?.kind !== 'extrude' || !extrusionId || extrusion.sketch !== sketchIndex
     || extrusion.suppressed || extrusion.held || extrusion.made || typeof extrusion.height !== 'number'
     || !Number.isFinite(extrusion.height) || extrusion.height <= 0 || (extrusion.from ?? 0) !== 0 || (extrusion.draft ?? 0) !== 0) {
-    throw refused('The linked sketch must feed one final straight extrusion made as a new body.');
+    return { problem: 'The linked sketch must feed one final straight extrusion made as a new body.' } as const;
   }
   const outputKey = bodyKeyFor(doc.nodes, extrusionIndex);
   const output = Object.hasOwn(doc.outputs, outputKey) ? doc.outputs[outputKey] : undefined;
   if (output?.node !== extrusionIndex || output.side !== 'solid' || hasNamedReferences(doc, sketchId, extrusionId, outputKey)) {
-    throw refused('The extrusion must remain a separate solid without saved face or edge references.');
+    return { problem: 'The extrusion must remain a separate solid without saved face or edge references.' } as const;
   }
+  return { sketch, association, extrusionId, outputKey };
+}
+
+/** Prepare a v1 source replacement for one linked sketch and its terminal, independent extrusion. */
+export function relinkAssociativeInset(doc: StudioDoc, sketchIndex: number, pick: AssociativeInsetFacePick): {
+  doc: StudioDoc; outputKey: string; resolved: SketchNode;
+} {
+  const readiness = insetRelinkReadiness(doc, sketchIndex);
+  if (readiness.problem !== undefined) throw refused(readiness.problem);
+  const { sketch, association, extrusionId, outputKey } = readiness;
 
   const key = pick?.bodyKey;
   const source = key && Object.hasOwn(doc.outputs, key) ? doc.outputs[key] : undefined;

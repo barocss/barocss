@@ -1,0 +1,126 @@
+{
+  "decision": "D1212",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "bf3294e30e037c245e4bc86f060da90248dd6b89",
+  "commands": [
+    "gate.sh acquire heavy 600 D1212-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --before-extrude --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final --before-extrude",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/wide --history-summary",
+    "pnpm --filter @barocss/cad-model test associative-inset-relink sketch-associative-inset",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/app/associativeInsetRelink.ts",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "premature-source-replacement",
+        "failure"
+      ],
+      "observations": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "2320f4fbd228db1f65ee220cf432527c8e54169cd5944cd3d3fdaf637ae0b969",
+      "sourceManifestSHA256": "c40e6d155bc33cd54cde5da572178e09bfdca6f6b802ef46eb04b3ab6e9ff5c1",
+      "sourceAfterCleanupSHA256": "c40e6d155bc33cd54cde5da572178e09bfdca6f6b802ef46eb04b3ab6e9ff5c1",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "free-sketch-next-action",
+        "source-replacement-ready-extruded"
+      ],
+      "observations": [
+        {
+          "label": "source-replacement-ready-extrude-hud",
+          "operation": {
+            "value": "join",
+            "options": [
+              "join",
+              "new",
+              "cut"
+            ]
+          },
+          "depthSelect": 0,
+          "hudText": "ExtrudepreviewProfileSketch 5TargetExtrude 8Result1 solid pieceDistancemmAny number except 0 mmDraft\u00b0OperationJoin to bodyNew bodyCut from bodyCancelApply"
+        },
+        {
+          "label": "terminal-extrusion",
+          "volume": 960.0000000000016
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "bbdfc905dea06a640914ae33c531f1ad5fa53de218bf235e746ced46e4de6f79",
+      "sourceManifestSHA256": "3d85b10ca7a8464db50561be6a26c117b56bac567ca689b9e52bcd3646185adc",
+      "sourceAfterCleanupSHA256": "3d85b10ca7a8464db50561be6a26c117b56bac567ca689b9e52bcd3646185adc",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "wide": {
+      "status": "PASS",
+      "states": [
+        "linked-history-original",
+        "source-picked",
+        "cancel-Enter",
+        "cancel-Escape",
+        "applied-source",
+        "linked-history-replacement",
+        "linked-history-restored"
+      ],
+      "observations": [
+        {
+          "label": "cancel-Enter",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "cancel-Escape",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "apply",
+          "focused": [
+            "BUTTON",
+            "Extrude 4",
+            ""
+          ],
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "15d049c35cef7919c613bb1892220eb4421433659b79c23d9a351df5ac8ceaf6",
+      "sourceManifestSHA256": "3d85b10ca7a8464db50561be6a26c117b56bac567ca689b9e52bcd3646185adc",
+      "sourceAfterCleanupSHA256": "3d85b10ca7a8464db50561be6a26c117b56bac567ca689b9e52bcd3646185adc",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  },
+  "focusedModel": {
+    "status": "PASS",
+    "passed": 20,
+    "failed": 0
+  }
+}

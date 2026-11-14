@@ -5,9 +5,11 @@ const baseline = process.argv.includes('--baseline');
 const historySummary = process.argv.includes('--history-summary');
 const narrowDock = process.argv.includes('--narrow-dock');
 const automaticRefusal = process.argv.includes('--automatic-refusal');
+const beforeExtrude = process.argv.includes('--before-extrude');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
+  'packages/barocss-cad-model/src/app/associativeInsetRelink.ts',
   'packages/barocss-cad-model/src/engine/part.ts'];
 const f = await createFlow({
   name: 'linked-inset-review-focus', output: process.argv[2], envFrozen: 'D1204_SOURCE_FROZEN',
@@ -31,6 +33,11 @@ const seed = {
   ],
   outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' }, b5: { node: 5, side: 'solid' } }, nextId: 6,
 };
+if (beforeExtrude) {
+  seed.nodes.pop();
+  delete seed.outputs.b5;
+  seed.nextId = 5;
+}
 const button = (name, scope = f.page) => scope.getByRole('button', { name, exact: true });
 const review = () => f.page.getByRole('complementary', { name: 'Inset source replacement', exact: true });
 const replace = () => button('Replace inset source', f.editor());
@@ -76,6 +83,33 @@ await f.run(async () => {
   if (await button('Ortho').getAttribute('aria-pressed') !== 'true') await button('Ortho').click();
   await button('Front', f.page.getByRole('group', { name: 'Views', exact: true })).click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+  if (beforeExtrude) {
+    f.phase = 'open free Linked Inset in History';
+    await button('Sketch · polygon', f.page.getByRole('group', { name: 'History', exact: true })).click();
+    await f.editor().waitFor();
+    if (baseline) {
+      await replace().waitFor();
+      assert.equal(await replace().isEnabled(), true);
+      await f.snapshot('premature-source-replacement');
+      throw new Error('History offered source replacement before the linked sketch had an extrusion.');
+    }
+    const summary = f.editor().getByRole('group', { name: 'Linked inset', exact: true });
+    await summary.getByText('Make a straight Extrude as a new body before replacing the source.', { exact: true }).waitFor();
+    assert.equal(await replace().count(), 0);
+    await f.snapshot('free-sketch-next-action');
+    await f.openExtrudeHud();
+    const accepted = (await f.applyExtrude({ distance: 4, previous: seed, label: 'source-replacement-ready' })).doc;
+    assert.deepEqual(accepted.nodes[4], seed.nodes[4]);
+    await f.openFeatureEditor(5);
+    await replace().waitFor();
+    assert.equal(await replace().isEnabled(), true);
+    const volume = (await f.bodies()).bodies.find(body => body.key === 'b5').volume;
+    assert.ok(Math.abs(volume - 960) < 1e-7);
+    f.report.observations.push({ label: 'terminal-extrusion', volume });
+    await f.undo();
+    await f.same(seed);
+    return;
+  }
   if (narrowDock) await historyStep(5).click();
   else await f.openFeatureEditor(5);
   if (historySummary) {

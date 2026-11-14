@@ -71,6 +71,7 @@ import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActi
 import { alignFaceBinding } from '@barocss/cad-model/app/alignCommand';
 import { originalTransformFace } from './app/transformFacePick';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
+import { insetRelinkReadiness } from '@barocss/cad-model/app/associativeInsetRelink';
 import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
 import { useModelExports } from './files/useModelExports';
 import { ModelExportDialogs } from './files/ModelExportDialogs';
@@ -3091,6 +3092,8 @@ export function App() {
   const editFeature = editNode === null ? undefined : doc.nodes[editNode];
   const insetSketchIndex = editFeature?.kind === 'sketch' ? editNode : editFeature?.kind === 'extrude' ? editFeature.sketch : null;
   const insetSketch = insetSketchIndex === null ? undefined : doc.nodes[insetSketchIndex];
+  const insetRelinkReadinessHere = insetSketchIndex !== null && insetSketch?.kind === 'sketch' && insetSketch.association
+    ? insetRelinkReadiness(doc, insetSketchIndex) : undefined;
   const reviewInsetSource = (opener: HTMLButtonElement) => {
     if (insetSketchIndex === null || insetSketch?.kind !== 'sketch' || !insetSketch.association || !insetSketch.on) return;
     const refuse = (hint: string) => setToast({ title: 'Inset source not replaced', hint, detail: '' });
@@ -3305,7 +3308,8 @@ export function App() {
         } : undefined} onDraft={reportNodeEditorDraft} nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={parameterEdit?.roundedInset ? 'Checking the rounded inset…' : doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode}
           onDetachInset={editNode === 2 && doc.nodes[1]?.kind === 'rounded-rectangle-inset' ? () => applyRoundedInsetEdit() : undefined}
           insetSourceWidth={editNode === 2 && doc.nodes[1]?.kind === 'rounded-rectangle-inset' && doc.nodes[0]?.kind === 'sketch' ? roundedInsetSourceWidth(doc.nodes[0]) : undefined}
-          onRelinkInset={insetSketch?.kind === 'sketch' && insetSketch.association && insetSketch.on ? { start: reviewInsetSource, cancel: insetRelink.cancel, reviewing: !!insetReview } : undefined}
+          insetRelinkProblem={insetRelinkReadinessHere?.problem}
+          onRelinkInset={insetRelinkReadinessHere && !insetRelinkReadinessHere.problem ? { start: reviewInsetSource, cancel: insetRelink.cancel, reviewing: !!insetReview } : undefined}
           onEditSketch={(() => {
           const n = doc.nodes[editNode], s = n?.kind === 'sketch' || n?.kind === 'driven-sketch' ? editNode : n && 'sketch' in n ? n.sketch : null;
           if (s === null || (doc.nodes[s]?.kind !== 'sketch' && doc.nodes[s]?.kind !== 'driven-sketch')) return undefined;
