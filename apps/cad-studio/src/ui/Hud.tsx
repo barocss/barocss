@@ -3,6 +3,7 @@ import type { FilletType, RadiusMode } from '../app/filletFamily';
 import { commandIconName } from './commandIcons';
 import { shownFields } from '@barocss/cad-model/app/commands';
 import { isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
+import { REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { useEffect, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { useStoreValue, type ValueStore } from '../state/valueStore';
 import type { Field, Values } from '@barocss/cad-model/app/commands';
@@ -38,6 +39,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
   useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement && first.current.type !== 'file') first.current.select(); }, [active?.cmd.id]);
   // (Ended before the App unmounts it.)
   if (!active) return null;
+  const replacingAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
   const fields = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).filter(f => !(active.fillet?.type === 'edge' && active.fillet.radiusMode === 'constant' && f.key === 'endRadius'));
   const captureFirst = (element: HTMLInputElement | HTMLSelectElement | null) => { first.current = element; };
   const changeValue = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -70,13 +72,14 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
   return (
     <div className="card hud" role="dialog" aria-label={active.fillet ? 'Fillet' : active.cmd.label}>
       <div className="hud-title"><Icon name={commandIconName(active.cmd.id, active.cmd.icon)} small className="accent" />{active.fillet ? 'Fillet' : active.cmd.label}
-        <span className="grow" /><span className={'status ' + active.preview}>{active.preview === 'busy' ? 'evaluating…' : active.preview === 'ok' ? 'preview' : active.preview === 'input' ? 'pick face' : 'refused'}</span></div>
+        <span className="grow" /><span className={'status ' + active.preview}>{active.preview === 'busy' ? 'evaluating…' : active.preview === 'ok' ? 'preview' : active.preview === 'input' ? (replacingAxis ? 'pick edge' : 'pick face') : 'refused'}</span></div>
       {active.cmd.place && <div className="hud-steps"><div className={'hud-step' + (active.placing ? '' : ' done')}>
         <Icon name={active.placing ? 'radio_button_unchecked' : 'check_circle'} small /><b>Place</b><span>{active.placing ? 'click where it goes (on the ground or a top face)' : 'placed — drag its arrows to size it'}</span></div></div>}
       {active.cmd.steps && <div className="hud-steps">
         {active.cmd.steps(active.ctx, active.values).map(step => {
           const endFace = step.label === 'End face' && isExtrudeToFace(active.cmd.id, active.values);
-          const done = step.done && (!endFace || active.preview === 'ok');
+          const requiresPreview = endFace || (step.label === 'Axis' && replacingAxis);
+          const done = step.done && (!requiresPreview || active.preview === 'ok');
           return <div key={step.label} className={'hud-step' + (done ? ' done' : '')}>
             <Icon name={done ? 'check_circle' : 'radio_button_unchecked'} small /><b>{step.label}</b><span>{step.text}</span>
           </div>;

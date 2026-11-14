@@ -61,6 +61,7 @@ import { sourceRevolveAxis, type RevolveAxisHit } from './app/revolveAxisPick';
 import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from './app/extrudeEndFace';
 import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
+import { awaitingRevolveAxis, editSavedRevolveAxisCommand, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
 import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
@@ -557,6 +558,7 @@ export function App() {
   const [notice, setToast] = useState<(FriendlyError & {
     action?: { label: string; run(): void };
     bodyCopy?: true;
+    axisPick?: Command;
     documentSource?: { doc: StudioDoc; name?: string; evaluated?: StudioDoc; placed?: { view: StudioDoc; workerSession: number } };
   }) | null>(null);
   const clearBodyClipboard = useCallback(() => {
@@ -1423,7 +1425,11 @@ export function App() {
   };
   const { play, animatedAt, videoBusy, recordVideo, exportImage } = useRenderPlayback({ render, rendering, state: { time, setTime, playing, setPlaying, turnFrom }, viewport, fileName, onNotice: setToast });
 
-  const cancel = useCallback(() => { discardDirectCandidateRef.current(); discardRouteRef.current(); setActive(null); setPreviewBodies(null); setSketch(null); }, [setSketch]);
+  const cancel = useCallback(() => {
+    const command = activeStore.get()?.cmd;
+    if (command) setToast(current => current?.axisPick === command ? null : current);
+    discardDirectCandidateRef.current(); discardRouteRef.current(); setActive(null); setPreviewBodies(null); setSketch(null);
+  }, [activeStore, setSketch]);
 
   const openRoute = () => {
     cancel(); setPole(null); setPoleDrag(null); routeEditor.open(directSel);
@@ -1457,7 +1463,8 @@ export function App() {
     if (!active?.cmd.build || !canChangeDocument()) return;
     const toFace = isExtrudeToFace(active.cmd.id, active.values);
     const region = active.cmd.id === 'extrude' && active.values.region !== undefined && active.values.region !== 'all';
-    if ((active.fillet || toFace || region) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
+    const replaceAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
+    if ((active.fillet || toFace || region || replaceAxis) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
     if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
       setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
@@ -1465,10 +1472,12 @@ export function App() {
     }
     if (active.upload) { applyWhenReady.current = null; return; }
     if (!bearingRootCurrent) { applyWhenReady.current = null; return; }
-    if (toFace && awaitingExtrudeEndFace(active.cmd.id, active.values)) { again.current = null; return; }
+    if (awaitingExtrudeEndFace(active.cmd.id, active.values) || awaitingRevolveAxis(active.cmd.id, active.values)) {
+      applyWhenReady.current = null; again.current = null; return;
+    }
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
     applyWhenReady.current = null;
-    if (active.preview !== 'ok') { if (toFace) again.current = null; return; }
+    if (active.preview !== 'ok') { if (toFace || replaceAxis) again.current = null; return; }
     // The preview is what the part becomes: shown as the part at once (no step back to the old bodies
     // while the committed document evaluates).
     const next = active.cmd.build(active.ctx, active.values);
@@ -1817,7 +1826,7 @@ export function App() {
   };
   const pickRevolveAxis = (hit: RevolveAxisHit, blocked: boolean): boolean => {
     const current = activeStore.get();
-    if (current?.cmd.id !== 'revolve') return false;
+    if (current?.cmd.id !== 'revolve' && current?.cmd.id !== REVOLVE_AXIS_EDIT) return false;
     if (!hit.edge && !hit.instance && !hit.direct) return true;
     applyWhenReady.current = null;
     again.current = null;
@@ -1832,13 +1841,15 @@ export function App() {
       ? sourceRevolveAxis(current, scope.bodies, hit, ownsPreview) : null;
     const picked = edge && current.cmd.onPick?.(current.ctx, current.values, { face: null, edge });
     if (!picked || typeof picked.error === 'string') {
-      setToast({ title: 'Axis not selected', hint: typeof picked?.error === 'string' ? picked.error : 'Pick one original straight edge in the sketch plane.', detail: '' });
+      setToast({ title: 'Axis not selected', hint: typeof picked?.error === 'string' ? picked.error : 'Pick one original straight edge in the sketch plane.', detail: '', axisPick: current.cmd });
       return true;
     }
+    setToast(notice => notice?.axisPick === current.cmd ? null : notice);
     commandPreview.retire();
     setActive({ ...current, values: picked, preview: 'busy', error: undefined });
     return true;
   };
+  const replaceRevolveAxis = editNode === null ? null : editSavedRevolveAxisCommand(commandDoc, editNode);
   const sectionBoxRef = useRef<{ min: Vec3; max: Vec3 }>(null!);
   const changeFillet = (type: FilletType, mode?: RadiusMode) => {
     if (docNow.current !== doc || evaluatedRef.current !== evaluated || activeStore.get()?.ctx.doc !== ctx.doc) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
@@ -2470,7 +2481,7 @@ export function App() {
       if (e.key === 'Escape') { footprintRequest.current++; if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
       if (e.key === 'Enter' && e.target instanceof HTMLButtonElement && e.target.closest('[data-workspace-mode]')) return;
       // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
-      if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit' && active.cmd.id !== EXTRUDE_END_FACE_EDIT) again.current = active.cmd; apply(); } return; }
+      if (e.key === 'Enter' && !palette && !(e.target instanceof HTMLInputElement && e.target.type === 'file')) { if (sketch) { e.preventDefault(); finishSketch(); } else if (active) { e.preventDefault(); if (e.shiftKey && active.cmd.id !== 'edit' && active.cmd.id !== EXTRUDE_END_FACE_EDIT && active.cmd.id !== REVOLVE_AXIS_EDIT) again.current = active.cmd; apply(); } return; }
       // A sketch tool key still works from a number box (letters are no numbers): it leaves the box.
       const numberBox = e.target instanceof HTMLInputElement && e.target.type === 'number' && !e.target.classList.contains('dim-edit');
       if (palette || (typing && !(sketch && numberBox && !e.metaKey && !e.ctrlKey && !e.altKey && /^[a-z]$/i.test(e.key)))) return;
@@ -3135,7 +3146,16 @@ export function App() {
             if (doc.nodes[s]?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
             editSketch(s);
           };
-        })()} onPickEndFace={canEditSavedExtrudeEndFace(doc, editNode) ? () => {
+        })()} onReplaceAxis={replaceRevolveAxis ? () => {
+          if (docNow.current !== doc || evaluatedRef.current !== evaluated || markerNow.current !== null || shownVariant.current
+            || !fresh || busy || !canChangeDocument()) {
+            setToast({ title: 'Axis replacement not started', hint: 'Show the master at the latest History and wait for the model.', detail: '' });
+            return;
+          }
+          discardFeatureDraft();
+          setEditNode(null);
+          setActive({ cmd: replaceRevolveAxis, ctx, values: {}, preview: 'busy' });
+        } : undefined} onPickEndFace={canEditSavedExtrudeEndFace(doc, editNode) ? () => {
           if (docNow.current !== doc || evaluatedRef.current !== evaluated || markerNow.current !== null || shownVariant.current
             || !fresh || busy || !canChangeDocument()) {
             setToast({ title: 'End face not started', hint: 'Show the master at the latest History and wait for the model.', detail: '' });

@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
+import type { Ctx } from '../src/app/commands';
+import { awaitingRevolveAxis, editSavedRevolveAxisCommand } from '../src/app/revolveAxisEdit';
 import { addPart } from '../src/assembly/edit';
 import { deleteFeature, duplicateBody, featureDependents } from '../src/chat/features';
 import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
+import { evaluateDoc } from '../src/engine/evaluate';
 import { flattenAssembly } from '../src/engine/flatten';
 import { readStudioDoc } from '../src/engine/migrate';
 import { currentLinkedRevolveAxis, featureOf, toPartDocument } from '../src/engine/part';
@@ -70,4 +73,37 @@ test('copy and flatten preserve the stock reference with one body per output', (
   const joinedCopy = outputs(duplicateBody(joined, ref(4), [0, 65, 0]).doc);
   assert.equal(joinedCopy.length, 2);
   joinedCopy.forEach(body => near(massPropertiesOf(body).volume, 16000 + 562.5 * Math.PI));
+});
+
+test('History replaces only the saved Revolve after an earlier current edge pick', () => {
+  let doc = patch(fixture(), 0, { max: [40, 24] });
+  doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [60, 0], max: [70, 12] });
+  doc = withNode(doc, { kind: 'extrude', sketch: 4, height: 20 });
+  const cmd = editSavedRevolveAxisCommand(doc, 3), result = evaluateDoc(doc, 0);
+  assert.ok(cmd?.onPick && cmd.build && result.ok);
+  const ctx: Ctx = { doc, bodies: result.bodies, selection: { faces: [], edges: [], bodies: [], sketches: [4] } };
+  const stale = { ...ctx, doc: { ...doc } };
+  const pick = (key: string, name: string) => {
+    const body = ctx.bodies.findIndex(b => b.key === key);
+    const edge = ctx.bodies[body].mesh.edges.findIndex(e => e.names.includes(name));
+    assert.ok(edge >= 0);
+    return { edge: { body, edge }, face: null };
+  };
+  const later = pick('b5', 'n5.side0|n5.top'), earlier = pick('b1', 'n1.side0|n1.top');
+  assert.ok(awaitingRevolveAxis(cmd.id, {}));
+  assert.throws(() => cmd.build!(ctx, {}), /earlier rectangular solid/);
+  assert.match(String(cmd.onPick(ctx, {}, later)?.error), /earlier rectangular solid/);
+  assert.match(String(cmd.onPick(stale, {}, earlier)?.error), /current Revolve/);
+  const picked = cmd.onPick(ctx, {}, earlier);
+  assert.ok(picked && !('error' in picked) && !awaitingRevolveAxis(cmd.id, picked));
+  assert.throws(() => cmd.build!(stale, picked), /current Revolve/);
+  const candidate = cmd.build(ctx, picked);
+  assert.equal(candidate.outputs, doc.outputs);
+  assert.equal(candidate.nextId, doc.nextId);
+  doc.nodes.forEach((node, index) => { if (index !== 3) assert.equal(candidate.nodes[index], node); });
+  assert.deepEqual(candidate.nodes[3], { ...doc.nodes[3], origin: [0, 0], dir: [1, 0],
+    axisRef: { version: 1, sourceFeature: 'n1', edge: 'n1.side0|n1.top', side: 0 } });
+  const rotor = outputs(candidate).find(body => body.id === 'n3')!;
+  assert.ok(checkOutput(rotor).valid);
+  near(massPropertiesOf(rotor).volume, 450 * Math.PI);
 });

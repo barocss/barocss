@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1164 — replace a Revolve axis through History](notes/revolve-history-axis-replacement-2026-11-14/README.md).
 - [D1163 — resolve linked Revolve axes from their native source](notes/revolve-linked-native-axis-2026-11-14/README.md).
 - [D1162 — resolve original Revolve axis edges across previews](notes/revolve-preview-axis-ownership-2026-11-14/README.md).
 - [D1161 — report a To face target behind the sketch](notes/extrude-end-face-direction-2026-11-14/README.md).

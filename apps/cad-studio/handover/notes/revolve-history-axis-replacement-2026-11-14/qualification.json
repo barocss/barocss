@@ -1,0 +1,123 @@
+{
+  "decision": "D1164",
+  "tier": "FEATURE",
+  "parent": "074af4fee2bd23d463a2443cfc62f32026198b98",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1164-<run>",
+    "D1164_SOURCE_FROZEN=1 node apps/cad-studio/test/revolve-history-axis-browser.mjs <external-evidence>/<run>",
+    "D1163_SOURCE_FROZEN=1 node apps/cad-studio/test/revolve-linked-axis-browser.mjs <external-evidence>/linked-regression",
+    "D1162_SOURCE_FROZEN=1 node apps/cad-studio/test/revolve-preview-axis-ownership-browser.mjs <external-evidence>/join-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs revolve-axis face-end-extrude profiles-parameters engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint on changed Studio and Model TypeScript modules other than App.tsx; App.tsx reports baseline rule @typescript-eslint/no-unused-vars",
+    "node --check apps/cad-studio/test/revolve-history-axis-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "d3a154df7515075e023b430f34c5217228bdf1a4f8866901b071c8bf7e1bba34",
+      "sourceManifestSHA256": "df0242cf0df2bef3a475114a3d47a2725ec7812c9ab4b264689da595f193c70a",
+      "observations": [
+        {
+          "label": "accepted-y24",
+          "axisY": 24,
+          "volume": 3110.176727053896,
+          "expected": 3110.1767270538953,
+          "stockVolume": 19200.000000000007
+        }
+      ]
+    },
+    "first": {
+      "status": "PASS",
+      "states": [
+        "later-edge-refused",
+        "axis-preview",
+        "axis-cancelled",
+        "axis-replaced",
+        "axis-reopened",
+        "fixed-axis-replaced"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "60a0b5633a05342f6da1aad385df66df31dd47702589425bea41c5268d0f49c5",
+      "sourceManifestSHA256": "04544acd3f3f851af7fc3e4e5c3c5dc02749c53ffbb6eb74a3f7f70f82371136"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "later-edge-refused",
+        "axis-preview",
+        "axis-cancelled",
+        "axis-replaced",
+        "axis-reopened",
+        "fixed-axis-replaced"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "b3a01d30070e3b73cda6062dd2ad4faed9456f36335da27df06ded405a5fb312",
+      "sourceManifestSHA256": "6749882167d4a13adc5496828d34d7831967ee6795a29723d24754d43f1e95b4",
+      "observations": [
+        {
+          "label": "accepted-y24",
+          "axisY": 24,
+          "volume": 3110.176727053896,
+          "expected": 3110.1767270538953,
+          "stockVolume": 19200.000000000007
+        },
+        {
+          "label": "replaced-y0",
+          "axisY": 0,
+          "volume": 1413.7166941154067,
+          "expected": 1413.7166941154069,
+          "stockVolume": 19200.000000000007
+        },
+        {
+          "label": "reopened-y0",
+          "axisY": 0,
+          "volume": 1413.7166941154067,
+          "expected": 1413.7166941154069,
+          "stockVolume": 19200.000000000007
+        },
+        {
+          "label": "fixed-y20",
+          "axisY": 20,
+          "volume": 2356.194490192345,
+          "expected": 2356.194490192345,
+          "stockVolume": 19200.000000000007
+        }
+      ]
+    },
+    "linked-regression": {
+      "status": "PASS",
+      "states": [
+        "original-native-axis",
+        "stock-y24",
+        "off-plane-refused",
+        "linked-reopened",
+        "fixed-legacy"
+      ],
+      "frozenFiles": 871,
+      "receiptSHA256": "7b5cc9ec042c29a0999064676425ac3feb3104c4332f7609feb01c2e52244283",
+      "sourceManifestSHA256": "053dcc1aeb2d8a355a021cdec2d6c34291a840627b647f24c67346f13360f5e1"
+    },
+    "join-regression": {
+      "status": "PASS",
+      "states": [
+        "generated-edge-refused",
+        "join-axis-b-preview",
+        "join-axis-b",
+        "reopened-join-axis"
+      ],
+      "frozenFiles": 871,
+      "receiptSHA256": "3ad35ffe406020ba10d62fb3e79c456e6f3d9099f1a5dd98ac9c9121e43f5382",
+      "sourceManifestSHA256": "3ee63341d80d0eb2334b8c147865ce7ba64b1bf02dbc8a7089ae8e0d7c168f88"
+    }
+  }
+}

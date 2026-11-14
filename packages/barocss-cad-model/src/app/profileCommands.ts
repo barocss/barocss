@@ -1,5 +1,6 @@
 import { CadNumericPolicy } from '@barocss/cad';
 import { revolveAxisReference } from '../engine/revolveAxis';
+import { featureId } from '../engine/ids';
 // The commands that make a solid from finished sketches, each on its own as CAD tools have them: Extrude
 // (a picked profile pulled along its normal), Revolve (turned about a sketch axis), Pipe (carried along
 // runs and bends) and Loft (through two or more picked sections). A profile drawn on a body's face joins
@@ -246,10 +247,16 @@ export const offsetFaceCommand: Command = {
 };
 
 /** A revolve's axis in the sketch's plane coordinates: through `o` along `d` (unit). */
-function revolveAxis(v: Values): { o: [number, number]; d: [number, number] } {
+export function revolveAxis(v: Values): { o: [number, number]; d: [number, number] } {
   if (v.axis === 'edge') { const d: [number, number] = [Number(v.dx), Number(v.dy)], l = Math.hypot(d[0], d[1]) || 1; return { o: [Number(v.ox), Number(v.oy)], d: [d[0] / l, d[1] / l] }; }
   return { o: [0, 0], d: v.axis === 'x' ? [1, 0] : [0, 1] };
 }
+export function pickedRevolveAxisReference(doc: StudioDoc, sketch: number, values: Values, before = doc.nodes.length) {
+  if (values.axis !== 'edge' || typeof values.sourceFeature !== 'string' || typeof values.edgeName !== 'string') return;
+  const source = doc.nodes.findIndex((_, i) => featureId(doc.nodes, i) === values.sourceFeature);
+  return source >= 0 && source < before ? revolveAxisReference(doc, source, sketch, values.edgeName) : undefined;
+}
+
 export const revolveCommand: Command = {
   id: 'revolve', label: 'Revolve', icon: 'cad-revolve', group: 'create', keywords: 'lathe turn torus ring',
   hint: 'Turn a finished sketch about an axis: a sketch axis or a straight edge you click',
@@ -284,8 +291,7 @@ export const revolveCommand: Command = {
     const p = oneProfile(ctx)!, ax = revolveAxis(v);
     const node: ModelNode = v.axis === 'edge' ? { kind: 'revolve', sketch: p.index, axis: 'x', origin: ax.o, dir: ax.d, angle: Number(v.deg) } : { kind: 'revolve', sketch: p.index, axis: v.axis === 'x' ? 'x' : 'y', angle: Number(v.deg) };
     if (node.kind === 'revolve' && v.axis === 'edge' && typeof v.sourceFeature === 'string' && typeof v.edgeName === 'string') {
-      const source = ctx.doc.nodes.findIndex(n => n.id === v.sourceFeature);
-      const link = revolveAxisReference(ctx.doc, source, p.index, v.edgeName);
+      const link = pickedRevolveAxisReference(ctx.doc, p.index, v);
       if (!link) throw refusal('BAD_REFERENCE', 'The linked Revolve axis is unavailable.');
       node.axisRef = link;
     }
