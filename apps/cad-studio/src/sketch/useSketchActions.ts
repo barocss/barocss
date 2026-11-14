@@ -2,7 +2,7 @@ import { emptyDirect } from '../app/directGeometry';
 import { draftShapeOrder, sketchRegion, detachSketchLink, sketchCutInputs, sketchFinishInputs } from '../app/sketchControls';
 import { emptySel } from '../app/studioConstants';
 import { useCallback, useRef, useState } from 'react';
-import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
+import { currentPocketSketch, resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { dropStaleMade, prefixDoc, withNode, NODE_EXTRA_FIELDS, type ModelNode, type SketchNode } from '@barocss/cad-model/engine/doc';
 import { featureId } from '@barocss/cad-model/engine/ids';
 import { type SketchAnchor } from '../viewport/Viewport';
@@ -225,7 +225,9 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
       return;
     }
     let node: SketchNode;
-    try { node = stored.association !== undefined ? resolveAssociativeSketch(doc, index) : stored; }
+    try {
+      node = stored.association !== undefined ? resolveAssociativeSketch(doc, index) : currentPocketSketch(doc, index);
+    }
     catch (error) { setToast({ title: 'Cannot open linked sketch', hint: error instanceof Error ? error.message : String(error), detail: '' }); return; }
     // Bound dimensions open as the parameters' current values; a missing parameter refuses the reopen.
     let reopened: ReturnType<typeof sketchShapes>;
@@ -233,7 +235,8 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     catch (error) { setToast({ title: 'Cannot open sketch', hint: error instanceof Error ? error.message.replace(/^\[[A-Z_]+\] /, '') : String(error), detail: '' }); return; }
     const { shape, done, positional } = reopened, plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
     setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
-    const draft = startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(reopened.band ? { band: reopened.band } : {}), ...(shape?.ids?.length ? { mainIds: shape.ids } : {}), ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select');
+    const floor = node.pocketFloor && node.on ? { kind: 'face' as const, offset: 0, face: { plane, base: node.on, pocketFloor: node.pocketFloor } } : undefined;
+    const draft = startPicking({ plane, tool: 'select', shape, done, base: floor?.face.base ?? (node.association ? node.on ?? node.association.source : null), ...(floor ? { anchor: floor } : {}), editNode: index, ...(reopened.band ? { band: reopened.band } : {}), ...(shape?.ids?.length ? { mainIds: shape.ids } : {}), ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select');
     reopenedDraft.current = { doc, source: stored, draft, recoveredLengths: new WeakSet() };
     setSketch(draft);
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane);
@@ -313,8 +316,13 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const storedSketch = sketch.editNode === undefined ? undefined : doc.nodes[sketch.editNode];
     if (!banded && storedSketch?.kind === 'sketch') refs = preserveConstruction((storedSketch.construction ?? []) as SketchShape[], authored, refs);
     const node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
-    // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
-    const placedNode: ModelNode = { ...node, ...(isDefaultPlane(sketch.plane) ? {} : { plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } }), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
+    const face = sketch.anchor;
+    const pocketFloor = !sketch.association && node.profile === 'rectangle' && !node.regions?.length && !node.holes?.length
+      && face?.kind === 'face' && !face.offset && !face.angle
+      ? face.face?.pocketFloor : undefined;
+    // A linked pocket sketch retains its authored frame. Evaluation supplies its current Z.
+    const plane = pocketFloor && storedSketch?.kind === 'sketch' && storedSketch.pocketFloor ? storedSketch.plane! : sketch.plane;
+    const placedNode: ModelNode = { ...node, ...(isDefaultPlane(plane) && !pocketFloor ? {} : { plane: { origin: [...plane.origin], normal: [...plane.normal], xAxis: [...plane.xAxis] } }), ...(pocketFloor ? { pocketFloor } : {}), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached || pocketFloor) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
     if (sketch.editNode !== undefined) {
       const at = sketch.editNode;
       // Each bound value the person did not change keeps its parameter.
@@ -339,7 +347,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     // A finished sketch is a feature of its own (it remembers the body it was drawn on): picked, ready
     // for Extrude, Revolve, Pipe or Loft.
     const base = sketch.base ?? null, next = withNode(doc, { ...placedNode, ...(base ? { on: base } : {}) } as SketchNode);
-    if (sketch.association) {
+    if (sketch.association || pocketFloor) {
       evaluateFinish(next, () => {
         if (!commit(next)) return;
         setSketch(null);

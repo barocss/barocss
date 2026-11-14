@@ -1,3 +1,4 @@
+import { currentPocketSketch } from '../engine/part';
 import { resolveDrivenSketch } from '../sketch/driven';
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
@@ -197,6 +198,13 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
     build: (ctx, v) => ({ ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v, ctx.doc.parameters)) }),
     handles: (ctx, v) => {
       const now = edited(ctx.doc.nodes, index, v, ctx.doc.parameters), n = now[index];
+      if (n.kind === 'extrude' || n.kind === 'revolve') {
+        const raw = now[n.sketch];
+        if (raw?.kind === 'sketch' && raw.pocketFloor) {
+          try { now[n.sketch] = { ...raw, plane: currentPocketSketch(ctx.doc, n.sketch).plane }; }
+          catch { return []; }
+        }
+      }
       if (n.kind === 'extrude') return extrudeHandles(now, index, ctx.doc.parameters);
       if (n.kind === 'hole') return holeHandles(ctx, now, index);
       if (n.kind === 'split' || n.kind === 'linear-pattern' || n.kind === 'linear-span-pattern') return placedHandles(ctx, now, index);

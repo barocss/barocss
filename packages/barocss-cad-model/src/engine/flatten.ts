@@ -1,3 +1,4 @@
+import { assertPocketFloorBindings } from './pocketFloor';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 // A sub-assembly as one part: a document's own features, then each visible instance's features placed as
 // they stand (their mates were solved when the file was saved), renumbered after them. Inserted into
@@ -18,6 +19,7 @@ export function flattenAssembly(doc: StudioDoc): StudioDoc { return flattenPlan(
  * `n<d + serial>` in the folded document (occurrences.ts reads names back through this, so it cannot drift).
  */
 export function flattenPlan(doc: StudioDoc): { doc: StudioDoc; placed: { id: string; serial: number }[] } {
+  assertPocketFloorBindings(doc);
   const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
   if (pathProblem) throw refusal('VALUE', pathProblem);
   if (doc.nodes.some(n => n.kind === 'rounded-rectangle-inset')) throw refusal('BAD_REFERENCE', 'Rounded inset: flattening the stored recipe is not supported.');
@@ -59,7 +61,10 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'rounded-rectangle-inset': throw refusal('BAD_REFERENCE', 'Rounded inset: flattening the stored recipe is not supported.');
     case 'driven-sketch': throw refusal('BAD_REFERENCE', 'Driven sketch: flattening named recipes is not supported.');
     case 'face-end-extrude': throw refusal('BAD_REFERENCE', 'Extrude to face: flattening a placed recipe is not supported.');
-    case 'sketch': return node.on ? { ...node, on: ref(node.on) } : node;
+    case 'sketch': return {
+      ...node, ...(node.on ? { on: ref(node.on) } : {}),
+      ...(node.pocketFloor ? { pocketFloor: { ...node.pocketFloor, sourceFeature: id(node.pocketFloor.sourceFeature), face: name(node.pocketFloor.face) } } : {}),
+    };
     case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'coupling': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'library': case 'sheet-contour': return node;
     case 'region-extrude': return { ...node, sketch: node.sketch + k, sourceFeature: id(node.sourceFeature) };
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };

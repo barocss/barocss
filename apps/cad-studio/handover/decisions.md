@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1157 — follow the native pocket floor after a placement edit](notes/face-sketch-pocket-floor-placement-2026-11-14/README.md).
 - [D1156 — disclose separate solid pieces in 3MF export](notes/three-mf-separate-solid-pieces-2026-11-14/README.md).
 - [D1155 — show the Extrude target and result pieces](notes/extrude-join-piece-preview-2026-11-14/README.md).
 - [D1154 — refuse an empty upright Extrude Cut](notes/extrude-cut-empty-material-2026-11-14/README.md).

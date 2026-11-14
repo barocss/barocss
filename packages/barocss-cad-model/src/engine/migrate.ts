@@ -1,3 +1,4 @@
+import { assertPocketFloorBindings } from './pocketFloor';
 import { assertDrivenSketchNode } from '../sketch/driven';
 import { validateRoundedInsetDocument } from '../sketch/internal/roundedInsetRecipe';
 import { MATERIALS } from '../library/materials';
@@ -104,7 +105,10 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   const textProblem = textDocumentProblem({ ...o, parameters });
   if (textProblem) return { error: textProblem };
   const doc: StudioDoc = withIds({ ...(o as unknown as StudioDoc), format: 'barocss-cad-model' as const, schema: schema === 4 ? 4 : SCHEMA, units: 'mm' as const, parameters });
-  try { assertRouteBundleDocument(doc); }
+  try {
+    assertRouteBundleDocument(doc);
+    assertPocketFloorBindings(doc);
+  }
   catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
   return { doc: { ...doc, outputs: prefixDoc(doc, doc.nodes.length).outputs }, notes };
 }

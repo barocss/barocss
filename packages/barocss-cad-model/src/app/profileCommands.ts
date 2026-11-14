@@ -18,6 +18,7 @@ import { refOf } from './bodyRef';
 import { refusal } from '../engine/refusal';
 import { captureExtrudeRegion, resolveExtrudeRegion } from '../engine/regionExtrude';
 import { isFaceEndExtrudeSketch } from '../engine/faceEndExtrude';
+import { currentPocketSketch } from '../engine/part';
 import { throughCutPlane, throughCutSide } from '../engine/throughCut';
 import { extrudeEndFaceTarget, extrudeEndFaceValues } from './extrudeEndFacePick';
 
@@ -25,7 +26,10 @@ const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const
 /** The sketch a single-profile command works on, or why there is none. */
 export function oneProfile(ctx: Ctx): { index: number; node: SketchNode } | null {
   const [i, ...rest] = pickedSketches(ctx.doc.nodes, ctx.selection.sketches);
-  return i !== undefined && !rest.length ? { index: i, node: ctx.doc.nodes[i] as SketchNode } : null;
+  if (i === undefined || rest.length) return null;
+  const node = ctx.doc.nodes[i] as SketchNode;
+  try { return { index: i, node: node.pocketFloor ? currentPocketSketch(ctx.doc, i) : node }; }
+  catch { return null; }
 }
 const needProfile = (ctx: Ctx) => oneProfile(ctx) ? ok : no('Finish a sketch first, or pick one sketch (in the viewport or the History).');
 const faceSketches = new WeakMap<object, Map<number, SketchNode | null>>();
@@ -309,10 +313,20 @@ function boundStep(ctx: Ctx): { label: string; text: string; done: boolean }[] {
   return bound.length ? [{ label: 'Sizes', text: `Copied at ${bound.map(([name, value]) => `${name} = ${value}`).join(', ')}: later parameter changes do not update this loft.`, done: true }] : [];
 }
 
+function loftSourceNodes(ctx: Ctx): readonly ModelNode[] {
+  const picked = ctx.selection.sketches ?? [];
+  return ctx.doc.nodes.map((node, index) => {
+    if (node.kind !== 'sketch' || !node.pocketFloor || !picked.includes(index)) return node;
+    const placed = { ...currentPocketSketch(ctx.doc, index) };
+    delete placed.pocketFloor;
+    return placed;
+  });
+}
+
 export const loftCommand: Command = {
   id: 'loft', label: 'Loft', icon: 'cad-loft', group: 'create', keywords: 'taper transition blend sections ruled',
   hint: 'A solid through two or more sketches on parallel planes (Shift-click to pick them)',
-  available: ctx => { const picked = ctx.selection.sketches ?? []; if (picked.length < 2) return no('Pick two or more finished sketches on parallel planes (Shift-click).'); const s = attempt(() => loftSections(ctx.doc.nodes, picked, ctx.doc.parameters)); return 'error' in s ? no(s.error) : ok; },
+  available: ctx => { const picked = ctx.selection.sketches ?? []; if (picked.length < 2) return no('Pick two or more finished sketches on parallel planes (Shift-click).'); const s = attempt(() => loftSections(loftSourceNodes(ctx), picked, ctx.doc.parameters)); return 'error' in s ? no(s.error) : ok; },
   fields: (ctx, values) => [{ key: 'guide', label: 'Guide (copied)', kind: 'choice', options: [
     { value: '', label: 'None' },
     ...(ctx.doc.direct?.objects ?? []).flatMap(object => { const guide = copyLoftGuide(ctx.doc, object.id); return guide.ok ? [{ value: object.id, label: guide.name }] : []; }),
@@ -323,7 +337,7 @@ export const loftCommand: Command = {
     if (values.guide !== undefined && values.guide !== '') {
       const guide = typeof values.guide === 'string' ? copyLoftGuide(ctx.doc, values.guide) : { ok: false as const, reason: 'Choose an available guide or None.' };
       const general = guide.ok && guide.guide.kind === 'nurbs';
-      const sections = attempt(() => general ? loftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters) : framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters));
+      const sections = attempt(() => general ? loftSections(loftSourceNodes(ctx), ctx.selection.sketches ?? [], ctx.doc.parameters) : framedLoftSections(loftSourceNodes(ctx), ctx.selection.sketches ?? [], ctx.doc.parameters));
       return [
         ...boundStep(ctx),
         { label: 'Sections', text: 'error' in sections ? sections.error : sections.sections.map(section => `Sketch ${section.source + 1}`).join(' → ') + (general ? ' (height order)' : ' (picked order)'), done: !('error' in sections) },
@@ -342,19 +356,19 @@ export const loftCommand: Command = {
       const guide = copyLoftGuide(ctx.doc, v.guide);
       if (!guide.ok) throw refusal('DIRECT_PICK', guide.reason);
       if (guide.guide.kind === 'nurbs') {
-        const sections = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters);
+        const sections = loftSections(loftSourceNodes(ctx), ctx.selection.sketches ?? [], ctx.doc.parameters);
         if ('error' in sections) throw refusal('LOFT_SECTIONS', sections.error);
         let doc = ctx.doc; const at: number[] = [];
         for (const section of sections.sections) { doc = withNode(doc, section.node); at.push(doc.nodes.length - 1); }
         return withNode(doc, { kind: 'loft', sections: sections.sections.map((section, index) => ({ sketch: at[index], z: section.z })), from: sections.sections.map(section => section.source), guide: guide.guide });
       }
-      const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters);
+      const sections = framedLoftSections(loftSourceNodes(ctx), ctx.selection.sketches ?? [], ctx.doc.parameters);
       if ('error' in sections) throw refusal('LOFT_SECTIONS', sections.error);
       let doc = ctx.doc; const at: number[] = [];
       for (const section of sections.sections) { doc = withNode(doc, section.node); at.push(doc.nodes.length - 1); }
       return withNode(doc, { kind: 'loft', sections: sections.sections.map((section, index) => ({ sketch: at[index], frame: section.frame })), from: sections.sections.map(section => section.source), guide: guide.guide });
     }
-    const s = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters);
+    const s = loftSections(loftSourceNodes(ctx), ctx.selection.sketches ?? [], ctx.doc.parameters);
     if ('error' in s) throw refusal('LOFT_SECTIONS', s.error);
     // Each section on the first one's plane (the picked sketches stay as they are, used by the loft).
     let doc = ctx.doc; const at: number[] = [];

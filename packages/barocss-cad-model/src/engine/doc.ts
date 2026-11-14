@@ -1,3 +1,4 @@
+import type { PocketFloorBinding } from './pocketFloor';
 import type { FillFeaturePatternRegion, CurveFeaturePatternPath } from '@barocss/cad/api';
 import { flattenShopView, resolveShopTree } from './shopRows';
 import { refusal } from './refusal';
@@ -369,7 +370,7 @@ export interface SketchBand { version: 1; id: string; sources: string[]; offset?
 /** Driving lengths and axis locks for a secondary material loop, in its native side order. */
 export interface RegionLengths { sides: string[]; points: [number, number][]; lengths: Record<number, number>; hv: { h: number[]; v: number[] } }
 export interface HoleOutline { sides: string[]; outline: Pick<SketchOutline, 'points' | 'bulges' | 'lengths' | 'radii' | 'tangents' | 'hv'> }
-type OnPlane = { association?: PlanarFaceOutlineInsetAssociation; plane?: DocPlane; regions?: LoopSegment[][]; regionLengths?: RegionLengths[]; holes?: LoopSegment[][]; holeOutlines?: HoleOutline[]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
+type OnPlane = { pocketFloor?: PocketFloorBinding; association?: PlanarFaceOutlineInsetAssociation; plane?: DocPlane; regions?: LoopSegment[][]; regionLengths?: RegionLengths[]; holes?: LoopSegment[][]; holeOutlines?: HoleOutline[]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
@@ -1052,7 +1053,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'driven-sketch': return [];
     case 'rounded-rectangle-inset': return [node.sourceSketch];
     case 'sketch': {
-      if (node.association === undefined) return [];
+      if (node.association === undefined) return node.pocketFloor && node.on ? [node.on.node] : [];
       const a = node.association;
       if (!a || a.kind !== 'planar-face-outline-inset' || a.version !== 1 || !a.source || !Number.isInteger(a.source.node) || a.source.node < 0 || a.source.side !== 'solid' || Object.keys(a.source).some(k => k !== 'node' && k !== 'side') || typeof a.sourceFeature !== 'string' || !a.sourceFeature || typeof a.face !== 'string' || !a.face || a.face.includes('+') || !Number.isFinite(a.insetMM) || a.insetMM <= 0) throw refusal('BAD_REFERENCE', 'Associative sketch: the stored recipe is malformed.');
       return [a.source.node];

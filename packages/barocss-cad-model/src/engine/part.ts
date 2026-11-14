@@ -1,3 +1,4 @@
+import { assertPocketFloorBindings, pocketFloorSource, resolvePocketFloor } from './pocketFloor';
 import { resolveDrivenSketch } from '../sketch/driven';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
@@ -122,6 +123,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'driven-sketch': throw refusal('BAD_REFERENCE', 'Driven sketch requires document parameter resolution before kernel conversion.');
     case 'rounded-rectangle-inset': throw refusal('BAD_REFERENCE', 'Rounded inset requires source resolution before kernel conversion.');
     case 'sketch': {
+      if (node.pocketFloor !== undefined) throw refusal('BAD_REFERENCE', 'Pocket floor sketch requires the current native document prefix.');
       if (node.association !== undefined) throw associationError('linked sketches require document-prefix resolution before kernel conversion.');
       if (node.profile === 'band') throw refusal('VALUE', 'A band sketch must be resolved first (bandProfile).');
       const profile = { ...node }; delete profile.outline; delete profile.regionLengths; delete profile.holeOutlines; delete profile.on; delete profile.construction; delete profile.association;
@@ -527,6 +529,23 @@ export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchN
 
 export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPartDocument(doc); }
 
+/** Use the same current floor for edit, drawing and command placement as for native lowering. */
+const currentPocketSketches = new WeakMap<StudioDoc, Map<number, SketchNode>>();
+export function currentPocketSketch(doc: StudioDoc, index: number): SketchNode {
+  const node = doc.nodes[index];
+  if (node?.kind !== 'sketch') throw refusal('BAD_REFERENCE', 'Select a finished sketch.');
+  if (node.pocketFloor === undefined) return node;
+  const cached = currentPocketSketches.get(doc)?.get(index);
+  if (cached) return cached;
+  const source = pocketFloorSource(doc, index, node);
+  const prefix = buildPartDocument(prefixDoc(doc, source + 1));
+  const resolved = resolvePocketFloor(doc, index, node, prefix.features);
+  let sketches = currentPocketSketches.get(doc);
+  if (!sketches) currentPocketSketches.set(doc, sketches = new Map());
+  sketches.set(index, resolved);
+  return resolved;
+}
+
 /** Read the distance from the same native lowering that builds the current associative feature. */
 export function currentFaceEndDistance(doc: StudioDoc, index: number): number {
   const node = doc.nodes[index];
@@ -543,6 +562,7 @@ export function currentFaceEndDistance(doc: StudioDoc, index: number): number {
 
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   validateRoundedInsetDocument(doc, false);
+  assertPocketFloorBindings(doc);
   const circularProblem = circularPatternSpanProblem(doc);
   if (circularProblem) throw coded('VALUE', circularProblem);
   const regionProblem = regionExtrudeProblem(doc);
@@ -571,6 +591,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   if (ownershipError) throw new CadPartError('PARAMETER', null, ownershipError);
   doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); bearingRows = new Map((doc.bearings?.rows ?? []).map(r => [r.id, r])); oringRows = new Map((doc.orings?.rows ?? []).map(r => [r.id, r])); driveRows = new Map((doc.drives?.rows ?? []).map(r => [r.id, r])); connectorRows = new Map((doc.connectors?.rows ?? []).map(r => [r.id, r])); fitTables = doc.fits?.tables ?? []; fitFaces = doc.fits?.faces ?? []; ringRows = new Map((doc.rings?.rows ?? []).map(r => [r.id, r])); params = doc.parameters ?? {}; partsNow = doc.instances ?? [];
   const gone = new Set<number>(), features: CadPartFeature[] = [], prefixEnds = new Map<number, number>();
+  const pocketSketches = new Map<number, SketchNode>();
   let hasText = false;
   for (const node of doc.nodes) if (node.kind === 'text' || node.kind === 'text-relief') { hasText = true; break; }
   // Only this validated document path may remove a linked sweep's marker for kernel conversion.
@@ -609,7 +630,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       return;
     }
     if (node.kind === 'extrude' && node.cutDepth === 'through') {
-      const sketch = doc.nodes[node.sketch] as SketchNode;
+      const sketch = pocketSketches.get(node.sketch) ?? doc.nodes[node.sketch] as SketchNode;
       const target = sketch.on!;
       if (node.suppressed || gone.has(target.node)) { gone.add(i); return; }
       if (hasText) checkTextExpansion(features);
@@ -619,6 +640,18 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     }
     if (node.kind === 'sketch') {
       // (B1: a band sketch is regenerated from its construction sources, parameters resolved, wherever it is evaluated.)
+      if (node.pocketFloor !== undefined) {
+        const source = pocketFloorSource(doc, i, node);
+        const end = source + 1 === i ? features.length : prefixEnds.get(source + 1);
+        if (end === undefined || gone.has(source)) throw refusal('BAD_REFERENCE', 'The pocket floor source is unavailable.');
+        if (hasText) checkTextExpansion(features.slice(0, end));
+        const resolved = resolvePocketFloor(doc, i, node, features.slice(0, end));
+        delete resolved.pocketFloor;
+        pocketSketches.set(i, resolved);
+        current = current.map((item, k) => k === i ? resolved : item);
+        features.push(...featuresOf(resolved, i, CadPartLimits.features - features.length));
+        return;
+      }
       if (node.profile === 'band') { features.push(...featuresOf(bandProfile(node, params, i), i, CadPartLimits.features - features.length)); return; }
       if (node.association !== undefined) {
         const source = associationSource(doc, i), end = prefixEnds.get(source + 1);

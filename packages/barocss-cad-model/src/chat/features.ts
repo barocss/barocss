@@ -462,6 +462,9 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
 function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode {
   if (node.kind === 'region-extrude') return { ...node, sourceFeature: rename(node.sourceFeature) };
   const r = (name: string) => renameFeatureIds(name, rename);
+  if (node.kind === 'sketch' && node.pocketFloor) return {
+    ...node, pocketFloor: { ...node.pocketFloor, sourceFeature: rename(node.pocketFloor.sourceFeature), face: r(node.pocketFloor.face) },
+  };
   if (node.kind === 'fillet' || node.kind === 'chamfer') return { ...node, edges: node.edges.map(r) };
   if (node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief') return { ...node, edges: [r(node.edges[0])] };
   if (node.kind === 'shell') return { ...node, open: node.open.map(r) };

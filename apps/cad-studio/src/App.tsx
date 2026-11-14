@@ -89,6 +89,8 @@ import { scheduleProjectOpenFit } from './app/projectOpenFit';
 import { prepareSignedFinishOpen, verifyStoredNativeOpen } from './files/documentFile';
 import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { retainedSectionEdges } from './viewport/sectionEdgePick';
+import { currentPocketSketch, toPartDocument } from '@barocss/cad-model/engine/part';
+import { bindPocketFloor, canBindPocketFloor, type PocketFloorBinding } from '@barocss/cad-model/engine/pocketFloor';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import { instanceEvaluationCurrent, instanceEvaluationSources, withPlacedProposalBodies, WORKER_CANDIDATE_TINT } from './viewport/instanceEvaluation';
@@ -1644,7 +1646,16 @@ export function App() {
       const make = cmd.id === 'revolve' ? 'revolve-y' as const : cmd.id === 'pipe' ? 'pipe' as const : cmd.id === 'loft' ? 'loft' as const : undefined;
       const fp = face ? faceProfile(bodies[f.body].mesh, f.face) : null, outline = fp ? (({ shape, done }) => [...(shape ? [shape] : []), ...done])(sketchShapes(fp)) : undefined;
       const linkSource = face && base && base.side === 'solid' && !doc.instances?.length ? { kind: 'planar-face-outline-inset' as const, version: 1 as const, source: base, sourceFeature: featureId(doc.nodes, base.node), face: face.name } : undefined;
-      const anchor: SketchAnchor = vertexPlane ? { kind: 'vertices', offset: 0, vertexPlane } : face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}), ...(linkSource ? { linkSource } : {}) } } : { kind: 'xy', offset: 0 };
+      const nativeFloor = cmd.id === 'sketch' && f && base && !doc.instances?.length && currentNativePlanePick(ctx, f, doc);
+      let pocketFloor: PocketFloorBinding | undefined;
+      if (nativeFloor && base && canBindPocketFloor(doc, base, plane, nativeFloor.face.name)) {
+        try {
+          pocketFloor = bindPocketFloor(doc, base, plane, nativeFloor.face.name, toPartDocument(prefixDoc(doc, base.node + 1)).features);
+        } catch {
+          // An unsupported native floor remains an ordinary fixed face sketch.
+        }
+      }
+      const anchor: SketchAnchor = vertexPlane ? { kind: 'vertices', offset: 0, vertexPlane } : face ? { kind: 'face', offset: 0, face: { plane, base, ...(outline?.length ? { outline } : {}), ...(linkSource ? { linkSource } : {}), ...(pocketFloor ? { pocketFloor } : {}) } } : { kind: 'xy', offset: 0 };
       discardFeatureDraft();
       setSketch({ plane, anchor, tool: make && make !== 'loft' ? 'circle' : 'rectangle', shape: null, base, ...(make ? { make } : {}) }); setPreviewBodies(null);
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
@@ -1854,11 +1865,14 @@ export function App() {
     node.kind === 'region-extrude' ? [node.sketch] : [])), [evaluated.nodes]);
   const profiles = useMemo(() => sketch ? [] : freeSketches.map(i => {
     const node = evaluated.nodes[i] as SketchNode;
+    let rings: ReturnType<typeof profileRings>;
+    try { rings = ringsOf(node.pocketFloor ? currentPocketSketch(evaluated, i) : node, shownDoc.parameters); }
+    catch (error) { if (!node.pocketFloor) throw error; rings = []; }
     const outerCount = (node.regions?.length ?? 0) + 1;
     const canPickRegion = outerCount > 1 && !!node.sideTags?.regions && !node.holes?.length;
     const pickedRegions = canPickRegion && selection.profileRegions?.sketch === i ? selection.profileRegions.indices : undefined;
-    return { id: i, rings: ringsOf(node, shownDoc.parameters), picked: !!selection.sketches?.includes(i), outerCount, canPickRegion, pickedRegions, retained: retainedProfiles.has(i) };
-  }), [freeSketches, evaluated.nodes, shownDoc.parameters, selection.sketches, selection.profileRegions, retainedProfiles, sketch]);
+    return { id: i, rings, picked: !!selection.sketches?.includes(i), outerCount, canPickRegion, pickedRegions, retained: retainedProfiles.has(i) };
+  }), [freeSketches, evaluated, shownDoc.parameters, selection.sketches, selection.profileRegions, retainedProfiles, sketch]);
   // A computation running past a second can be stopped (D42: a committed Boolean on a mesh of up to 20000
   // triangles takes a few seconds): the worker restarts and the change that started it is taken back.
   const [slow, setSlow] = useState(false);

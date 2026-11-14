@@ -1,0 +1,190 @@
+{
+  "decision": "D1157",
+  "tier": "FEATURE",
+  "parent": "6134491ddbffe43c5c08f17e63853ef74fe23f65",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1157-<run>",
+    "D1157_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-pocket-floor-placement-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1152_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-through-all-history-browser.mjs <external-evidence>/through-regression",
+    "D1070_SOURCE_FROZEN=1 node apps/cad-studio/test/sketch-linked-plane-draft-history-browser.mjs <external-evidence>/inset-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs pocketFloor throughCut loft-guide-command driven-sketch-contract instance-patterns",
+    "cd apps/cad-studio && node scripts/test.mjs failed-feature sketch-edit-ownership",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "pnpm exec eslint <changed TypeScript files except Studio App.tsx>",
+    "node --check apps/cad-studio/test/sketch-pocket-floor-placement-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": 4,
+      "frozenFiles": 867,
+      "receiptSHA256": "58e9acc7ecfbbbde782670ea06f30298e77940d9634804443ea3b69d99e611f1",
+      "sourceManifestSHA256": "65b1eef059f12cdfe7cbd20c847a541b2b7f3617df3b70193b0076e932080c36",
+      "observations": [
+        {
+          "label": "before",
+          "source": {
+            "valid": true,
+            "volume": 11712,
+            "planes": [
+              {
+                "label": "n3.bottom",
+                "z": 8
+              },
+              {
+                "label": "n1.top",
+                "z": 10
+              }
+            ]
+          },
+          "result": {
+            "valid": true,
+            "volume": 11696,
+            "planes": [
+              {
+                "label": "n6.bottom",
+                "z": 7
+              },
+              {
+                "label": "n3.bottom",
+                "z": 8
+              },
+              {
+                "label": "n1.top",
+                "z": 10
+              }
+            ]
+          }
+        },
+        {
+          "label": "after",
+          "source": {
+            "valid": true,
+            "volume": 11424,
+            "planes": [
+              {
+                "label": "n3.bottom",
+                "z": 6
+              },
+              {
+                "label": "n1.top",
+                "z": 10
+              }
+            ]
+          },
+          "result": {
+            "valid": true,
+            "volume": 11424,
+            "planes": [
+              {
+                "label": "n3.bottom",
+                "z": 6
+              },
+              {
+                "label": "n1.top",
+                "z": 10
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 870,
+      "receiptSHA256": "e5fda6c25b324cc94a8dde6703bdb8b18400c0b4890c5122fe069d4177fd987a",
+      "sourceManifestSHA256": "389ed1e3639d31f3e6a4db0633eb6e3eee4e58023c63da16b4662813abe5d142",
+      "observations": [
+        {
+          "label": "before",
+          "source": {
+            "valid": true,
+            "volume": 11712,
+            "planes": [
+              {
+                "label": "n3.bottom",
+                "z": 8
+              },
+              {
+                "label": "n1.top",
+                "z": 10
+              }
+            ]
+          },
+          "result": {
+            "valid": true,
+            "volume": 11696,
+            "planes": [
+              {
+                "label": "n6.bottom",
+                "z": 7
+              },
+              {
+                "label": "n3.bottom",
+                "z": 8
+              },
+              {
+                "label": "n1.top",
+                "z": 10
+              }
+            ]
+          }
+        },
+        {
+          "label": "after",
+          "source": {
+            "valid": true,
+            "volume": 11424,
+            "planes": [
+              {
+                "label": "n3.bottom",
+                "z": 6
+              },
+              {
+                "label": "n1.top",
+                "z": 10
+              }
+            ]
+          },
+          "result": {
+            "valid": true,
+            "volume": 11408,
+            "planes": [
+              {
+                "label": "n6.bottom",
+                "z": 5
+              },
+              {
+                "label": "n3.bottom",
+                "z": 6
+              },
+              {
+                "label": "n1.top",
+                "z": 10
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "through-regression": {
+      "status": "PASS",
+      "states": 6,
+      "frozenFiles": 871,
+      "receiptSHA256": "46c6ad7df9acb40b72171d69892a3edb575be6a594d7c3ac1646a7b1be92261c",
+      "sourceManifestSHA256": "0ea280f13e573aae3f7ad39e4e1151866cc2e637ccd2633a241443a8f00c9ea8"
+    },
+    "inset-regression": {
+      "status": "PASS",
+      "states": 5,
+      "frozenFiles": 384,
+      "receiptSHA256": "cedf6e17104394ca857b2fcd386b2d29a264862026269fec2ccd21dbb7710738",
+      "sourceManifestSHA256": "8fe12231eff53f07fedacd0dd11d157f8da623275f54fcdab6db147d506b8172"
+    }
+  }
+}
