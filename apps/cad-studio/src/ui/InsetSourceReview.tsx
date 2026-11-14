@@ -43,9 +43,9 @@ export function InsetSourceReview({ review, apply, cancel }: { review: InsetReli
   const format = (value: number) => Number(value.toPrecision(12));
   return <aside className="card props" aria-label="Inset source replacement" aria-busy={!preview}>
     <div className="card-title">INSET SOURCE</div>
-    <div className="field"><span>Current source</span><span className="break-all">{labels.before}</span></div>
-    <div className="field"><span>Candidate source</span><span className="break-all">{labels.after}</span></div>
-    <div className="field"><span>Target</span><span className="break-all">{labels.target}</span></div>
+    <div className="field"><span>Current source</span><span className="min-w-0 [overflow-wrap:anywhere]">{labels.before}</span></div>
+    <div className="field"><span>Candidate source</span><span className="min-w-0 [overflow-wrap:anywhere]">{labels.after}</span></div>
+    <div className="field"><span>Target</span><span className="min-w-0 [overflow-wrap:anywhere]">{labels.target}</span></div>
     {preview ? <>
       <RingThumbnail rings={preview.rings} />
       <p>Extrude volume · {format(preview.volume)} mm³</p>

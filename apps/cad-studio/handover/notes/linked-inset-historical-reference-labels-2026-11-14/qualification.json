@@ -1,0 +1,151 @@
+{
+  "decision": "D1228",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "d98c097dd790e79f609b6eda984571ae4f682100",
+  "commands": [
+    "gate.sh acquire heavy 600 D1228-baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --historical-names --baseline",
+    "gate.sh acquire heavy 600 D1228-final",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final-{historical,duplicate,review} --{historical,duplicate,review}-names (one run for each route)",
+    "pnpm --filter @barocss/cad-studio-app test failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx apps/cad-studio/src/ui/InsetSourceReview.tsx (known parent App failure)",
+    "git show HEAD:apps/cad-studio/src/App.tsx | pnpm exec eslint --stdin --stdin-filename apps/cad-studio/src/App.tsx",
+    "pnpm exec eslint apps/cad-studio/src/ui/InsetSourceReview.tsx",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "gate.sh acquire heavy 600 D1228-build",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 394,
+      "receiptSHA256": "1ddbb8cfef0d4f6fd2c7ec2184d646a2527481e2fa77e9e44126fb3364f074ca",
+      "sourceManifestSHA256": "4e704e1ef68069e08e3f2ae537bdb1b9be4fb1a3bba9345a80ff87259009475e",
+      "sourceAfterCleanupSHA256": "4e704e1ef68069e08e3f2ae537bdb1b9be4fb1a3bba9345a80ff87259009475e",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final-historical": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "named-source-applied",
+          "volume": 1024.0000000000014
+        },
+        {
+          "label": "historical-source-replaced",
+          "before": {
+            "volume": 960.0000000000016,
+            "centroid": [
+              19.999999999999993,
+              11.999999999999986,
+              10
+            ]
+          },
+          "after": {
+            "volume": 1024.0000000000014,
+            "centroid": [
+              129.9999999999998,
+              -2,
+              3.9999999999999956
+            ]
+          }
+        }
+      ],
+      "frozenFiles": 882,
+      "receiptSHA256": "b1bf877ec7fc04dff0fd44af52314772258566a15b17e4e648f437f4c554aaaf",
+      "sourceManifestSHA256": "e4a6097527a58c56b47c27fa11880c4e550d8afdf37a1ab7e2f4b83dc10f32ad",
+      "sourceAfterCleanupSHA256": "e4a6097527a58c56b47c27fa11880c4e550d8afdf37a1ab7e2f4b83dc10f32ad",
+      "savedSHA256": [
+        "9c1d18ba93b374254d8bae9532fb933a695007d6f691dde654e860eb02e171a4"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final-duplicate": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "named-source-applied",
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "05f19bd907fdfbb2d9c06a0c4803e65d71d40388d236cf85c999fbfcc1c470ae",
+      "sourceManifestSHA256": "8018beae0745b962aad3dc3c195e1c38285665c2537965153f8cb576be82e5ef",
+      "sourceAfterCleanupSHA256": "8018beae0745b962aad3dc3c195e1c38285665c2537965153f8cb576be82e5ef",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final-review": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "named-source-applied",
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 394,
+      "receiptSHA256": "091bdaa166f07f58659a2eebb439c9160dc3043e1859a538e474380ff8a7dde8",
+      "sourceManifestSHA256": "8018beae0745b962aad3dc3c195e1c38285665c2537965153f8cb576be82e5ef",
+      "sourceAfterCleanupSHA256": "8018beae0745b962aad3dc3c195e1c38285665c2537965153f8cb576be82e5ef",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "source-dimension-control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "source-dimension-recovered",
+          "sourceVia": null,
+          "sourceFace": "n3.side0",
+          "heights": [
+            10,
+            12
+          ],
+          "volumes": [
+            2195.999999999999,
+            2268
+          ],
+          "expected": [
+            2196,
+            2268
+          ]
+        }
+      ],
+      "frozenFiles": 882,
+      "receiptSHA256": "7c09b3f631855d3703daa18d0cbc11de0c2debffedfa9a43434492b55a45a220",
+      "sourceManifestSHA256": "22b146916fa5bc77df44fdcab339799c880f3c9e9add1fc517e12d52dde7f71a",
+      "sourceAfterCleanupSHA256": "22b146916fa5bc77df44fdcab339799c880f3c9e9add1fc517e12d52dde7f71a",
+      "savedSHA256": [
+        "eb7cc5b5301bf6e58af2cc6981b10c2dc66ec6192cd0896609d5de28d5b90620"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

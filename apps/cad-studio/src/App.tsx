@@ -109,7 +109,7 @@ import { supportsPlacedBoxSnapRotation } from './viewport/placedBoxSnap';
 import { contentKey, evaluationKey } from '@barocss/cad-model/engine/evalMemo';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
 import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
-import { offsetFaceGroup, carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { offsetFaceGroup, carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type BodyRef, type ModelNode, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
 import { modelHash } from '@barocss/cad-model/chat/spec';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, referencesOf, refreshSignatures, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
@@ -228,6 +228,7 @@ import { joinOpen } from '@barocss/cad-model/sketch/trim';
 import { faceProfile } from '@barocss/cad-model/app/faceProfile';
 import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
 import { bodyName, describeChange, lookOf, rootOf } from '@barocss/cad-model/app/bodies';
+import { bodyLookRef } from '@barocss/cad-model/app/lookKey';
 import { readBrief } from '@barocss/cad-model/chat/brief';
 import { BriefPanel } from './ui/BriefPanel';
 import { SpecifyPanel } from './ui/SpecifyPanel';
@@ -3116,17 +3117,23 @@ export function App() {
       && workOwnership.current.generation === work.generation && workOwnership.current.scope === work.scope
       && docNow.current === doc && evaluatedRef.current === evaluated && footprintState.current.selection === selection
       && footprintState.current.editor === editNode && footprintState.current.insetReady && !activeStore.get();
-    const faceLabel = (key: string, id: string) => {
+    const referenceLabel = (key: string, id: string, ref?: BodyRef) => {
       const body = bodies.find(candidate => candidate.key === key);
-      return body ? `${bodyName(doc, body)} · ${id}` : id;
+      if (body) return `${bodyName(doc, body)} · ${id}`;
+      const step = ref && doc.nodes[ref.node];
+      if (!ref || !step) return id;
+      const look = bodyLookRef(doc.nodes, ref);
+      const name = doc.bodies?.[bodyKeyFor(doc.nodes, look.node, look.side)]?.name;
+      const earlier = `Earlier History · ${featureLabel(step, ref.node, doc.nodes)}`;
+      return name ? `${name} · ${id} · ${earlier}` : `${id} · ${earlier}`;
     };
     const source = insetSketch.association.source, target = insetSketch.on;
     cancelNativeReview();
     insetRelink.start({
       labels: {
-        before: faceLabel(bodyKeyFor(doc.nodes, source.node, source.side), insetSketch.association.face),
-        after: faceLabel(pick.bodyKey, pick.face.name),
-        target: faceLabel(bodyKeyFor(doc.nodes, target.node, target.side), featureId(doc.nodes, target.node)),
+        before: referenceLabel(bodyKeyFor(doc.nodes, source.node, source.side), insetSketch.association.face, source),
+        after: referenceLabel(pick.bodyKey, pick.face.name),
+        target: referenceLabel(bodyKeyFor(doc.nodes, target.node, target.side), featureId(doc.nodes, target.node), target),
       },
       current,
       read: () => engine.previewInsetRelink(doc, insetSketchIndex,

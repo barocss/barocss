@@ -15,7 +15,9 @@ const collapsedHistory = process.argv.includes('--collapsed-history');
 const startZ = process.argv.includes('--start-z');
 const laterMove = process.argv.includes('--later-move');
 const appliedDistance = process.argv.includes('--applied-distance');
-const reviewNames = process.argv.includes('--review-names');
+const historicalNames = process.argv.includes('--historical-names');
+const duplicateNames = process.argv.includes('--duplicate-names');
+const reviewNames = process.argv.includes('--review-names') || historicalNames || duplicateNames;
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/sketch/useInsetRelink.ts',
   'apps/cad-studio/src/ui/InsetSourceReview.tsx', 'apps/cad-studio/src/ui/NodeEditor.tsx',
   'apps/cad-studio/src/engine/engine.worker.ts', 'apps/cad-studio/src/engine/client.ts',
@@ -26,7 +28,7 @@ const f = await createFlow({
   initialFiles: pins, requiredFrozen: pins, qualification: sourceDimension
     ? 'A refused source size names the Linked Inset that cannot regenerate.' : 'Linked Inset returns keyboard focus on Cancel and Apply.',
   limits: ['Desktop WebGPU, replacement with an axis-aligned native side face.'],
-  inspectorSource: sourceDimension && !baseline ? `
+  inspectorSource: (sourceDimension || historicalNames) && !baseline ? `
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { checkBrep, massPropertiesOf } from '@barocss/cad';
@@ -36,7 +38,8 @@ console.log(JSON.stringify(outputs.map(output => {
   assert.ok(checkBrep(output.brep, { strict: true }).valid);
   assert.equal(output.brep.shells.length, 1);
   assert.ok(output.brep.shells[0].closed);
-  return massPropertiesOf(output).volume;
+  const { volume, centroid } = massPropertiesOf(output);
+  return { volume, centroid };
 })));
 ` : undefined,
 });
@@ -91,7 +94,15 @@ if (collapsedHistory) {
   seed.nextId = 34;
 }
 if (startZ) seed.nodes[5].from = 1;
-if (reviewNames) seed.bodies = { b1: { name: 'Original stock' }, b3: { name: 'Replacement stock' } };
+if (reviewNames) seed.bodies = duplicateNames
+  ? { b1: { name: 'Stock' }, b3: { name: 'Stock' } }
+  : { b1: { name: 'Original stock' }, b3: { name: 'Replacement stock' } };
+if (historicalNames) {
+  seed.nodes.splice(4, 0, { kind: 'translate', parent: { node: 1, side: 'solid' }, offset: [0, 40, 0], id: 'n6' });
+  seed.nodes[6].sketch = 5;
+  seed.outputs = { b3: seed.outputs.b3, b6: { node: 4, side: 'solid' }, b5: { node: 6, side: 'solid' } };
+  seed.nextId = 7;
+}
 if (laterMove) {
   seed.nodes.push({ kind: 'translate', parent: { node: 5, side: 'solid' }, offset: [0, 35, 0], id: 'n6' });
   delete seed.outputs.b5;
@@ -320,11 +331,11 @@ await f.run(async () => {
     const after = await f.inspect('recovered', accepted);
     assert.equal(before.length, 3);
     assert.equal(after.length, 3);
-    assert.ok(Math.abs(before.at(-1) - ringVolume(10)) < 1e-7);
-    assert.ok(Math.abs(after.at(-1) - ringVolume(12)) < 1e-7);
+    assert.ok(Math.abs(before.at(-1).volume - ringVolume(10)) < 1e-7);
+    assert.ok(Math.abs(after.at(-1).volume - ringVolume(12)) < 1e-7);
     assert.ok(Math.abs(measured - ringVolume(12)) < 1e-7);
     f.report.observations.push({ label: 'source-dimension-recovered', sourceVia, sourceFace,
-      heights: [10, 12], volumes: [before.at(-1), after.at(-1)], expected: [ringVolume(10), ringVolume(12)] });
+      heights: [10, 12], volumes: [before.at(-1).volume, after.at(-1).volume], expected: [ringVolume(10), ringVolume(12)] });
     await f.undo();
     await f.same(seed);
     await f.redo();
@@ -339,6 +350,7 @@ await f.run(async () => {
     await f.page.locator('.chat-col.open').waitFor();
     if (await button('Close the dock').isVisible()) await button('Close the dock').click();
   }
+  if (historicalNames || duplicateNames) await f.page.setViewportSize({ width: 1024, height: 800 });
   if (await button('Ortho').getAttribute('aria-pressed') !== 'true') await button('Ortho').click();
   await button('Front', f.page.getByRole('group', { name: 'Views', exact: true })).click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
@@ -416,8 +428,9 @@ await f.run(async () => {
     await f.same(seed);
     return;
   }
-  if (narrowDock) await historyStep(5).click();
-  else await f.openFeatureEditor(5);
+  const extrudeIndex = historicalNames ? 6 : 5;
+  if (narrowDock) await historyStep(extrudeIndex).click();
+  else await f.openFeatureEditor(extrudeIndex);
   if (historySummary) {
     f.phase = 'read original Linked Inset binding';
     await checkHistorySummary('n1.top');
@@ -427,7 +440,9 @@ await f.run(async () => {
   assert.ok(pixel?.length === 2);
   assert.ok(await f.page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest('canvas.vp-canvas'), pixel));
   await f.page.mouse.click(...pixel);
-  await f.page.waitForFunction(() => window.__studioSelection.selection.faces[0]?.body === 1);
+  const selectedBody = (await f.bodies()).bodies.findIndex(body => body.key === 'b3');
+  assert.notEqual(selectedBody, -1);
+  await f.page.waitForFunction(body => window.__studioSelection.selection.faces[0]?.body === body, selectedBody);
   if (narrowDock) {
     if (await button('Open the dock').isVisible()) await button('Open the dock').click();
     await f.page.locator('.dock.sheet').waitFor();
@@ -492,17 +507,30 @@ await f.run(async () => {
   if (reviewNames) {
     f.phase = 'review identifies source, candidate and target by Browser name';
     await replace().press('Enter');
-    await review().getByText(baseline ? 'Extrude · 1024 mm³' : 'Extrude volume · 1024 mm³', { exact: true }).waitFor();
+    await review().getByText(baseline && !historicalNames ? 'Extrude · 1024 mm³' : 'Extrude volume · 1024 mm³', { exact: true }).waitFor();
+    const row = label => review().locator('.field').filter({ has: f.page.getByText(label, { exact: true }) });
+    if (baseline && historicalNames) {
+      await row('Current source').getByText('n1.top', { exact: true }).waitFor();
+      await row('Target').getByText('n1', { exact: true }).waitFor();
+      await row('Candidate source').getByText('Replacement stock · n3.side0', { exact: true }).waitFor();
+      await f.snapshot('review-missing-historical-labels');
+      throw new Error('Review identifies historical source and target only by native IDs.');
+    }
     if (baseline) {
       await review().getByText('n1.top → n3.side0', { exact: true }).waitFor();
       await review().getByText('Target · n1', { exact: true }).waitFor();
       await f.snapshot('review-shows-only-native-ids');
       throw new Error('Review did not use either Browser body name.');
     }
-    for (const [label, value] of [['Current source', 'Original stock · n1.top'],
-      ['Candidate source', 'Replacement stock · n3.side0'], ['Target', 'Original stock · n1']]) {
-      const row = review().locator('.field').filter({ has: f.page.getByText(label, { exact: true }) });
-      await row.getByText(value, { exact: true }).waitFor();
+    const original = duplicateNames ? 'Stock' : 'Original stock';
+    const replacement = duplicateNames ? 'Stock' : 'Replacement stock';
+    const rows = [['Current source', `${original} · n1.top`], ['Candidate source', `${replacement} · n3.side0`], ['Target', `${original} · n1`]];
+    for (const [label, value] of rows) {
+      const historical = historicalNames && label !== 'Candidate source';
+      const field = row(label).getByText(historical ? `${value} · Earlier History · Extrude 8` : value, { exact: true });
+      await field.scrollIntoViewIfNeeded();
+      assert.ok(await field.isVisible());
+      if (historical) assert.equal(await row(label).getByText(/Move/).count(), 0);
     }
     const detail = review().locator('details');
     assert.equal(await detail.getAttribute('open'), null);
@@ -514,9 +542,9 @@ await f.run(async () => {
     await f.page.keyboard.press('Tab');
     await waitFocus(button('Apply source', review()));
     await f.page.keyboard.press('Enter');
-    await waitFocus(historyStep(5));
+    await waitFocus(historyStep(extrudeIndex));
     const expected = structuredClone(seed);
-    Object.assign(expected.nodes[4].association, { source: { node: 3, side: 'solid' }, sourceFeature: 'n3', face: 'n3.side0' });
+    Object.assign(expected.nodes[extrudeIndex - 1].association, { source: { node: 3, side: 'solid' }, sourceFeature: 'n3', face: 'n3.side0' });
     await f.same(expected);
     const volume = (await f.bodies()).bodies.find(body => body.key === 'b5').volume;
     assert.ok(Math.abs(volume - 1024) < 1e-7);
@@ -525,6 +553,21 @@ await f.run(async () => {
     await f.same(seed);
     await f.redo();
     await f.same(expected);
+    if (historicalNames) {
+      const beforeNative = await f.inspect('historical-before', seed), afterNative = await f.inspect('historical-after', expected);
+      assert.equal(beforeNative.length, 3);
+      assert.equal(afterNative.length, 3);
+      assert.deepEqual(beforeNative.slice(0, -1), afterNative.slice(0, -1));
+      const near = (actual, value) => assert.ok(Math.abs(actual - value) < 1e-7, JSON.stringify({ actual, value }));
+      const ring = afterNative.at(-1);
+      near(beforeNative.at(-1).volume, 960);
+      near(ring.volume, 1024);
+      ring.centroid.forEach((value, index) => near(value, [130, -2, 4][index]));
+      f.report.observations.push({ label: 'historical-source-replaced', before: beforeNative.at(-1), after: ring });
+      const { file } = await f.save('historical-inset-replaced');
+      await f.freshOpen(file, expected, 'reopened-historical-inset');
+      assert.equal((await f.bodies()).bodies.find(body => body.key === 'b5').volume, volume);
+    }
     return;
   }
   for (const key of ['Enter', 'Escape']) {

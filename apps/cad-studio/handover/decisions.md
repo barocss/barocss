@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1228 — identify historical references in Linked Inset review](notes/linked-inset-historical-reference-labels-2026-11-14/README.md).
 - [D1227 — name the Linked Inset blocked through Hole or Move](notes/linked-inset-indirect-source-recovery-2026-11-14/README.md).
 - [D1226 — verify tangent expansion on a detached rounded inset](notes/detached-inset-tangent-scope-2026-11-14/README.md).
 - [D1225 — verify mixed edge selection through rounded inset regeneration](notes/rounded-inset-mixed-edge-selection-2026-11-14/README.md).
