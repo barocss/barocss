@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, CadPartError, massPropertiesOf } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, CadPartError, exportStep, importStep, massPropertiesOf } from '../dist/index.js';
 
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const clamped = d => [...Array(d + 1).fill(0), ...Array(d + 1).fill(1)];
@@ -49,4 +49,29 @@ test('sew: an open set, a gap wider than the tolerance and bad input are refused
   assert.ok(evaluateCadPart(D([{ id: 's', kind: 'sew', surfaces: gap, tolerance: 0.6 }])).outputs[0]);
   assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'sew', surfaces: [CUBE[0]] }])), e => e instanceof CadPartError && e.code === 'INPUT');
   assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'sew', surfaces: CUBE, tolerance: 0 }])), e => e instanceof CadPartError && e.code === 'INPUT');
+});
+
+test('STEP refuses a measured Sew gap in either face order and permits coincident faces at the same tolerance', () => {
+  const top = [0, 1, 2].map(i => [0, 1, 2].map(j => [40 + i * 5, j * 5, 10 + ((i === 1) + (j === 1)) * 3]));
+  const roof = dz => S(2, 2, top.map(row => row.map(([x, y, z]) => [x, y, z + dz])));
+  const wall = points => S(1, 2, [points.map(([x, y]) => [x, y, 0]), points]);
+  const floor = S(1, 1, [[[40, 0, 0], [40, 10, 0]], [[50, 0, 0], [50, 10, 0]]]);
+  const others = [floor, wall(top[0]), wall(top[2]), wall(top.map(row => row[0])), wall(top.map(row => row[2]))];
+  for (const first of [true, false]) for (const dz of [0, 0.02]) {
+    const surfaces = first ? [roof(dz), ...others] : [...others, roof(dz)];
+    const output = evaluateCadPart(D([{ id: 's', kind: 'sew', surfaces, tolerance: 0.021 }])).outputs[0];
+    const check = checkBrep(output.brep, { strict: true });
+    assert.ok(check.valid);
+    assert.ok(Math.abs(check.maximumEdgeSurfaceGap - dz) < 1e-7);
+    assert.ok(Math.abs(check.maximumVertexGap - (first ? dz : 0)) < 1e-7);
+    if (dz) {
+      assert.throws(() => exportStep(output), error => error.code === 'GEOMETRY'
+        && /Sewn boundary gap is about 0\.02 mm/.test(error.message));
+    } else {
+      const imported = importStep(exportStep(output));
+      assert.ok(checkBrep(imported, { strict: true }).valid);
+      assert.equal(imported.bodies.length, 1);
+      assert.equal(imported.faces.length, 6);
+    }
+  }
 });

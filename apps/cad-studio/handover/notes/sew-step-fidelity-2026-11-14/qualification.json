@@ -1,0 +1,224 @@
+{
+  "decision": "D1192",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "parent": "fca8194730c943d64121d53c58b63dbbb3e50844",
+  "fixtures": {
+    "dome-first.bcad": "de1d85486bda585886965306eb2ce58d41a172f10ad502ec82342c56d9e29742",
+    "dome-last.bcad": "7e2841b7329d87b99f42a7d6f05bd296fa3739a2781a51eb3f0e5a2cd807012f",
+    "no-gap.bcad": "7692cdf32d0f71343f1619e818f7ec258c5053ba08d036fe520e5c74d32c2119"
+  },
+  "commands": [
+    "gate.sh acquire heavy 600 D1192-<run>",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast && node --test --test-concurrency=1 test/sew-solid.test.mjs test/d151-step-bounds.test.mjs",
+    "cd packages/barocss-cad-model && node scripts/test.mjs api-sew",
+    "pnpm --filter @barocss/cad type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad/src/io/step.ts",
+    "node --check apps/cad-studio/test/sew-step-fidelity-browser.mjs",
+    "D1192_SOURCE_FROZEN=1 node apps/cad-studio/test/sew-step-fidelity-browser.mjs <external-evidence>/<run> <external-fixtures>",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build-final"
+  ],
+  "focused": {
+    "kernel": 7,
+    "model": 6
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "dome-first-step-prepared",
+        "dome-first-step-opened",
+        "dome-last-step-prepared",
+        "dome-last-step-open-refused",
+        "no-gap-step-prepared",
+        "no-gap-step-opened",
+        "failure"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "6a515c822cf327ba7a73226035dbabb235588c36a01e4276b1560431dc1b3370",
+      "sourceManifestSHA256": "de133bb9dde4df0a41e2a4b38bd7303c13440598a2f1657357f6468f56e819b4",
+      "measurements": [
+        {
+          "name": "dome-first",
+          "status": "reopened",
+          "native": {
+            "valid": true,
+            "volume": 1199.9999999999995,
+            "solids": 1,
+            "edgeGap": 0.019999999999997797,
+            "vertexGap": 0.019999999999999574,
+            "seams": [
+              11.52,
+              11.52,
+              11.52,
+              11.52
+            ]
+          },
+          "reopened": {
+            "valid": false,
+            "volume": 1201.6222855121314,
+            "solids": 1,
+            "edgeGap": 0.017326952246135223,
+            "vertexGap": 0,
+            "seams": [
+              11.52,
+              11.52,
+              11.52,
+              11.52
+            ],
+            "declaredVolume": 1199.9999999999995
+          },
+          "sha": "f5560407d6a78bd70a213637051e2183a02d38a365f0ae9ceff8333e9e548732"
+        },
+        {
+          "name": "dome-last",
+          "status": "reopen-refused",
+          "native": {
+            "valid": true,
+            "volume": 1199.9999999999995,
+            "solids": 1,
+            "edgeGap": 0.019999999999999574,
+            "vertexGap": 0,
+            "seams": [
+              11.5,
+              11.5,
+              11.5,
+              11.5
+            ]
+          },
+          "sha": "170c7bbe46106a015fb4c40519c2503cb2cc635508210b1fc3941f4607587b7c"
+        },
+        {
+          "name": "no-gap",
+          "status": "reopened",
+          "native": {
+            "valid": true,
+            "volume": 1199.9999999999995,
+            "solids": 1,
+            "edgeGap": 0,
+            "vertexGap": 0,
+            "seams": [
+              11.5,
+              11.5,
+              11.5,
+              11.5
+            ]
+          },
+          "reopened": {
+            "valid": true,
+            "volume": 1199.9999999999995,
+            "solids": 1,
+            "edgeGap": 0,
+            "vertexGap": 0,
+            "seams": [
+              11.5,
+              11.5,
+              11.5,
+              11.5
+            ],
+            "declaredVolume": 1199.9999999999995
+          },
+          "sha": "f3ca4babb8f9c592fcfe62c6bc38eb55b8a9a4ffa909649f2b54595aeb6bb888"
+        }
+      ],
+      "firstFailure": "The first gapped Sew STEP prepared and reopened with volume drift; the other prepared and Open refused"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "dome-first-step-refused",
+        "dome-last-step-refused",
+        "no-gap-step-prepared",
+        "no-gap-step-opened"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "4e3f49f467374c951e265d7e16e49c0bc61237c1abfca57173b2254f9705d484",
+      "sourceManifestSHA256": "235261776170dde2a125f859ea98893a5b53df357a8837cf054b9b65b87806a9"
+    },
+    "latest": {
+      "status": "PASS",
+      "states": [
+        "dome-first-step-refused",
+        "dome-last-step-refused",
+        "no-gap-step-prepared",
+        "no-gap-step-opened"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "6b8b0bafd6911b666282dc750d013681af4a12ce9c37fb701b6fe251eddc6caa",
+      "sourceManifestSHA256": "8e0db7388930c460bb93900b3dd2883655ea5a8ab31cc81d08137083355013b5",
+      "measurements": [
+        {
+          "name": "dome-first",
+          "status": "refused",
+          "native": {
+            "valid": true,
+            "volume": 1199.9999999999995,
+            "solids": 1,
+            "edgeGap": 0.019999999999997797,
+            "vertexGap": 0.019999999999999574,
+            "seams": [
+              11.52,
+              11.52,
+              11.52,
+              11.52
+            ]
+          },
+          "notice": "B-rep: STEP: Sewn boundary gap is about 0.02 mm. STEP needs a gap of 0.000001 mm or less. Align the surface edges before exporting STEP."
+        },
+        {
+          "name": "dome-last",
+          "status": "refused",
+          "native": {
+            "valid": true,
+            "volume": 1199.9999999999995,
+            "solids": 1,
+            "edgeGap": 0.019999999999999574,
+            "vertexGap": 0,
+            "seams": [
+              11.5,
+              11.5,
+              11.5,
+              11.5
+            ]
+          },
+          "notice": "B-rep: STEP: Sewn boundary gap is about 0.02 mm. STEP needs a gap of 0.000001 mm or less. Align the surface edges before exporting STEP."
+        },
+        {
+          "name": "no-gap",
+          "status": "reopened",
+          "native": {
+            "valid": true,
+            "volume": 1199.9999999999995,
+            "solids": 1,
+            "edgeGap": 0,
+            "vertexGap": 0,
+            "seams": [
+              11.5,
+              11.5,
+              11.5,
+              11.5
+            ]
+          },
+          "reopened": {
+            "valid": true,
+            "volume": 1199.9999999999995,
+            "solids": 1,
+            "edgeGap": 0,
+            "vertexGap": 0,
+            "seams": [
+              11.5,
+              11.5,
+              11.5,
+              11.5
+            ],
+            "declaredVolume": 1199.9999999999995
+          },
+          "sha": "0d1c4aab29a08e547eeaa1113939725cca3869a5cb274c146c10acfa29d8f277"
+        }
+      ]
+    }
+  }
+}

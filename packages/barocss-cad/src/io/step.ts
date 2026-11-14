@@ -6,7 +6,7 @@ import { assertBoundaryBindings } from '../brep/brep-boundary-binding-internal.j
 // as the faces' names. importStep (step-import.ts) reads these files back exactly, and the analytic
 // entities other systems write.
 import { facetedCopy } from '../mesh/facet-boolean.js';
-import { BrepError, type Brep } from '../brep/brep-core.js';
+import { BrepError, checkBrep, type Brep } from '../brep/brep-core.js';
 import { faceGeometry } from '../brep/analytic-boolean.js';
 import { brepMassProperties, brepSurfaceArea } from '../brep/solid-mass.js';
 import { stepValidationBounds } from '../brep/brep-bounds.js';
@@ -59,6 +59,7 @@ export interface StepExportOptions {
 export const MESH_PLANAR_TRIANGLES = 5000;
 /** Planar faces past this many triangles a body are refused: some 250 MB of text, near what one string can hold (1M is past it). */
 export const MESH_PLANAR_LIMIT = 250_000;
+const STEP_BASE_ACCURACY_MM = 1e-6;
 const AP214 = 'AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }', AP242 = 'AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF { 1 0 10303 442 1 1 4 }';
 const facetOnly = (b: Brep) => b.faces.length > 0 && b.faces.every(f => f.surface.kind === 'facets');
 const facetTriangles = (b: Brep) => b.faces.reduce((n, f) => n + (f.surface.kind === 'facets' ? f.surface.indices.length / 3 : 0), 0);
@@ -69,13 +70,22 @@ const facetTriangles = (b: Brep) => b.faces.reduce((n, f) => n + (f.surface.kind
  */
 export function exportStep(input: Brep | readonly Brep[] | { readonly id: string; readonly brep: Brep }, options: StepExportOptions = {}): string {
   if (!Array.isArray(input) && 'brep' in input && 'id' in input) return exportStep(input.brep, { ...options, name: options.name ?? input.id });
-  if (Array.isArray(input)) { for (const b of input) assertBoundaryBindings(b); } else assertBoundaryBindings(input as Brep);
+  const originals: readonly Brep[] = Array.isArray(input) ? input : [input as Brep];
+  for (const brep of originals) {
+    assertBoundaryBindings(brep);
+    // A Sew operation can close the topology while keeping its original mismatched supports.
+    if (brep.source.family !== 'sew') continue;
+    const measured = checkBrep(brep, { strict: true });
+    const gap = Math.max(measured.maximumVertexGap, measured.maximumEdgeSurfaceGap);
+    if (gap > STEP_BASE_ACCURACY_MM)
+      throw new BrepError('GEOMETRY', `STEP: Sewn boundary gap is about ${+gap.toPrecision(6)} mm. STEP needs a gap of ${STEP_BASE_ACCURACY_MM} mm or less. Align the surface edges before exporting STEP.`);
+  }
   // (F0: a facet body is written as its triangles, planar faces merged where flat — the planar mesh B-rep any
   // reader takes. AP242 tessellated faces come with R3.5.)
   // (A body mixing mesh and exact faces, F2, goes out as a mesh body, tessellated: its exact faces sampled at 64
   // segments a quarter. Not as planar faces: a sampled exact face can hold slivers no planar reader takes, D52.)
   const mode = options.meshes ?? 'auto', mixed = new Set<Brep>();
-  const given = (Array.isArray(input) ? input as readonly Brep[] : [input as Brep]).map(b => {
+  const given = originals.map(b => {
     if (!b.faces.some(f => f.surface.kind === 'facets') || facetOnly(b)) return b;
     if (mode === 'planar') throw new BrepError('INPUT', 'STEP: a body with mesh and exact faces goes out tessellated (AP242) only');
     const copy = facetedCopy(b, 64); mixed.add(copy); return copy;
@@ -109,9 +119,9 @@ export function exportStep(input: Brep | readonly Brep[] | { readonly id: string
   const steradian = add_(`(NAMED_UNIT(*)SI_UNIT($,.STERADIAN.)SOLID_ANGLE_UNIT())`);
   // (The distance accuracy: 1e-6 mm, or the bodies' largest entity tolerance where that is larger — a cavity of fitted
   // offsets has tolerant edges, which a reader takes back from it, D110.)
-  let accuracy = 1e-6;
+  let accuracy = STEP_BASE_ACCURACY_MM;
   for (const b of given) for (const x of [...b.edges, ...b.vertices]) if (x.tolerance > accuracy) accuracy = x.tolerance;
-  const uncertainty = add_(`UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(${accuracy === 1e-6 ? '1.E-06' : real(accuracy)}),${mm},'distance_accuracy_value','confusion accuracy')`);
+  const uncertainty = add_(`UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(${accuracy === STEP_BASE_ACCURACY_MM ? '1.E-06' : real(accuracy)}),${mm},'distance_accuracy_value','confusion accuracy')`);
   const context = add_(`(GEOMETRIC_REPRESENTATION_CONTEXT(3)GLOBAL_UNCERTAINTY_ASSIGNED_CONTEXT((${uncertainty}))GLOBAL_UNIT_ASSIGNED_CONTEXT((${mm},${radian},${steradian}))REPRESENTATION_CONTEXT('Context3D','3D Context with UNIT and UNCERTAINTY'))`);
 
   const solids = breps.flatMap(brep => solidsOf(brep)), tessellated = meshes.flatMap(m => tessellatedOf(m));
