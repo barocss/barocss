@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1161 — report a To face target behind the sketch](notes/extrude-end-face-direction-2026-11-14/README.md).
 - [D1160 — refuse empty side and drafted rectangular Cuts](notes/extrude-empty-planar-cut-2026-11-14/README.md).
 - [D1159 — qualify Cut on side and oblique work planes](notes/extrude-cut-workplane-history-2026-11-14/README.md).
 - [D1158 — preserve positive drafted Cut Distance in History](notes/drafted-cut-distance-history-2026-11-14/README.md).

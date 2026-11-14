@@ -15,6 +15,8 @@ export interface FriendlyError {
 // messages without a code, and rows naming a code unbracketed (messages carry it bare), so they stay regexes. Order
 // matters: the first row that matches wins.
 const rules: { code?: string | readonly string[]; text?: RegExp; title: string; hint: string }[] = [
+  { text: /Extrude to face: the target must be ahead of the source in the positive extrusion direction/i,
+    title: 'End face is behind the sketch', hint: 'Pick a parallel face ahead of the sketch along its extrusion direction.' },
   { text: /cylindrical wrap.*(?:height|radius)|height.*source radius/i,
     title: 'Wrap height must equal the cylinder radius',
     hint: 'Use the cylinder radius as the outward height.' },

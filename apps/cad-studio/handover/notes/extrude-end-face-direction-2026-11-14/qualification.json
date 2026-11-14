@@ -1,0 +1,78 @@
+{
+  "decision": "D1161",
+  "tier": "SMALL",
+  "parent": "feef1cb29322c6415c70dfcc1add98947c81448e",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1161-<run>",
+    "D1161_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-end-face-direction-browser.mjs <external-evidence>/<run>",
+    "D850_SOURCE_FROZEN=1 node apps/cad-studio/test/extrude-end-face-refusals-browser.mjs <external-evidence>/refusals-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs face-end-extrude errors",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/errors.ts",
+    "node --check apps/cad-studio/test/extrude-end-face-direction-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "qualified": {
+      "status": "FAIL",
+      "states": 2,
+      "frozenFiles": 869,
+      "receiptSHA256": "82a9a6423f7f94bf083287c12822ddeee5cdbc736b87f6dbb8f94d5e7492625f",
+      "sourceManifestSHA256": "b2a851f3059a3caf299b2c55f7147ba5ccb52254ef158717b916bf92b531c42b"
+    },
+    "corrected": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 869,
+      "receiptSHA256": "49c6b286355c1114c32298b50582af6c3ea3f753fc153f32e5b9a2f26e83fd03",
+      "sourceManifestSHA256": "5ade6839f1e8f0212b64479a4b2165bc8d29ba161f0eaf20aa67e8d746364654",
+      "observations": [
+        {
+          "label": "behind-sketch",
+          "target": "n1.bottom",
+          "z": -20,
+          "checked": false,
+          "apply": false
+        },
+        {
+          "label": "ahead-of-sketch",
+          "target": "n3.bottom",
+          "z": 20,
+          "checked": true,
+          "volume": 2000.0000000000002
+        }
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": 3,
+      "frozenFiles": 869,
+      "receiptSHA256": "98be02da218011a0bb4886e271db86b43233762481f1336f22347b9d11718f67",
+      "sourceManifestSHA256": "658ebe9a02f82e668e7a2f26ae915455c10ba7b9fbfafdef9c606cf69d7e3a85",
+      "observations": [
+        {
+          "label": "behind-sketch",
+          "target": "n1.bottom",
+          "z": -20,
+          "checked": false,
+          "apply": false
+        },
+        {
+          "label": "ahead-of-sketch",
+          "target": "n3.bottom",
+          "z": 20,
+          "checked": true,
+          "volume": 2000.0000000000002
+        }
+      ]
+    },
+    "refusals-regression": {
+      "status": "PASS",
+      "states": 8,
+      "frozenFiles": 870,
+      "receiptSHA256": "9b08cc2744b7d5f9a3a052e958446719e8b4a29b199ee3eb693f24d5a6e43239",
+      "sourceManifestSHA256": "0d48faca778cd96e470f0cb27b8af1d79ad5189a40443628bb432dcadf522a27"
+    }
+  }
+}
