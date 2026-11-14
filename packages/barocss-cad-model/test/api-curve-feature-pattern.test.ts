@@ -8,8 +8,8 @@ import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { evaluatedPart, WireSender, WireReceiver } from '../src/engine/wireDoc';
 import { readStudioDoc } from '../src/engine/migrate';
 import { curvesSource } from '../src/engine/curveSource';
-import { importSource } from '../src/engine/direct';
-import { curvePatternDocumentProblem, curvePatternPathLength, affectedCurveFeaturePatterns, eligibleCurvePatternPaths } from '../src/engine/curveFeaturePattern';
+import { directOps, geometryOf, importSource } from '../src/engine/direct';
+import { curvePatternDocumentProblem, curvePatternPathLength, resolveCurveFeaturePatternPath, affectedCurveFeaturePatterns, eligibleCurvePatternPaths } from '../src/engine/curveFeaturePattern';
 import { bindParameter } from '../src/engine/parameters';
 import { editFields } from '../src/app/editFields';
 import { commandById, type Ctx } from '../src/app/commands';
@@ -137,4 +137,37 @@ test('quadratic midpoint admission is exact for rounded sums, cancellation and s
   assert.equal(curvePatternPathLength(quadratic(-1, 0, 1)), 2);
   assert.equal(curvePatternPathLength(quadratic(0, Number.MIN_VALUE, 2 * Number.MIN_VALUE)), 2 * Number.MIN_VALUE);
   assert.throws(() => curvePatternPathLength(quadratic(0, 0, Number.MIN_VALUE)), error => error instanceof BarocssError && error.code === 'VALUE' && /noncollinear XY control triangle without a cusp/.test(error.message));
+});
+
+test('linked two-span axis path uses the same locus after decimal Stretch', async () => {
+  const doc = source().doc;
+  const text = '@model path {version: 0; length-unit: mm; @curve #l {type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1];}}';
+  doc.direct = importSource({ sources: {}, objects: [] }, text, 'Path');
+  const id = doc.direct.objects[0].id, path = { objectId: id };
+  const base = part('linked path', doc).curveFeaturePattern({ path, spacing: 8, count: 5 }).doc;
+  const expanded = directOps.stretch(base.direct!, [id], [2, 1, 1]);
+  const direct = directOps.stretch(expanded, [id], [0.8, 1, 1]), next = { ...base, direct };
+  const curve = geometryOf(direct, direct.objects[0]);
+  assert.equal(curve.kind, 'curve');
+  const raw = { degree: curve.degree, knots: curve.knots, weights: curve.weights, controlPoints: curve.controlPoints };
+  assert.throws(() => curvePatternPathLength(raw), /exact endpoint midpoint/, 'raw paths retain the original admission');
+  const sourceBefore = structuredClone(direct);
+  assert.deepEqual(resolveCurveFeaturePatternPath(next, path), {
+    degree: 1, knots: [0, 0, 1, 2, 2], weights: [1, 1, 1],
+    controlPoints: [raw.controlPoints[0], raw.controlPoints[2], raw.controlPoints[4]],
+  });
+  assert.deepEqual(affectedCurveFeaturePatterns(base, next), [base.nodes.length - 1]);
+  const expectedCuts = [[8, 8], [16, 8], [24, 8], [32, 8], [33.6, 14.4]] as const;
+  geometry(part('decimal stretch', next), expectedCuts);
+  assert.deepEqual(next.direct, sourceBefore);
+  const reopened = await readStudioFile(encodeStudioFile(next));
+  assert.ok('doc' in reopened, JSON.stringify(reopened));
+  assert.deepEqual(reopened.doc, next);
+  geometry(part('reopened path', reopened.doc), expectedCuts);
+  const short = { ...base, direct: directOps.stretch(expanded, [id], [0.25, 0.25, 1]) };
+  assert.match(curvePatternDocumentProblem(short)!, /exceeds the path length/);
+  for (const replacement of ['[8,0.000000000001,0]', '[20,0,0]']) {
+    const invalid = { ...base, direct: importSource({ sources: {}, objects: [] }, text.replace('[8,0,0]', replacement), 'Path') };
+    assert.match(curvePatternDocumentProblem(invalid)!, /exact endpoint midpoint/);
+  }
 });

@@ -1,0 +1,214 @@
+{
+  "decision": "D1196",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "b831893eebdd96a700947892975ed58fe46218ec",
+  "commands": [
+    "gate.sh acquire heavy 600 D1196-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs api-curve-feature-pattern quadratic-feature-pattern",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/curveFeaturePattern.ts packages/barocss-cad-model/test/api-curve-feature-pattern.test.ts",
+    "node --check apps/cad-studio/test/path-cut-decimal-stretch-browser.mjs",
+    "D1196_SOURCE_FROZEN=1 node apps/cad-studio/test/path-cut-decimal-stretch-browser.mjs <external-evidence>/baseline --baseline",
+    "D1196_SOURCE_FROZEN=1 node apps/cad-studio/test/path-cut-decimal-stretch-browser.mjs <external-evidence>/final",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "focused": {
+    "modelPassed": 16,
+    "priorTypeFailure": "TS7006 while checking inferred midpoint array members"
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "expanded-48-mm",
+        "short-path-refused",
+        "decimal-stretch-refused",
+        "failure"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "24a14c5f7f803501202fe7a301827f523f1a86975e5a0363766ab293aaecf398",
+      "sourceManifestSHA256": "5a7a674be87d0d008d531a8b614c8d4b22378b0f67a86c6cc508323cae7de75e",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "41.6 mm path rejected for exact midpoint despite 32 mm required travel."
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "expanded-48-mm",
+        "short-path-refused",
+        "decimal-path-accepted",
+        "reopened-history"
+      ],
+      "frozenFiles": 875,
+      "receiptSHA256": "a65105a4aec3cef127077a02a7ed6d529b7e22815a9510f4c39a64f415eda3e7",
+      "sourceManifestSHA256": "eefec28ada44089a55ec3410cad5608bfcf8f7d508960f699d8d90123f65fb3f",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "initial",
+          "volume": 23600,
+          "centroid": [
+            30.14915254237288,
+            20.105084745762714,
+            5
+          ],
+          "controlPoints": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              8,
+              0,
+              0
+            ],
+            [
+              16,
+              0,
+              0
+            ],
+            [
+              16,
+              8,
+              0
+            ],
+            [
+              16,
+              16,
+              0
+            ]
+          ],
+          "degree": 2,
+          "wallCount": 20
+        },
+        {
+          "label": "expanded",
+          "volume": 23600,
+          "centroid": [
+            30.06779661016949,
+            20.1864406779661,
+            5
+          ],
+          "controlPoints": [
+            [
+              -8,
+              0,
+              0
+            ],
+            [
+              8,
+              0,
+              0
+            ],
+            [
+              24,
+              0,
+              0
+            ],
+            [
+              24,
+              8,
+              0
+            ],
+            [
+              24,
+              16,
+              0
+            ]
+          ],
+          "degree": 2,
+          "wallCount": 20
+        },
+        {
+          "label": "decimal",
+          "volume": 23600,
+          "centroid": [
+            30.08949152542373,
+            20.164745762711863,
+            5
+          ],
+          "controlPoints": [
+            [
+              -4.800000000000001,
+              0,
+              0
+            ],
+            [
+              8,
+              0,
+              0
+            ],
+            [
+              20.800000000000004,
+              0,
+              0
+            ],
+            [
+              20.800000000000004,
+              8,
+              0
+            ],
+            [
+              20.800000000000004,
+              16,
+              0
+            ]
+          ],
+          "degree": 2,
+          "wallCount": 20
+        },
+        {
+          "label": "reopened",
+          "volume": 23600,
+          "centroid": [
+            30.08949152542373,
+            20.164745762711863,
+            5
+          ],
+          "controlPoints": [
+            [
+              -4.800000000000001,
+              0,
+              0
+            ],
+            [
+              8,
+              0,
+              0
+            ],
+            [
+              20.800000000000004,
+              0,
+              0
+            ],
+            [
+              20.800000000000004,
+              8,
+              0
+            ],
+            [
+              20.800000000000004,
+              16,
+              0
+            ]
+          ],
+          "degree": 2,
+          "wallCount": 20
+        }
+      ]
+    }
+  }
+}

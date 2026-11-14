@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1196 — keep a straight linked Path cut through decimal Stretch](notes/path-cut-decimal-stretch-2026-11-14/README.md).
 - [D1195 — disclose the active Cut Pattern source](notes/cut-pattern-active-source-2026-11-14/README.md).
 - [D1194 — align the Linear Pattern Count arrow to signed spacing](notes/linear-pattern-signed-count-drag-2026-11-14/README.md).
 - [D1193 — keep the sign of a Linear Pattern spacing drag](notes/linear-pattern-signed-spacing-drag-2026-11-14/README.md).

@@ -12,9 +12,16 @@ function exactMidpoint(a: number, middle: number, b: number): boolean {
 }
 const fail = (message: string): never => { throw refusal('VALUE', `Path cut pattern: ${message}`); };
 
-/** Admit the bounded straight-span path contract without changing authored coordinates or units. */
-function legacyCurvePatternPathLength(value: unknown): number {
-  if (!record(value) || Object.keys(value).sort().join(',') !== 'controlPoints,degree,knots,weights') return fail('use exactly one raw path or one objectId reference.');
+/** A quadratic with an ordered middle pole on an exact axis segment traverses that same segment. */
+function axisSegment(a: readonly number[], middle: readonly number[], b: readonly number[]): boolean {
+  const axis = a.findIndex((value, k) => value !== b[k]);
+  return axis !== -1 && a.every((value, k) => k === axis
+    ? middle[k] >= Math.min(value, b[k]) && middle[k] <= Math.max(value, b[k])
+    : value === middle[k] && value === b[k]);
+}
+
+/** Admit bounded straight spans. Only a linked curve can need a different parameterization for CUT. */
+function legacyCurvePatternPath(value: RawNurbsPath, linked = false): { path: RawNurbsPath; length: number } {
   const { degree, knots, controlPoints: points, weights } = value;
   if (degree !== 1 && degree !== 2) return fail('only degree 1 polylines and straight degree 2 spans are supported.');
   if (!Array.isArray(points) || points.length < degree + 1 || points.length > 64) return fail('use 2 to 64 finite control points within ±10000 mm.');
@@ -35,10 +42,16 @@ function legacyCurvePatternPathLength(value: unknown): number {
     if (degree === 2 && knots[i] !== knots[i + 1]) return fail('degree 2 interior knots must be double.');
   }
   if (degree === 2 && points.length % 2 !== 1) return fail('degree 2 spans need an odd control point count.');
-  let length = 0;
+  let length = 0, useEndpoints = false;
   for (let i = degree; i < points.length; i += degree) {
-    const a = points[i - degree], b = points[i];
-    if (degree === 2) for (let k = 0; k < 3; k++) if (!exactMidpoint(a[k], points[i - 1][k], b[k])) return fail('each quadratic middle point must be the exact endpoint midpoint.');
+    const a = value.controlPoints[i - degree], b = value.controlPoints[i];
+    if (degree === 2) {
+      const middle = points[i - 1];
+      if (!a.every((value, k) => exactMidpoint(value, middle[k], b[k]))) {
+        if (!linked || !axisSegment(a, middle, b)) return fail('each quadratic middle point must be the exact endpoint midpoint.');
+        useEndpoints = true;
+      }
+    }
     const span = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
     if (!(span > 0)) return fail('each span must have positive length.');
     if (!(length + span > length)) return fail('each span must advance the accumulated length.');
@@ -46,7 +59,13 @@ function legacyCurvePatternPathLength(value: unknown): number {
   }
   const last = points[points.length - 1];
   if (points[0][0] === last[0] && points[0][1] === last[1] && points[0][2] === last[2]) return fail('the path must be open.');
-  return length;
+  if (!useEndpoints) return { path: value, length };
+  // CUT uses distance along the path. The same straight locus can use linear parameterization.
+  const controlPoints = value.controlPoints.filter((_, i) => i % 2 === 0);
+  const linearKnots = [start, start];
+  for (let i = 3; i < points.length; i += 2) linearKnots.push(knots[i]);
+  linearKnots.push(end, end);
+  return { path: { degree: 1, knots: linearKnots, controlPoints, weights: controlPoints.map(() => 1) }, length };
 }
 
 function ownData(object: object, key: string): unknown {
@@ -111,7 +130,7 @@ function sharedPathPlan(raw: RawNurbsPath, spacing: number, count: number): Retu
 /** The Number facade is informational. Curved placement admission uses the complete shared plan. */
 export function curvePatternPathLength(value: unknown): number {
   const raw = ownRawPath(value);
-  return singleQuadratic(raw) ? sharedPathPlan(raw, 1, 1).length.estimate : legacyCurvePatternPathLength(raw);
+  return singleQuadratic(raw) ? sharedPathPlan(raw, 1, 1).length.estimate : legacyCurvePatternPath(raw).length;
 }
 
 /** Resolve a live base-document object on every build. Hidden and renamed objects retain their identity. */
@@ -134,13 +153,14 @@ function resolveCurveFeaturePatternPathData(doc: Pick<StudioDoc, 'direct'>, path
   const curve = geometries[0];
   if (Object.keys(curve).some(k => !['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights'].includes(k))) return fail('the curve has unsupported metadata.');
   const raw = { degree: curve.degree, knots: curve.knots, controlPoints: curve.controlPoints, weights: curve.weights };
-  return ownRawPath(raw);
+  const owned = ownRawPath(raw);
+  return singleQuadratic(owned) ? owned : legacyCurvePatternPath(owned, true).path;
 }
 
 export function resolveCurveFeaturePatternPath(doc: Pick<StudioDoc, 'direct'>, path: unknown): RawNurbsPath {
   const raw = resolveCurveFeaturePatternPathData(doc, path);
   if (singleQuadratic(raw)) sharedPathPlan(raw, 1, 1);
-  else legacyCurvePatternPathLength(raw);
+  else legacyCurvePatternPath(raw);
   return raw;
 }
 
@@ -172,7 +192,7 @@ export function curveFeaturePatternProblem(node: Record<string, unknown>, nodes:
       sharedPathPlan(raw, spacing, node.count);
       return null;
     }
-    if ((node.count - 1) * spacing > legacyCurvePatternPathLength(raw)) return fail('the requested distance exceeds the path length.');
+    if ((node.count - 1) * spacing > legacyCurvePatternPath(raw).length) return fail('the requested distance exceeds the path length.');
     let segment = raw.degree, segmentStart = 0;
     const points = raw.controlPoints, origin = points[0];
     for (let k = 1; k < node.count; k++) {
