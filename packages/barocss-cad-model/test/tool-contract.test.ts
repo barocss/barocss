@@ -11,6 +11,7 @@ import { boxCage } from '../src/app/primitives';
 import { dispatchTool, TOOLS, type ChatState } from '../src/chat/tools';
 import { annotationsOf, breakingChanges, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '../src/chat/contract';
 import { withSampleRows } from './person-file';
+import { stackStock, stackTerms } from './helpers/drawing-stack';
 import { savedApprovalFixture } from './helpers/saved-approval';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -78,6 +79,18 @@ test('every read tool’s result matches its output schema and changes nothing',
   const fitted = { ...fr, fits: { version: 1 as const, tables: [{ id: 't', rows: [{ class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] }] } };
   const fc = await dispatchTool({ doc: fitted, bodies: r3.bodies }, 'fit_clearance', { hole_class: 'H7', shaft_class: 'g6', size: 12 }, evaluate);
   assert.ok(!fc.isError && !fc.changed, fc.content); assert.deepEqual(validate(outputSchemaOf('fit_clearance')!, JSON.parse(fc.content)), [], 'fit_clearance'); seen.add('fit_clearance');
+  const drawing: ChatState = { doc: stackStock(), bodies: [] };
+  const discovery = await dispatchTool(drawing, 'drawing', { action: 'dimensions' }, evaluate);
+  assert.ok(!discovery.isError && !discovery.changed, discovery.content);
+  assert.equal(discovery.state.doc, drawing.doc);
+  const discovered = JSON.parse(discovery.content);
+  const stack = await dispatchTool(drawing, 'drawing', { action: 'stack', expectedRevision: discovered.revision, terms: stackTerms }, evaluate);
+  assert.ok(!stack.isError && !stack.changed, stack.content);
+  assert.equal(stack.state.doc, drawing.doc);
+  for (const [name, result] of [['get_drawing_dimensions', discovered], ['calculate_drawing_tolerance_stack', JSON.parse(stack.content)]]) {
+    assert.deepEqual(validate(outputSchemaOf(name)!, result), [], name);
+    seen.add(name);
+  }
   // Every read tool with an output schema was run here.
   // (A keep-out to check, A6.3.)
   const withK = await dispatchTool(s, 'add_keepout', { box: { frame: { origin: [100, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] }, size: [5, 5, 5] } }, evaluate);

@@ -147,6 +147,8 @@ export function summarize(name: string, text: string, isError: boolean): string 
     const dimension = hasDimension || j.issues.some(issue => issue?.code === 'SHARED_HOLE_PATTERN') ? 'dimension' : 'height';
     return j.status === 'ready' ? `${j.targets.length} local ${dimension} target${j.targets.length === 1 ? '' : 's'} ready` : `Local ${dimension} plan blocked · ${j.issues.length} issue${j.issues.length === 1 ? '' : 's'}`;
   }
+  if (name === 'get_drawing_dimensions' && Array.isArray(j.dimensions)) return `${j.dimensions.length} linear dimensions · sheet ${j.sheet}`;
+  if (name === 'calculate_drawing_tolerance_stack' && j.unit === 'mm') return `Nominal ${j.nominal} mm · worst case ${j.minimum} to ${j.maximum} mm`;
   if (name === 'get_part_summary') return `${j.feature_count} features, ${j.bodies?.length ?? 0} bodies`;
   // (O79: the manufacturability report as its process and each rule's status — the whole JSON is past 160 characters.)
   if (name === 'check_printability' && Array.isArray(j.rules)) return `${j.process ?? 'no process'}: ${j.rules.map((r: { id: string; status: string }) => `${r.id} ${r.status}`).join(', ')}`;

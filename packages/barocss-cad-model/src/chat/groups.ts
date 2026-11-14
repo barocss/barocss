@@ -94,8 +94,9 @@ export const GROUPS: Record<string, Group> = {
     title: 'Drawing',
     about: 'The part\'s 2D drawing; a drawing change is always the user\'s, so make it as ops of proposals.propose.',
     actions: {
-      issues: ['drawing_issues', ''], tolerances: ['tolerance_suggestions', 'mode?'], auto: ['auto_dimension', 'layout?'], fix: ['fix_drawing', 'codes?'],
-      accept: ['accept_tolerances', 'ids?, mode?'], set: ['set_drawing', 'scope?: {kind: part, part?: instance id} | {kind: assembly}; sheet?, scale?, projection?, front?, views?, tolerancing?, title?, weldSymbols?, balloons?, sections?: [{id,view,at,half?,steps?}], details?: [{id,view,center,radius,scale?,at?}], breaks?: [{axis,from,to}], tables?: [{id,from: bom|cut-list|weld-list,title?,at?,corner?,whole?}]; lists replace ([] clears), omitted keeps; all changes need user approval'],
+      issues: ['drawing_issues', ''], tolerances: ['tolerance_suggestions', 'mode?'],
+      dimensions: ['get_drawing_dimensions', 'sheet?'], stack: ['calculate_drawing_tolerance_stack', 'sheet?, expectedRevision from dimensions, terms: [{id, sign: 1 or -1}]'], auto: ['auto_dimension', 'layout?'], fix: ['fix_drawing', 'codes?'],
+      accept: ['accept_tolerances', 'ids?, mode?'], set: ['set_drawing', 'drawing scope, sheet, views, units, annotations and tables; describe gives the fields; propose changes'],
     },
   },
   subd: {
@@ -199,6 +200,7 @@ function translateNotes(record: unknown, fields: readonly string[]): void {
 export function v2Result(text: string, handler?: string): string {
   let parsed: unknown;
   try { parsed = JSON.parse(text); } catch { return v2Text(text); }
+  if (handler === 'get_drawing_dimensions' || handler === 'calculate_drawing_tolerance_stack') return text;
   if (handler === 'get_assembly') {
     // A refusal names literal occurrences too. Argument diagnostics already name the public action.
     if (!isRecord(parsed) || !Array.isArray(parsed.instances)) return text;

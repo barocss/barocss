@@ -99,6 +99,8 @@
       "enum": [
        "issues",
        "tolerances",
+       "dimensions",
+       "stack",
        "auto",
        "fix",
        "accept",

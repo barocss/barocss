@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1257 — Read drawing tolerance stacks from the CAD agent](notes/agent-drawing-tolerance-stack-2026-11-14/README.md).
 - [D1256 — Calculate a one-axis drawing tolerance stack](notes/drawing-tolerance-stack-2026-11-14/README.md).
 - [D1255 — Move the lower cap of a rectangular taper](notes/offset-drafted-lower-cap-2026-11-14/README.md).
 - [D1254 — Move the upper cap of a rectangular taper](notes/offset-drafted-cap-2026-11-14/README.md).

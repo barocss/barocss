@@ -1,0 +1,17 @@
+# D1257 — Read drawing tolerance stacks from the CAD agent
+
+2026-11-14 · FULL · P5, row 25
+
+The existing `drawing` tool adds two read actions. Both operate on the tool session's document snapshot. Use `dimensions` with a one-based sheet number, or omit the number for sheet 1. The result lists resolved and lost linear dimension IDs, view and axis, authored tolerances, model millimetres and separate printed annotations. Use `stack` with the same sheet, its returned revision as `expectedRevision` and two or more explicit signed terms. The revision binds the authored snapshot and the selected sheet. The stack returns the nominal, minimum and maximum as exact decimal strings in mm, with the signs and source tolerances. Terms represent independent sizes selected by the caller.
+
+The agent uses D1256's same interval calculation and the resolved Drawing dimensions, including when the sheet prints inch values. A changed snapshot, another sheet, missing dimension or tolerance, fit, lost reference, duplicate term or invalid arguments refuse without emitting a range. Success and refusal preserve the document. The MCP host reads the file when opening a session. Close and reopen that session to use an external file edit. Studio Chat uses the captured turn document, which can be a History prefix. The desktop parity test uses the full master document. Select the sheet explicitly when it is not sheet 1.
+
+- **PASS, actual Studio and real local MCP.** Measured one three-term assembly in the Drawing panel and sent the same accepted document to the stdio MCP server. Both reported nominal 10 mm and limits 9.77 to 10.27 mm. An independent Decimal calculation enumerated the eight endpoints. The literal ID `set_material` survived v2 transport unchanged. Two MCP sessions exited cleanly and both input files retained their SHA-256. Wrong and superseded revisions refused. A second current snapshot without an authored tolerance refused after rediscovery.
+- **PASS, actual desktop Chat.** In Model view the Chat panel rendered dimension discovery, the numeric stack and the refusal from real local MCP responses. The browser used deterministic local chat transport and the production summary formatter. No document edit, dirty state or download occurred.
+- **PASS, focused verification.** 42 Model tests, both package type checks, selected lint, generated action docs, Vite build, syntax and diff checks. The v2 schema adds two actions to the existing group. The tool list remains 13 tools. Per-turn size is 24,497 of the 25,000 character cap. A mutation that skips the revision check fails the stale-input test. The independent source review confirmed snapshot ownership, shared arithmetic and unchanged persistence.
+- **FAIL, intermediate checks.** The initial prompt plus list reached 25,386 characters. The final prompt moves detailed drawing arguments to `describe`. The first browser run used an absolute required pin. A later run attempted Chat from Drawing view, where it is disabled. The first final Model type check rejected a readonly fixture array. The final run corrects these.
+- **NOT_RUN.** Full suites, mobile, live LLM, statistical and general GD&T stack analysis, and outside-file replacement during an open MCP session.
+
+D1258 starts P5 row 24. Add numeric continuity inspection for a selected shared native edge. Qualify an analytic sharp joint and a tangent joint independently of Zebra and the display mesh. General G2/G3 remain separate acceptance.
+
+[Commands and receipt hashes](qualification.json).

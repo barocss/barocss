@@ -1,0 +1,110 @@
+{
+  "decision": "D1257",
+  "tier": "FULL",
+  "parent": "a76a6eb7ea758ed91652d2e1584a2ab4ea9b364b",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1257-<run>",
+    "UPDATE_TOOL_CONTRACT=1 pnpm --filter @barocss/cad-model test drawing-stack-tool toolset.test tool-contract.test tolerance-stack",
+    "node apps/library-docs/scripts/agent-tools.mjs",
+    "D1257_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-stack-agent-browser.mjs <external-evidence>/studio-final",
+    "pnpm --filter @barocss/cad-model test drawing-stack-tool toolset.test tool-contract.test tolerance-stack drawing-scope",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/chat/{contract,drawing,drawingToleranceStack,groups,toolDefinitions}.ts packages/barocss-cad-model/test/{drawing-stack-tool.test.ts,helpers/drawing-stack.ts}",
+    "node --check apps/cad-studio/test/drawing-stack-agent-browser.mjs",
+    "node apps/library-docs/scripts/agent-tools.mjs --check",
+    "node <external-evidence>/mutation.mjs <external-evidence>",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "checks": {
+    "model": {
+      "status": "PASS",
+      "tests": 42
+    },
+    "modelTypeCheck": "PASS",
+    "studioTypeCheck": "PASS",
+    "scopedLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "frozenV2AdditiveCheck": "PASS",
+    "generatedAgentDocs": "PASS",
+    "diff": "PASS",
+    "links": "PASS",
+    "visualReview": "PASS",
+    "fullSuites": "NOT_RUN",
+    "mobile": "NOT_RUN",
+    "liveAi": "NOT_RUN",
+    "remoteFileMutationDuringMcpSession": "NOT_RUN"
+  },
+  "turnBudget": {
+    "cap": 25000,
+    "intermediate": 25386,
+    "final": 24497,
+    "tools": 13
+  },
+  "studio": {
+    "status": "PASS",
+    "sourceFrozenCount": 1117,
+    "receiptSHA256": "536214b320f8e4bd2f44eb62d0a9754c880f02692b497741dc94371f15b72272",
+    "sourceManifestSHA256": "9289464b49488d5d9156ec45d14961a6f781dccbf9ff3573762dd699f194c24a",
+    "sourceAfterCleanupSHA256": "9289464b49488d5d9156ec45d14961a6f781dccbf9ff3573762dd699f194c24a",
+    "states": [
+      "01-studio",
+      "02-chat"
+    ],
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "mcpSessions": [
+      {
+        "label": "accepted-mcp-input",
+        "mcpExited": true,
+        "fileSHA256": "62383342190f4270ca8a50679cba0bd6cc566e17298b7c9257445c3fe22ed250",
+        "fileUnchanged": true
+      },
+      {
+        "label": "missing-tolerance-mcp-input",
+        "mcpExited": true,
+        "fileSHA256": "b9b93fb35d4945578dedc04585ce7a24922059dac71476ddffb17f8f9b3be694",
+        "fileUnchanged": true
+      }
+    ],
+    "oracleSHA256": "abbfee5f6dbaa67d7f2405a5a404e06ef884162e681226c256f7e2d2b28a0a95",
+    "oracle": {
+      "status": "PASS",
+      "endpointCombinations": 8,
+      "unit": "mm",
+      "values": [
+        "10",
+        "9.77",
+        "10.27"
+      ]
+    },
+    "inputRevision": "5a8ba182c246ad00d5a56335f96e8f2e776185c59ed24c9b81e69ee597e769b7"
+  },
+  "intermediateStudio": [
+    {
+      "status": "FAIL",
+      "why": "Runner required an absolute path as a repository-relative frozen pin.",
+      "receiptSHA256": "522ad90545ec9b91f5aee0f2ef350d234ede7c578e3b881cc741de364503d805"
+    },
+    {
+      "status": "FAIL",
+      "why": "Runner tried to open Chat from Drawing instead of Model.",
+      "receiptSHA256": "f7e2ba4026e13787808520842e4aebe943a69007325ed2937adbf139590baa09"
+    }
+  ],
+  "mutation": {
+    "status": "PASS",
+    "scriptSHA256": "af55420ceb3c185e334f0dd27953ba5454d111c9ec769f9347fd32a205b03a60",
+    "evidenceSHA256": "e25901d68bf6d29087209f5f089493861ec327842b3edadb62bec590966430c3",
+    "exitByVariant": {
+      "current": 0,
+      "ignores-revision": 1
+    }
+  }
+}

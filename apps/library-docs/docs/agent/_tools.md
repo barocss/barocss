@@ -173,10 +173,12 @@ The part's 2D drawing; a drawing change is always the user's, so make it as ops 
 |---|---|---|
 | `drawing.issues` | `drawing_issues` | — |
 | `drawing.tolerances` | `tolerance_suggestions` | mode? |
+| `drawing.dimensions` | `get_drawing_dimensions` | sheet? |
+| `drawing.stack` | `calculate_drawing_tolerance_stack` | sheet?, expectedRevision from dimensions, terms: [{id, sign: 1 or -1}] |
 | `drawing.auto` | `auto_dimension` | layout? |
 | `drawing.fix` | `fix_drawing` | codes? |
 | `drawing.accept` | `accept_tolerances` | ids?, mode? |
-| `drawing.set` | `set_drawing` | scope?: {kind: part, part?: instance id} \| {kind: assembly}; sheet?, scale?, projection?, front?, views?, tolerancing?, title?, weldSymbols?, balloons?, sections?: [{id,view,at,half?,steps?}], details?: [{id,view,center,radius,scale?,at?}], breaks?: [{axis,from,to}], tables?: [{id,from: bom\|cut-list\|weld-list,title?,at?,corner?,whole?}]; lists replace ([] clears), omitted keeps; all changes need user approval |
+| `drawing.set` | `set_drawing` | drawing scope, sheet, views, units, annotations and tables; describe gives the fields; propose changes |
 
 ### `subd`: SubD
 

@@ -29,12 +29,14 @@ import { applyFix, drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, is
 import { acceptAll, applySuggestion, toleranceSuggestions } from '../drawing/tolerance';
 import { precisionOk, readDrawing, sectionsOf, VIEW_IDS, type DrawingSettings, type ViewId } from '../drawing/types';
 import { SCALES, scaleLabel } from '../drawing/views';
+import { DRAWING_DIMENSIONS, DRAWING_TOLERANCE_STACK, STACK_READ_TOOLS, isStackRead, readDrawingStack } from './drawingToleranceStack';
 
-export const DRAWING_TOOL_NAMES = new Set(['drawing_issues', 'tolerance_suggestions', 'auto_dimension', 'fix_drawing', 'accept_tolerances', 'set_drawing']);
+export const DRAWING_TOOL_NAMES = new Set(['drawing_issues', 'tolerance_suggestions', DRAWING_DIMENSIONS, DRAWING_TOLERANCE_STACK, 'auto_dimension', 'fix_drawing', 'accept_tolerances', 'set_drawing']);
 /** Those that change the drawing (an agent proposes them). */
 export const DRAWING_CHANGES = new Set(['auto_dimension', 'fix_drawing', 'accept_tolerances', 'set_drawing']);
 
 export const DRAWING_TOOLS = [
+  ...STACK_READ_TOOLS,
   {
     name: 'drawing_issues',
     description: 'The drawing’s issue list, as the Drawing workspace shows it: what is wrong on the sheet (errors: lost dimensions, overlapping text, text over lines, off the sheet, views that do not fit, datums or frames lost) and what is missing or repeated (warnings: holes without size or position, steps not located, overall sizes missing, a size given twice, re-matched references, a view needed). Each with its code, message and the fix it offers (if any). Also the sheet, scale and views shown. Changes nothing.',
@@ -121,6 +123,10 @@ const issueList = (i: SheetInputs) => {
 export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string, unknown>): Outcome {
   if (name === 'set_drawing') { const why = setDrawingProblem(args, readDrawing(doc.drawing).frames); if (why) return { error: why }; }
   const original = readDrawing(doc.drawing);
+  if (isStackRead(name)) {
+    const outcome = readDrawingStack(doc, name, args, original, () => readDrawingInputs(doc, original, false));
+    return 'error' in outcome ? outcome : { ...outcome, doc, changed: false };
+  }
   let settings = original;
   if (name === 'set_drawing' && args.scope !== undefined) {
     const why = firstProblem(checkDrawingScope(args.scope)); if (why) return { error: why };

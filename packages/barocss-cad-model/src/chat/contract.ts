@@ -24,7 +24,12 @@ const num: JsonSchema = { type: 'number' }, str: JsonSchema = { type: 'string' }
 const clearanceSchema = (coordinate: 'fraction' | 'time'): JsonSchema => ({ type: ['object', 'null'], properties: { value: num, [coordinate]: num, links: { type: 'array', items: str } }, required: ['value', coordinate, 'links'], additionalProperties: false });
 const versionPin = o({ id: str, snapshot: str, revision: str, evidenceRevision: str }, ['id', 'snapshot', 'revision', 'evidenceRevision']);
 const footprint = o({ widthMm: num, depthMm: num }, ['widthMm', 'depthMm']);
+const drawingRead = { revision: str, sheet: num, sheetName: str, scope: obj, unit: { type: 'string', const: 'mm' }, printUnit: { type: 'string', enum: ['mm', 'inch'] } };
+const drawingReadRequired = Object.keys(drawingRead);
 const READ: Record<string, JsonSchema | null> = {
+  get_drawing_dimensions: o({ ...drawingRead, dimensions: arr }, [...drawingReadRequired, 'dimensions']),
+  calculate_drawing_tolerance_stack: o({ ...drawingRead, method: { type: 'string', const: 'worst-case' }, nominal: str, minimum: str, maximum: str, terms: arr },
+    [...drawingReadRequired, 'method', 'nominal', 'minimum', 'maximum', 'terms']),
   output_bom: o({ revision: str, files: arr }, ['revision', 'files']),
   output_requirement_evidence: o({ revision: str, files: arr }, ['revision', 'files']),
   inspect_local_task_plan: o({ revision: str, status: { type: 'string', enum: ['ready', 'blocked'] },
