@@ -34,7 +34,7 @@ export function turnOnto(from: readonly number[], to: readonly number[]): { axis
   return { axis: k, deg: ax[k] > 0 ? 90 : -90 };
 }
 
-export function alignFaceBinding(ctx: Ctx, pick: { body: number; face: number }): AlignFace | null {
+export function alignFaceBinding(ctx: Pick<Ctx, 'doc' | 'bodies'>, pick: { body: number; face: number }): AlignFace | null {
   const body = ctx.bodies[pick.body], face = body?.mesh.faces[pick.face];
   if (!body?.ref || body.ref.side !== 'solid' || !face?.nativeAlignFace || !face.nativePlaneName) return null;
   return { feature: featureId(ctx.doc.nodes, body.ref.node), face: face.nativePlaneName, ...face.nativeAlignFace };

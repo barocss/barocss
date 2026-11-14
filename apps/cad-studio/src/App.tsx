@@ -68,6 +68,7 @@ import { DRAFT_EDIT, editSavedDraftCommand } from '@barocss/cad-model/app/draftE
 import { holePatternEditProblem } from '@barocss/cad-model/app/holePatternInput';
 import { awaitingRevolveAxis, editSavedRevolveAxisCommand, joinedRevolveStock, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, pickedFilletSelection, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
+import { alignFaceBinding } from '@barocss/cad-model/app/alignCommand';
 import { originalTransformFace } from './app/transformFacePick';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
 import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
@@ -1926,6 +1927,23 @@ export function App() {
     return true;
   };
   const replaceRevolveAxis = editNode === null ? null : editSavedRevolveAxisCommand(commandDoc, editNode);
+  const readAlignHistoryTargets = useCallback(async () => {
+    if (editNode === null || marker !== null || shownVariant.current || !ownsEvaluatedSource()) return [];
+    const node = doc.nodes[editNode];
+    if (node?.kind !== 'align' || node.suppressed) return [];
+    const prefix = prefixDoc(doc, editNode);
+    const result = await engine.part(prefix, revision.current++, 'refs');
+    if (!ownsEvaluatedSource() || bearingEditScope.current.editNode !== editNode) return [];
+    if (!result.ok) throw new Error(result.error.hint);
+    const source = { doc: prefix, bodies: result.bodies };
+    return result.bodies.flatMap((body, index) => {
+      if (!body.ref || body.ref.node === node.parent.node || lookOf(doc, body).hidden) return [];
+      return body.mesh.faces.flatMap(face => {
+        const binding = alignFaceBinding(source, { body: index, face: face.index });
+        return binding ? [{ ...binding, body: refOf(body) }] : [];
+      });
+    });
+  }, [doc, editNode, engine, marker, ownsEvaluatedSource]);
   const axisReplacementRequest = useRef(0);
   const startRevolveAxisReplacement = async () => {
     if (editNode === null || !replaceRevolveAxis || !ownsEvaluatedSource() || markerNow.current !== null || shownVariant.current
@@ -3257,7 +3275,7 @@ export function App() {
       {sketch3dInputActive && skel.session && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
-        {editNode !== null && <NodeEditor edgeReplacement={finishEdgeEditor.available ? {
+        {editNode !== null && <NodeEditor readAlignTargets={doc.nodes[editNode]?.kind === 'align' ? readAlignHistoryTargets : undefined} edgeReplacement={finishEdgeEditor.available ? {
           start: finishEdgeEditor.start, cancel: finishEdgeEditor.cancel, apply: finishEdgeEditor.apply,
           draft: finishEdgeEditor.current,
         } : undefined} onDraft={reportNodeEditorDraft} nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={parameterEdit?.roundedInset ? 'Checking the rounded inset…' : doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode}

@@ -1,0 +1,378 @@
+{
+  "decision": "D1203",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "33f3d6f949d470fed25ae1f48955034bb4af5a94",
+  "commands": [
+    "gate.sh acquire heavy 600 D1203-<run>",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/AlignHistoryTarget.tsx apps/cad-studio/src/ui/NodeEditor.tsx packages/barocss-cad-model/src/app/alignCommand.ts",
+    "node --check apps/cad-studio/test/align-retarget-preview-browser.mjs",
+    "D1203_SOURCE_FROZEN=1 node <external-evidence>/baseline-driver.mjs <external-evidence>/baseline",
+    "D1203_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/qualified --retarget",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "b-preview",
+        "generated-preview-face-refused",
+        "c-click-during-b-preview",
+        "align-applied",
+        "history-bound-faces",
+        "history-target-is-read-only",
+        "failure"
+      ],
+      "frozenFiles": 880,
+      "receiptSHA256": "7e321113a787e6dea7eb587133c928a33b30e03e9fe09b552dcc78dd24420e11",
+      "sourceManifestSHA256": "82f834e5bb1a803d74047981a3a0999899ccd1173375ca35ee38a3da4c324d94",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "No target replacement control",
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "final": {
+      "status": "FAIL",
+      "states": [
+        "b-preview",
+        "generated-preview-face-refused",
+        "c-click-during-b-preview",
+        "align-applied",
+        "history-bound-faces",
+        "failure"
+      ],
+      "frozenFiles": 881,
+      "receiptSHA256": "d72fc0f4fbc0eea1e62b3cb0c93127c0a0da5199d7425c9856f4bee9e876550b",
+      "sourceManifestSHA256": "844b623933fe50b9b43467eae62aa8cdb5f6db160e275571be5acaf591a26eaf",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Driver expected a text field instead of a select",
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "verified": {
+      "status": "FAIL",
+      "states": [
+        "b-preview",
+        "generated-preview-face-refused",
+        "c-click-during-b-preview",
+        "align-applied",
+        "history-bound-faces",
+        "history-target-before-apply",
+        "history-target-applied",
+        "failure"
+      ],
+      "frozenFiles": 881,
+      "receiptSHA256": "e2f3a37d960c15ff50fced8859f2a022db9951115e57b7ff5daaf3338c447362",
+      "sourceManifestSHA256": "844b623933fe50b9b43467eae62aa8cdb5f6db160e275571be5acaf591a26eaf",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Driver matched object insertion order after correct Redo",
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        },
+        {
+          "label": "history-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "b-preview",
+        "generated-preview-face-refused",
+        "c-click-during-b-preview",
+        "align-applied",
+        "history-bound-faces",
+        "history-target-before-apply",
+        "history-target-applied",
+        "reopened-align-history"
+      ],
+      "frozenFiles": 881,
+      "receiptSHA256": "24d6d49d9074c53ac7b94b358115c9384681482b57a0afe9555f6edaa0a66bd7",
+      "sourceManifestSHA256": "844b623933fe50b9b43467eae62aa8cdb5f6db160e275571be5acaf591a26eaf",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        },
+        {
+          "label": "history-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        },
+        {
+          "label": "reopened-native",
+          "target": "n3.top",
+          "offset": [
+            44,
+            3,
+            -10
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                50,
+                8.000000000000002,
+                12.999999999999996
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

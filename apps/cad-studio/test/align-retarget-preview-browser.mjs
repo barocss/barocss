@@ -5,7 +5,7 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'packages/barocss-cad-model/src/app/alignCommand.ts'];
 const f = await createFlow({
-  name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
+  name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--retarget') ? 'D1203_SOURCE_FROZEN' : process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Align uses the original face the pointer hits after results reorder in preview.',
   limits: ['Desktop WebGPU, top faces of three root native boxes, fixed Gap 2 mm.'],
@@ -22,7 +22,8 @@ console.log(JSON.stringify(partSnapshot(doc).outputs.map(output => ({
 `,
 });
 const baseline = process.argv.includes('--baseline');
-const history = process.argv.includes('--history');
+const retarget = process.argv.includes('--retarget');
+const history = retarget || process.argv.includes('--history');
 const ref = node => ({ node, side: 'solid' });
 const seed = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
@@ -118,17 +119,32 @@ await f.run(async () => {
     gap: 2, lineUp: 'centre',
   });
   await f.openFeatureEditor(6);
-  assert.match((await f.snapshot('history-bound-faces')).editor, /Source facen1[.]topTarget facen5[.]top/);
+  const historyState = await f.snapshot('history-bound-faces');
+  assert.match(historyState.editor, /Source facen1[.]topTarget face/);
+  const targetField = f.editor().getByLabel('Target face', { exact: true });
+  if (await targetField.count()) assert.equal(await targetField.locator('option:checked').innerText(), 'n5.top');
+  else assert.match(historyState.editor, /Target facen5[.]top/);
   const gap = f.editor().getByLabel('Gap', { exact: true }), lineup = f.editor().getByLabel('Line up', { exact: true });
   assert.equal(await gap.inputValue(), '2');
   assert.equal(await lineup.inputValue(), 'centre');
-  await gap.fill('4');
-  await lineup.selectOption('touch');
   const expected = structuredClone(applied);
-  Object.assign(expected.nodes.at(-1), { gap: 4, lineUp: 'touch' });
-  const edited = await f.applyEditor(applied, 'history-gap-and-line-up');
+  if (retarget) {
+    const chooser = f.editor().getByLabel('Target face', { exact: true });
+    await chooser.locator('option').filter({ hasText: /^n3[.]top$/ }).waitFor({ state: 'attached' });
+    assert.equal(await chooser.locator('option').filter({ hasText: /^n1[.]/ }).count(), 0);
+    await chooser.selectOption({ label: 'n3.top' });
+    assert.equal(await chooser.locator('option:checked').innerText(), 'n3.top');
+    await f.same(applied);
+    await f.snapshot('history-target-before-apply');
+    Object.assign(expected.nodes.at(-1), { target: { feature: 'n3', face: 'n3.top', axis: 'z', sign: 1, body: ref(3) } });
+  } else {
+    await gap.fill('4');
+    await lineup.selectOption('touch');
+    Object.assign(expected.nodes.at(-1), { gap: 4, lineUp: 'touch' });
+  }
+  const edited = await f.applyEditor(applied, retarget ? 'history-target-applied' : 'history-gap-and-line-up');
   assert.deepEqual(edited.doc, expected);
-  await verify('history-native', expected, 'n5.top', 4, 'touch');
+  await verify('history-native', expected, retarget ? 'n3.top' : 'n5.top', retarget ? 2 : 4, retarget ? 'centre' : 'touch');
   await f.undo();
   await f.same(applied);
   await f.redo();
@@ -138,9 +154,10 @@ await f.run(async () => {
   const [reopen] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
   await reopen.setFiles({ name: 'align-history.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(expected)) });
   await f.same(expected);
-  await verify('reopened-native', expected, 'n5.top', 4, 'touch');
+  await verify('reopened-native', expected, retarget ? 'n3.top' : 'n5.top', retarget ? 2 : 4, retarget ? 'centre' : 'touch');
   await f.openFeatureEditor(6);
-  assert.equal(await f.editor().getByLabel('Gap', { exact: true }).inputValue(), '4');
-  assert.equal(await f.editor().getByLabel('Line up', { exact: true }).inputValue(), 'touch');
+  assert.equal(await f.editor().getByLabel('Gap', { exact: true }).inputValue(), retarget ? '2' : '4');
+  assert.equal(await f.editor().getByLabel('Line up', { exact: true }).inputValue(), retarget ? 'centre' : 'touch');
+  if (retarget) assert.equal(await f.editor().getByLabel('Target face', { exact: true }).locator('option:checked').innerText(), 'n3.top');
   await f.snapshot('reopened-align-history');
 });

@@ -1,7 +1,7 @@
 import { nodeFilletType } from '../app/filletFamily';
 import { FilletTypeFields } from './FilletTypeFields';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { AlignNode, ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 import { detachFaceEndExtrude } from '@barocss/cad-model/engine/faceEndExtrude';
 import type { FaceEndDistanceReply } from '../engine/client';
 import { convertLinearPatternDistance, type LinearPatternDistanceMode } from '@barocss/cad-model/engine/linearSpanPattern';
@@ -12,6 +12,7 @@ import { Icon } from './atoms';
 import { FillPatternHints } from './FillPatternHints';
 import { FeatureFailureNotice } from './FeatureFailureNotice';
 import { savedCutPatternSource } from '../app/cutPatternSource';
+import { AlignHistoryTarget } from './AlignHistoryTarget';
 import { LinearSpanSpacing } from './LinearSpanSpacing';
 import { SweepHistoryInputs } from './SweepHistoryInputs';
 import { HoleHistoryInputs } from './HoleHistoryInputs';
@@ -22,7 +23,7 @@ function invalidInteger(value: number, range: { min: number; max: number }): boo
   return !Number.isInteger(value) || value < range.min || value > range.max;
 }
 
-export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, onDetachInset, insetSourceWidth, onDelete, readFaceEndDistance, onPickEndFace, onReplaceAxis, onEditOffset, onEditDraft, edgeReplacement, parameters, onRefuse, bearingAssembly, doc, onDraft, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean, sourceWidth?: number): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(): void; cancel(): void; reviewing: boolean }; onDetachInset?(): void; insetSourceWidth?: number; onDelete?(opener: HTMLElement): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; onReplaceAxis?(): void; onEditOffset?(): void; onEditDraft?(): void; edgeReplacement?: { start(): void; cancel(): void; apply(): void; draft: { name: string | null; pending?: boolean } | null }; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: StudioDoc; onDraft?(owner: object | null): void; pending?: boolean; pendingLabel?: string }) {
+export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRelinkInset, onDetachInset, insetSourceWidth, onDelete, readFaceEndDistance, onPickEndFace, onReplaceAxis, onEditOffset, onEditDraft, readAlignTargets, edgeReplacement, parameters, onRefuse, bearingAssembly, doc, onDraft, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[], ownsDraft: () => boolean, sourceWidth?: number): void | Promise<FeatureFailure | undefined>; onClose(): void; onEditSketch?(): void; onRelinkInset?: { start(): void; cancel(): void; reviewing: boolean }; onDetachInset?(): void; insetSourceWidth?: number; onDelete?(opener: HTMLElement): void; readFaceEndDistance?(): Promise<FaceEndDistanceReply>; onPickEndFace?(): void; onReplaceAxis?(): void; onEditOffset?(): void; onEditDraft?(): void; readAlignTargets?(): Promise<AlignNode['target'][]>; edgeReplacement?: { start(): void; cancel(): void; apply(): void; draft: { name: string | null; pending?: boolean } | null }; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: StudioDoc; onDraft?(owner: object | null): void; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
@@ -209,7 +210,11 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
       {node?.kind === 'align' && <>
         <div className="field"><span>Source face</span><span>{node.source.face}</span></div>
-        <div className="field"><span>Target face</span><span>{node.target.face}</span></div>
+        {readAlignTargets ? <AlignHistoryTarget key={index} value={node.target} disabled={ordinaryLocked || !!node.suppressed} read={readAlignTargets}
+          onChange={target => {
+            retireEvaluation();
+            setDraft(current => current.map((item, k) => k === index && item.kind === 'align' ? { ...item, target } : item));
+          }} /> : <div className="field"><span>Target face</span><span>{node.target.face}</span></div>}
       </>}
       {cutSource && <div className="field"><span>Cut source</span><span>{cutSource}</span></div>}
       {fields.length ? fields.map(f => {
