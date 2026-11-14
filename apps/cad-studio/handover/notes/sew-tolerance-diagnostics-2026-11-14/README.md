@@ -1,6 +1,6 @@
 # D1191 — Explain automatic Sew tolerance and unmatched edges
 
-2026-11-14 · FEATURE · P0 desktop QA, rows 13, 19 and 21 · [#2467](https://github.com/barocss/barocss/issues/2467), checklist lines 1969–1975
+2026-11-14 · FEATURE · P0 desktop QA, rows 13 and 21 · [#2467](https://github.com/barocss/barocss/issues/2467), checklist lines 1969–1975
 
 The direct panel, preview and History use **Tolerance (0: automatic)**. An unmatched-edge refusal shows the edge count and the affected surface positions in the ordered source list. The message asks the user to check the gap and tolerance. Sew retains its existing geometric matching policy.
 
