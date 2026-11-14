@@ -1,0 +1,173 @@
+{
+  "decision": "D1182",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "f202bf7d63f099d2419c74a845699ec8017248bd",
+  "commands": [
+    "gate.sh acquire heavy 600 D1182-<run>",
+    "D1182_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-row-history-browser.mjs <external-evidence>/<run> --circle",
+    "D1181_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-row-history-browser.mjs <external-evidence>/row-qualified",
+    "cd packages/barocss-cad-model && node scripts/test.mjs hole-types feature-handles",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/{commands,editFields,editCommand,holePatternInput}.ts",
+    "node --check apps/cad-studio/test/hole-row-history-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "supersededModelTypeChecks": [
+    {
+      "status": "FAIL",
+      "code": "TS2352",
+      "logSHA256": "f61b2c8ada2b703552dc000f63d671d9502e49373293cacd7c45336198db6ad2"
+    },
+    {
+      "status": "FAIL",
+      "code": "TS2345",
+      "logSHA256": "32609dbbc90a1d57b6961dd796a98fbe06466522597ae23213966e0f862f7f93"
+    }
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "hole-circle-created",
+        "failure"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "9b442f95531734dcf298486c8d317e8d6dfa33bfcca30240fd8b94c1e1986c23",
+      "sourceManifestSHA256": "04631cee4aaa79c2c177e01d28cb2227378d25a9903b1d84746aa9a372efeab8"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "hole-circle-created",
+        "degenerate-circle-refused",
+        "hole-circle-revised",
+        "hole-circle-reopened"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "079e994f0cb714df35e261d94d079a1f25fab7144d377f170836dc33fcb6e368",
+      "sourceManifestSHA256": "6bf5d0ff15a457e3e8cab7d35fe0f2e8b469fabf8a13618ac368233125711e6d"
+    },
+    "row-regression": {
+      "status": "PASS",
+      "states": [
+        "hole-row-created",
+        "short-row-step-refused",
+        "hole-row-revised",
+        "hole-row-reopened"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "c020f1b25fa15ecc69bbbb7cb5fd91eddeed15bf9ed265b72bf57a0f07ffa34c",
+      "sourceManifestSHA256": "6bf5d0ff15a457e3e8cab7d35fe0f2e8b469fabf8a13618ac368233125711e6d"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "hole-circle-created",
+        "degenerate-circle-refused",
+        "hole-circle-revised",
+        "hole-circle-reopened"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "c9b854010090a3cfb591447014e9668a2fab9e9556e984ba51f557777444de02",
+      "sourceManifestSHA256": "cf31b76bf9212d3f9dfd3e15b67968bbe9cd84df1b4927141b393a22969ad5ac",
+      "observations": [
+        {
+          "label": "hole-circle-created",
+          "centres": [
+            [
+              28,
+              20
+            ],
+            [
+              20,
+              28
+            ],
+            [
+              12,
+              20
+            ],
+            [
+              20,
+              12
+            ]
+          ],
+          "volume": 18596.814210510754,
+          "centroid": [
+            19.999999999999993,
+            19.999999999999993,
+            6
+          ]
+        },
+        {
+          "label": "hole-circle-revised",
+          "centres": [
+            [
+              28,
+              20
+            ],
+            [
+              20,
+              24
+            ],
+            [
+              16,
+              16
+            ],
+            [
+              24,
+              12
+            ]
+          ],
+          "volume": 18596.814210510787,
+          "centroid": [
+            19.935130202123663,
+            20.064869797876216,
+            6
+          ]
+        },
+        {
+          "label": "hole-circle-reopened",
+          "centres": [
+            [
+              28,
+              20
+            ],
+            [
+              20,
+              24
+            ],
+            [
+              16,
+              16
+            ],
+            [
+              24,
+              12
+            ]
+          ],
+          "volume": 18596.814210510787,
+          "centroid": [
+            19.935130202123663,
+            20.064869797876216,
+            6
+          ]
+        }
+      ]
+    },
+    "row-qualified": {
+      "status": "PASS",
+      "states": [
+        "hole-row-created",
+        "short-row-step-refused",
+        "hole-row-revised",
+        "hole-row-reopened"
+      ],
+      "frozenFiles": 874,
+      "receiptSHA256": "b54a1fb18df2a7cab81897dba29b85986ef4072bad48aa1f1dbdcc0f08143961",
+      "sourceManifestSHA256": "cf31b76bf9212d3f9dfd3e15b67968bbe9cd84df1b4927141b393a22969ad5ac"
+    }
+  }
+}

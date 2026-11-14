@@ -45,7 +45,7 @@ import { coded, refusal } from '../engine/refusal';
 import { mirrorReplacementPlane } from '../engine/mirrorReplacement';
 import { draftBodyEnd, draftInputs, draftNeutral, draftNeutralDefault, draftNeutralStep, draftPulls, readDraftPull, type DraftPull } from './draftInputs';
 import { splitPlaneHandle } from './splitPlaneHandle';
-import { holeRowSpacingProblem } from './holePatternInput';
+import { holeCircleCentreProblem, holeRowSpacingProblem } from './holePatternInput';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
@@ -595,7 +595,8 @@ const allCommands: Command[] = [
       const pattern: HolePattern | undefined = v.pat === 'row' ? { count, step: [Number(v.pa), Number(v.pb)] } : v.pat === 'circle' ? { count, about: [Number(v.qa), Number(v.qb)] } : undefined;
       const rowProblem = pattern && 'step' in pattern && holeRowSpacingProblem(pattern.step, Number(v.d));
       if (rowProblem) throw refusal('HOLE_PATTERN', rowProblem);
-      if (pattern && 'about' in pattern && Math.hypot(Number(v.x) - pattern.about[0], Number(v.y) - pattern.about[1]) < 1e-6) throw refusal('HOLE_PATTERN', 'Put the first hole away from the circle’s centre: the copies turn round it.');
+      const circleProblem = pattern && 'about' in pattern && holeCircleCentreProblem([Number(v.x), Number(v.y)], pattern.about);
+      if (circleProblem) throw refusal('HOLE_PATTERN', circleProblem);
       const pat = pattern ? { pattern } : {};
       const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}), ...(v.type === 'countersink' ? { countersink: Number(v.csd) } : {}), ...pat });
       if (v.type === 'counterbore') return withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at, ...pat });

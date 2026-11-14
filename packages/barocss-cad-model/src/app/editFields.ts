@@ -8,7 +8,7 @@ import type { StudioDoc } from '../engine/doc';
 // The editable dimensions of a feature, including those of the sketch it is made from: each field
 // reads its value from the document's nodes and writes a changed copy of them (sketch edits change the
 // sketch node, so every feature made from it follows).
-import { frameGeometry, HOLE_PLANE, withExtrusionHeight, type Axis, type Dim, type FrameCorners, type FrameNotch, type ModelNode, type SketchNode } from '../engine/doc';
+import { frameGeometry, HOLE_PLANE, withExtrusionHeight, type Axis, type Dim, type FrameCorners, type FrameNotch, type HolePattern, type ModelNode, type SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
 import { outlineOf } from '../sketch/loops';
 import { mainShape, resolveSketchDims } from '../sketch/reopen';
@@ -137,7 +137,7 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
   const raw = editFieldsRaw(nodes, i, bearingAssembly, scope, params ?? scope?.doc?.parameters ?? {});
   if (!params || nodes[i]?.kind === 'linear-span-pattern') return raw;
   return raw.map(f => f.kind !== 'number' || 'bind' in f || (nodes[i]?.kind === 'sew' && f.key === 'tol')
-    || (nodes[i]?.kind === 'hole' && (f.key === 'step0' || f.key === 'step1')) ? f : {
+    || (nodes[i]?.kind === 'hole' && /^(step|about)[01]$/.test(f.key)) ? f : {
     ...f,
     get: n => within(params, () => f.get(n)).value,
     set: (n, v) => within(params, () => f.set(n, v)).value,
@@ -297,14 +297,22 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       if (node.countersink !== undefined) number('csk', 'Countersink Ø', 'mm', n => (n as typeof node).countersink ?? 0, (n, v) => ({ ...(n as typeof node), countersink: v }));
       if (node.pattern) {
         number('count', 'Copies', undefined, n => (n as typeof node).pattern?.count ?? 1, (n, v) => ({ ...(n as typeof node), pattern: { ...(n as typeof node).pattern!, count: Math.max(1, Math.round(v)) } }));
-        if ('step' in node.pattern) HOLE_PLANE[node.axis ?? 'z'].forEach((axis, k) => number('step' + k, 'Step ' + axis.toUpperCase(), 'mm',
-          n => { const pattern = (n as typeof node).pattern; return pattern && 'step' in pattern ? pattern.step[k] : NaN; },
+        const selector = 'step' in node.pattern ? 'step' : 'about';
+        const label = selector === 'step' ? 'Step ' : 'Circle centre ';
+        const coordinates = (pattern: HolePattern | undefined) => {
+          if (!pattern) return undefined;
+          if (selector === 'step') return 'step' in pattern ? pattern.step : undefined;
+          return 'about' in pattern ? pattern.about : undefined;
+        };
+        HOLE_PLANE[node.axis ?? 'z'].forEach((axis, k) => number(selector + k, label + axis.toUpperCase(), 'mm',
+          n => coordinates((n as typeof node).pattern)?.[k] ?? NaN,
           (n, value) => {
             const hole = n as typeof node, pattern = hole.pattern;
-            if (!pattern || !('step' in pattern) || !Number.isFinite(value)) return hole;
-            const step = [...pattern.step] as [number, number];
-            step[k] = value;
-            return { ...hole, pattern: { ...pattern, step } };
+            const previous = coordinates(pattern);
+            if (!pattern || !previous || !Number.isFinite(value)) return hole;
+            const point: [number, number] = [...previous];
+            point[k] = value;
+            return { ...hole, pattern: { ...pattern, [selector]: point } };
           }));
       }
       break;
