@@ -142,6 +142,17 @@ test('Split across any plane: a mitre x + y = at through the middle, its arrow a
   const bodies = bodiesOf(doc);
   assert.equal(bodies.length, 2);
   assert.ok(Math.abs(bodies[0].volume! + bodies[1].volume! - 8000) < 1e-6);
+  const oblique = {
+    ...doc, parameters: { Plane: 68 },
+    nodes: doc.nodes.map((feature): typeof feature => feature.kind === 'split'
+      ? { ...feature, normal: [2, 2, 0], at: { parameter: 'Plane' } } : feature),
+  };
+  const history = editCommand(2, oblique.nodes, oblique)!, edited = picked(oblique);
+  const [arrow] = history.handles!(edited, history.defaults!(edited));
+  assert.deepEqual(arrow.at.map(x => Math.round(x * 1e9) / 1e9), [22, 12, 5]);
+  assert.deepEqual(arrow.dir, h.dir);
+  assert.equal(arrow.scale, 2 * h.scale!);
+  assert.deepEqual(history.handles!({ ...edited, bodies: edited.bodies.slice(0, 1) }, history.defaults!(edited)), []);
   assert.equal(planeText([1, 0, -0.5]), 'X−0.5Z');
   assert.throws(() => split.build!(ctx, { ...v, nx: 0, ny: 0 }), /must not be zero/);
 });

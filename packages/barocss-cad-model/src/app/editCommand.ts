@@ -21,6 +21,7 @@ import { cylindricalWrapEditCommand } from './cylindricalWrapCommand';
 import { textReliefEditCommand } from './textReliefCommand';
 import { linearSpanHandles } from './linearSpanHandles';
 import { namedHoleEntry } from './holeEntry';
+import { splitPlaneHandle } from './splitPlaneHandle';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const };
@@ -76,7 +77,15 @@ function madeBounds(ctx: Ctx, index: number): { min: V3; max: V3 } | null {
 }
 /** A split's plane (an arrow along its normal, kept inside the body) and a row's spacing and count. */
 function placedHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): HandleSpec[] {
-  const n = nodes[index], was = ctx.doc.nodes[index], box = madeBounds(ctx, index); if (!box) return [];
+  const n = nodes[index], was = ctx.doc.nodes[index];
+  if (n.kind === 'split' && n.normal) {
+    const sides = ctx.bodies.filter(body => body.ref?.node === index);
+    if (sides.length !== 2 || !sides.some(body => body.ref?.side === 'negative')
+      || !sides.some(body => body.ref?.side === 'positive')) return [];
+    const at = typeof n.at === 'number' ? n.at : ctx.doc.parameters[n.at.parameter];
+    return splitPlaneHandle(boundsOf(sides), n.normal, at);
+  }
+  const box = madeBounds(ctx, index); if (!box) return [];
   if (n.kind === 'split') {
     const k = 'xyz'.indexOf(n.axis), at = [0, 1, 2].map(i => (box.min[i] + box.max[i]) / 2) as V3, dir: V3 = [0, 0, 0]; dir[k] = 1; at[k] = num(n.at);
     return [{ key: 'at', at, dir, min: Math.ceil((box.min[k] + 0.5) * 2) / 2, max: Math.floor((box.max[k] - 0.5) * 2) / 2, step: 0.5 }];

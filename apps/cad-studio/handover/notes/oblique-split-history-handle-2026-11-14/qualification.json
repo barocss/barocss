@@ -1,0 +1,621 @@
+{
+  "decision": "D1177",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "ca05528cd206fe9197d3ed1d422f6e0b988d0af1",
+  "commands": [
+    "gate.sh acquire heavy 600 D1177-<run>",
+    "D1177_SOURCE_FROZEN=1 node apps/cad-studio/test/oblique-split-history-browser.mjs <external-evidence>/<run>",
+    "D1177_SOURCE_FROZEN=1 node apps/cad-studio/test/oblique-split-history-browser.mjs <external-evidence>/cardinal-control --cardinal",
+    "D788_SOURCE_FROZEN=1 node apps/cad-studio/test/split-side-lifecycle-browser.mjs <external-evidence>/cardinal-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs feature-handles engine.test",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/{commands,editCommand,splitPlaneHandle}.ts",
+    "node --check apps/cad-studio/test/oblique-split-history-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "cardinalLifecycle": {
+    "status": "NOT_RUN",
+    "reason": "Older D788 driver was stopped after its own browser stalled before the first checkpoint. Exit 130 and no finalized receipt."
+  },
+  "studio": {
+    "desktop": {
+      "status": "PASS",
+      "states": [
+        "angled-split-preview",
+        "angled-split",
+        "angled-split-edit",
+        "oblique-split-reopened",
+        "angled-split-tangent-refused"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "2327d766ed4a51ca048765dab2cec84fb7f4ccee3cf5270de5fd38b4310018f9",
+      "sourceManifestSHA256": "8c7323494ca826372735e95f16edcc24f72fe79885af86ec2ada7f21b5a3d4ec"
+    },
+    "handle-baseline": {
+      "status": "FAIL",
+      "states": [
+        "angled-split-preview",
+        "angled-split",
+        "failure"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "ac608bd862fea60841bc3c6097042ca0c2ed1b376a53079724df2371551711b0",
+      "sourceManifestSHA256": "8c7323494ca826372735e95f16edcc24f72fe79885af86ec2ada7f21b5a3d4ec"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "angled-split-preview",
+        "angled-split",
+        "angled-history-handle",
+        "angled-split-edit",
+        "oblique-split-reopened",
+        "angled-split-tangent-refused",
+        "angled-split-scaled-equivalent"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "89a30cd8effaf6133e8f705fa97ad852125def476e8991457243baa72bb211a4",
+      "sourceManifestSHA256": "019cb1a5ce3d865b35bef4adcbf4f812497742175c0961578658315a6b6ffe55"
+    },
+    "cardinal-control": {
+      "status": "PASS",
+      "states": [
+        "cardinal-split",
+        "cardinal-history-edit"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "607beb320e058e2f39b2cb87032e05f2cc49fdf11bf13907d3c9b54ed8955a21",
+      "sourceManifestSHA256": "019cb1a5ce3d865b35bef4adcbf4f812497742175c0961578658315a6b6ffe55"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "angled-split-preview",
+        "angled-split",
+        "angled-history-handle",
+        "angled-split-edit",
+        "oblique-split-reopened",
+        "angled-split-tangent-refused",
+        "angled-split-scaled-equivalent"
+      ],
+      "frozenFiles": 873,
+      "receiptSHA256": "87a7c67109250aa207f232df1aebb2e1f0bbf1455536527a7e903e9702f8532f",
+      "sourceManifestSHA256": "019cb1a5ce3d865b35bef4adcbf4f812497742175c0961578658315a6b6ffe55",
+      "observations": [
+        {
+          "label": "angled-split",
+          "at": 30,
+          "outputs": [
+            {
+              "key": "b2_negative",
+              "volume": 3999.9999999999995,
+              "caps": [
+                {
+                  "name": "n2.cut.top",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      30,
+                      0,
+                      10
+                    ],
+                    "n": [
+                      0.7071067811865476,
+                      0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      30,
+                      0,
+                      10
+                    ],
+                    [
+                      30,
+                      0,
+                      0
+                    ],
+                    [
+                      10,
+                      20,
+                      0
+                    ],
+                    [
+                      10,
+                      20,
+                      10
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "b2_positive",
+              "volume": 3999.9999999999995,
+              "caps": [
+                {
+                  "name": "n2.cut.bottom",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      30,
+                      0,
+                      0
+                    ],
+                    "n": [
+                      -0.7071067811865476,
+                      -0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      30,
+                      0,
+                      0
+                    ],
+                    [
+                      30,
+                      0,
+                      10
+                    ],
+                    [
+                      10,
+                      20,
+                      10
+                    ],
+                    [
+                      10,
+                      20,
+                      0
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "angled-history-handle",
+          "at": 30,
+          "root": [
+            656,
+            530
+          ],
+          "tip": [
+            706.0999755859375,
+            523.2000122070312
+          ],
+          "expected": [
+            655.9999988743266,
+            529.9999992791691
+          ],
+          "forward": [
+            680.8850609777842,
+            526.6229178323479
+          ]
+        },
+        {
+          "label": "angled-split-edit",
+          "at": 34,
+          "outputs": [
+            {
+              "key": "b2_negative",
+              "volume": 4800,
+              "caps": [
+                {
+                  "name": "n2.cut.top",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      34,
+                      0,
+                      10
+                    ],
+                    "n": [
+                      0.7071067811865476,
+                      0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      34,
+                      0,
+                      10
+                    ],
+                    [
+                      34,
+                      0,
+                      0
+                    ],
+                    [
+                      14,
+                      20,
+                      0
+                    ],
+                    [
+                      14,
+                      20,
+                      10
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "b2_positive",
+              "volume": 3199.999999999999,
+              "caps": [
+                {
+                  "name": "n2.cut.bottom",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      34,
+                      0,
+                      0
+                    ],
+                    "n": [
+                      -0.7071067811865476,
+                      -0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      34,
+                      0,
+                      0
+                    ],
+                    [
+                      34,
+                      0,
+                      10
+                    ],
+                    [
+                      14,
+                      20,
+                      10
+                    ],
+                    [
+                      14,
+                      20,
+                      0
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "angled-split-undo",
+          "at": 30,
+          "outputs": [
+            {
+              "key": "b2_negative",
+              "volume": 3999.9999999999995,
+              "caps": [
+                {
+                  "name": "n2.cut.top",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      30,
+                      0,
+                      10
+                    ],
+                    "n": [
+                      0.7071067811865476,
+                      0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      30,
+                      0,
+                      10
+                    ],
+                    [
+                      30,
+                      0,
+                      0
+                    ],
+                    [
+                      10,
+                      20,
+                      0
+                    ],
+                    [
+                      10,
+                      20,
+                      10
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "b2_positive",
+              "volume": 3999.9999999999995,
+              "caps": [
+                {
+                  "name": "n2.cut.bottom",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      30,
+                      0,
+                      0
+                    ],
+                    "n": [
+                      -0.7071067811865476,
+                      -0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      30,
+                      0,
+                      0
+                    ],
+                    [
+                      30,
+                      0,
+                      10
+                    ],
+                    [
+                      10,
+                      20,
+                      10
+                    ],
+                    [
+                      10,
+                      20,
+                      0
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "oblique-split-reopened",
+          "at": 34,
+          "outputs": [
+            {
+              "key": "b2_negative",
+              "volume": 4800,
+              "caps": [
+                {
+                  "name": "n2.cut.top",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      34,
+                      0,
+                      10
+                    ],
+                    "n": [
+                      0.7071067811865476,
+                      0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      34,
+                      0,
+                      10
+                    ],
+                    [
+                      34,
+                      0,
+                      0
+                    ],
+                    [
+                      14,
+                      20,
+                      0
+                    ],
+                    [
+                      14,
+                      20,
+                      10
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "b2_positive",
+              "volume": 3199.999999999999,
+              "caps": [
+                {
+                  "name": "n2.cut.bottom",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      34,
+                      0,
+                      0
+                    ],
+                    "n": [
+                      -0.7071067811865476,
+                      -0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      34,
+                      0,
+                      0
+                    ],
+                    [
+                      34,
+                      0,
+                      10
+                    ],
+                    [
+                      14,
+                      20,
+                      10
+                    ],
+                    [
+                      14,
+                      20,
+                      0
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "angled-history-handle",
+          "at": 34,
+          "root": [
+            705.640869140625,
+            523.2633666992188
+          ],
+          "tip": [
+            755.5,
+            516.5
+          ],
+          "expected": [
+            705.6408578007713,
+            523.263378611404
+          ],
+          "forward": [
+            730.2683939355028,
+            519.9212452859675
+          ]
+        },
+        {
+          "label": "angled-split-scaled-equivalent",
+          "at": 34,
+          "outputs": [
+            {
+              "key": "b2_negative",
+              "volume": 4800,
+              "caps": [
+                {
+                  "name": "n2.cut.top",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      34,
+                      0,
+                      10
+                    ],
+                    "n": [
+                      0.7071067811865476,
+                      0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      34,
+                      0,
+                      10
+                    ],
+                    [
+                      34,
+                      0,
+                      0
+                    ],
+                    [
+                      14,
+                      20,
+                      0
+                    ],
+                    [
+                      14,
+                      20,
+                      10
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "b2_positive",
+              "volume": 3199.999999999999,
+              "caps": [
+                {
+                  "name": "n2.cut.bottom",
+                  "geometry": {
+                    "kind": "plane",
+                    "o": [
+                      34,
+                      0,
+                      0
+                    ],
+                    "n": [
+                      -0.7071067811865476,
+                      -0.7071067811865476,
+                      0
+                    ]
+                  },
+                  "points": [
+                    [
+                      34,
+                      0,
+                      0
+                    ],
+                    [
+                      34,
+                      0,
+                      10
+                    ],
+                    [
+                      14,
+                      20,
+                      10
+                    ],
+                    [
+                      14,
+                      20,
+                      0
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "angled-history-handle",
+          "at": 34,
+          "root": [
+            705.640869140625,
+            523.2633666992188
+          ],
+          "tip": [
+            755.5,
+            516.5
+          ],
+          "expected": [
+            705.6408578007713,
+            523.263378611404
+          ],
+          "forward": [
+            730.2683939355028,
+            519.9212452859675
+          ]
+        }
+      ]
+    }
+  }
+}

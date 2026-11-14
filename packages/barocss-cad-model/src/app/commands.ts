@@ -44,6 +44,7 @@ import { featureId } from '../engine/ids';
 import { coded, refusal } from '../engine/refusal';
 import { mirrorReplacementPlane } from '../engine/mirrorReplacement';
 import { draftBodyEnd, draftInputs, draftNeutral, draftNeutralDefault, draftNeutralStep, draftPulls, readDraftPull, type DraftPull } from './draftInputs';
+import { splitPlaneHandle } from './splitPlaneHandle';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
@@ -984,10 +985,8 @@ const allCommands: Command[] = [
     handles: (ctx, v) => {
       const b = oneBody(ctx); if (!b) return [];
       if (v.axis === 'n') {
-        const n = splitNormal(v); if (!n) return [];
-        const l = Math.hypot(...n), u = n.map(x => x / l) as [number, number, number], c = centreOf(b), off = Number(v.at) / l - (u[0] * c[0] + u[1] * c[1] + u[2] * c[2]);
-        const B = b.mesh.bounds, ends = [0, 1, 2, 3, 4, 5, 6, 7].map(i => n[0] * (i & 1 ? B.max[0] : B.min[0]) + n[1] * (i & 2 ? B.max[1] : B.min[1]) + n[2] * (i & 4 ? B.max[2] : B.min[2]));
-        return [{ key: 'at', at: c.map((x, k) => x + u[k] * off) as [number, number, number], dir: u, scale: l, min: Math.min(...ends) + 0.5 * l, max: Math.max(...ends) - 0.5 * l, step: 0.5 }];
+        const normal = splitNormal(v);
+        return normal ? splitPlaneHandle(b.mesh.bounds, normal, Number(v.at)) : [];
       }
       const k = 'xyz'.indexOf(String(v.axis)), at = centreOf(b), dir: [number, number, number] = [0, 0, 0]; dir[k] = 1; at[k] = Number(v.at);
       return [{ key: 'at', at, dir, min: Math.ceil((b.mesh.bounds.min[k] + 0.5) * 2) / 2, max: Math.floor((b.mesh.bounds.max[k] - 0.5) * 2) / 2, step: 0.5 }];
