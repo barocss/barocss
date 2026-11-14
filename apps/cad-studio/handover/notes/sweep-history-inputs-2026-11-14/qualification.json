@@ -1,0 +1,148 @@
+{
+  "decision": "D1169",
+  "tier": "FEATURE",
+  "parent": "75dc5db250e5b3f64133d632708c4e250124825c",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1169-<run>",
+    "D1169_SOURCE_FROZEN=1 node apps/cad-studio/test/sweep-history-inputs-browser.mjs <external-evidence>/<run>",
+    "D1168_SOURCE_FROZEN=1 node apps/cad-studio/test/sweep-preview-retarget-browser.mjs <external-evidence>/retarget-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs profiles-parameters route-bundle",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/{NodeEditor,SweepHistoryInputs}.tsx",
+    "node --check apps/cad-studio/test/sweep-history-inputs-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "failure"
+      ],
+      "frozenFiles": 869,
+      "receiptSHA256": "0659c4581d9a80bb0578001d34cb37537c1fb4e350e125ed3c44f729c7ff6e3a",
+      "sourceManifestSHA256": "ae04d3bb7bb18b60e240ecedf0f08dcc99780c8679497a3e46d8dcaea0fc2fa8"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "history-after-apply",
+        "history-after-redo",
+        "history-uses-saved-copy",
+        "sweep-history-reopened",
+        "history-after-fresh-open"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "63b0fd6957621094e31410d3e6b48279d99e9489cd9155d3a911dd053dfdbaf0",
+      "sourceManifestSHA256": "fdb48e9cb7636b0e9743be48426c118abae21557e6f1e8223e2b3cd5bc32d781",
+      "observations": [
+        {
+          "label": "history-after-apply",
+          "history": "EDIT FEATURE ProfileSketch 1 \u00b7 \u00d86 mmPathRail B \u00b7 CopiedStart30, 0, 0 mmEnd30, 0, 22 mm Edit sketchThis feature has no editable dimensions. Delete feature",
+          "native": {
+            "valid": true,
+            "count": 1,
+            "bounds": [
+              [
+                27,
+                33
+              ],
+              [
+                -3,
+                3
+              ],
+              [
+                0,
+                22
+              ]
+            ]
+          }
+        },
+        {
+          "label": "history-after-redo",
+          "history": "EDIT FEATURE ProfileSketch 1 \u00b7 \u00d86 mmPathRail B \u00b7 CopiedStart30, 0, 0 mmEnd30, 0, 22 mm Edit sketchThis feature has no editable dimensions. Delete feature",
+          "native": {
+            "valid": true,
+            "count": 1,
+            "bounds": [
+              [
+                27,
+                33
+              ],
+              [
+                -3,
+                3
+              ],
+              [
+                0,
+                22
+              ]
+            ]
+          }
+        },
+        {
+          "label": "history-uses-saved-copy",
+          "history": "EDIT FEATURE ProfileSketch 1 \u00b7 \u00d86 mmPathRail B \u00b7 CopiedStart30, 0, 0 mmEnd30, 0, 22 mm Edit sketchThis feature has no editable dimensions. Delete feature",
+          "native": {
+            "valid": true,
+            "count": 1,
+            "bounds": [
+              [
+                27,
+                33
+              ],
+              [
+                -3,
+                3
+              ],
+              [
+                0,
+                22
+              ]
+            ]
+          }
+        },
+        {
+          "label": "history-after-fresh-open",
+          "history": "EDIT FEATURE ProfileSketch 1 \u00b7 \u00d86 mmPathRail B \u00b7 CopiedStart30, 0, 0 mmEnd30, 0, 22 mm Edit sketchThis feature has no editable dimensions. Delete feature",
+          "native": {
+            "valid": true,
+            "count": 1,
+            "bounds": [
+              [
+                27,
+                33
+              ],
+              [
+                -3,
+                3
+              ],
+              [
+                0,
+                22
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    "retarget-regression": {
+      "status": "PASS",
+      "states": [
+        "initial-sweep-preview",
+        "rail-b-keeps-profile",
+        "surface-refusal-keeps-both",
+        "new-profile-keeps-rail-b",
+        "earlier-profile-keeps-rail-b",
+        "sweep-retarget-applied",
+        "sweep-retarget-reopened"
+      ],
+      "frozenFiles": 871,
+      "receiptSHA256": "8d143d44df0cb80f6a117908a53b4e75e3a3dc2b5b309d678d3e0f6ee18d5454",
+      "sourceManifestSHA256": "9a35afa192393b3e237c5c993fab794ef387f3605077a7979930d8ec75d6923c"
+    }
+  }
+}
