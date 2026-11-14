@@ -19,7 +19,7 @@ const samePoint = (a: Vec3, b: Vec3) => a.every((v, i) => v === b[i]);
 const edgeFaces = (mesh: DisplayMesh, edge: DisplayEdge) => edge.faces.map(i => mesh.faces[i]?.name).sort();
 
 function joinSource(active: Active, shown: BodyResult): BodyRef | undefined {
-  if (active.values.op !== 'join' || shown.ref?.side !== 'solid') return;
+  if (active.cmd.id !== 'revolve' || active.values.op !== 'join' || shown.ref?.side !== 'solid') return;
   const candidate = active.cmd.build?.(active.ctx, active.values);
   if (!candidate || candidate.nodes.length !== active.ctx.doc.nodes.length + 2) return;
   const index = candidate.nodes.length - 1, union = candidate.nodes[index];
@@ -29,7 +29,7 @@ function joinSource(active: Active, shown: BodyResult): BodyRef | undefined {
 }
 
 /** Map a drawn edge to the complete unchanged straight edge of a unique accepted source body. */
-export function sourceRevolveAxis(active: Active, shown: readonly BodyResult[], hit: RevolveAxisHit, currentPreview: boolean): EdgeSel | null {
+export function sourceRevolveAxis(active: Active, shown: readonly BodyResult[], hit: RevolveAxisHit, currentPreview: boolean, shownPreview = false): EdgeSel | null {
   const pick = hit.edge;
   if (!pick || hit.direct || hit.instance || hit.instanceFace || hit.instanceCap) return null;
   const drawn = shown[pick.body], edge = drawn?.mesh.edges[pick.edge];
@@ -38,11 +38,15 @@ export function sourceRevolveAxis(active: Active, shown: readonly BodyResult[], 
   const retainedOwners = accepted.flatMap((body, index) => body.key === drawn.key && sameRef(body.ref, drawn.ref) ? [index] : []);
   if (retainedOwners.length > 1) return null;
   const retained = retainedOwners[0] ?? -1;
-  if (retained >= 0 && accepted[retained].mesh === drawn.mesh) return { body: retained, edge: pick.edge };
-  if (!currentPreview || !edge.straight || edge.names.length !== 1) return null;
+  const joined = active.joinedRevolvePick;
+  const joinedHistory = joined && drawn.ref?.side === 'solid' && drawn.ref.node === joined.union
+    && drawn.key === bodyKeyFor(active.ctx.doc.nodes, joined.union);
+  if (shownPreview && !currentPreview) return null;
+  if (!joinedHistory && retained >= 0 && accepted[retained].mesh === drawn.mesh) return { body: retained, edge: pick.edge };
+  if ((!currentPreview && !joinedHistory) || !edge.straight || edge.names.length !== 1) return null;
 
   let ref: BodyRef | undefined;
-  try { ref = retained >= 0 ? drawn.ref : joinSource(active, drawn); }
+  try { ref = joinedHistory ? joined.stock.ref : retained >= 0 ? drawn.ref : joinSource(active, drawn); }
   catch { return null; }
   if (!ref) return null;
   const key = bodyKeyFor(active.ctx.doc.nodes, ref.node, ref.side);

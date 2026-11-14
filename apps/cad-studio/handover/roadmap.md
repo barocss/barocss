@@ -1,13 +1,13 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-14 · Priority authority: D520 · Latest delivery: D1165 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-14 · Priority authority: D520 · Latest delivery: D1166 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** [D1165](notes/revolve-earlier-move-axis-2026-11-14/README.md) follows an earlier literal Move from a linked Revolve for [#2480](https://github.com/barocss/barocss/issues/2480). Desktop QA is 26/54.
-- **Next MAIN:** D1166 / P0 desktop QA, rows 07 and 21. Verify History axis replacement for a joined Revolve whose source stock was consumed by the Join. Close [#2480](https://github.com/barocss/barocss/issues/2480) only after the desktop replay. Continue [#2492](https://github.com/barocss/barocss/issues/2492) order. Track the signed-finish reopen at D1142 under #2445.
+- **Current position:** [D1166](notes/revolve-joined-history-2026-11-14/README.md) qualifies History axis replacement for direct Join and completes [#2480](https://github.com/barocss/barocss/issues/2480). Desktop QA is 27/54.
+- **Next MAIN:** D1167 / P0 desktop QA, rows 07 and 21. Reproduce Sweep profile and direct path selection in both orders and verify the profile and path shown by the command for [#2462](https://github.com/barocss/barocss/issues/2462). Continue [#2492](https://github.com/barocss/barocss/issues/2492) order. Track the signed-finish reopen at D1142 under #2445.
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
 - **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01 v1 **12/12 accepted groups**; B02 v1 **11/11 accepted groups**; B04 v1 **26/26 accepted groups**; B07 v1 **6/6 accepted profiles**; B09 v1 **9/9 accepted groups**; initial scenarios **8/10 accepted**; B06 **6/7 qualified groups, PDF held**; B05 **7/7 accepted groups**; B08 **6/6 accepted groups**; B10 **7/7 accepted groups**; B03 **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; D785 demonstrates one R04 native collision; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).

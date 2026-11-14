@@ -61,7 +61,7 @@ import { sourceRevolveAxis, type RevolveAxisHit } from './app/revolveAxisPick';
 import { shownExtrudeEndFace, sourceExtrudeEndFace, type ExtrudeEndHit } from './app/extrudeEndFace';
 import { awaitingExtrudeEndFace, EXTRUDE_END_FACE_EDIT, isExtrudeToFace } from '@barocss/cad-model/app/extrudeEndFacePick';
 import { editSavedExtrudeEndFaceCommand, canEditSavedExtrudeEndFace } from '@barocss/cad-model/app/extrudeEndFaceEdit';
-import { awaitingRevolveAxis, editSavedRevolveAxisCommand, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
+import { awaitingRevolveAxis, editSavedRevolveAxisCommand, joinedRevolveStock, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
 import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
@@ -1800,7 +1800,7 @@ export function App() {
 
   const viewBodiesRef = useRef<BodyResult[]>(null!);
   const sectionPickRef = useRef<SectionPick>(() => ({ face: null, edge: null, cap: false }));
-  const commandPickScope = useRef<{ bodies: readonly BodyResult[]; hidden: ReadonlySet<number> } | null>(null);
+  const commandPickScope = useRef<{ bodies: readonly BodyResult[]; hidden: ReadonlySet<number>; preview: boolean } | null>(null);
   const pickExtrudeEndFace = (hit: ExtrudeEndHit, blocked: boolean): boolean => {
     const current = activeStore.get();
     if (!current || !isExtrudeToFace(current.cmd.id, current.values)) return false;
@@ -1838,7 +1838,7 @@ export function App() {
     const scope = commandPickScope.current;
     const ownsPreview = current.preview === 'ok' && previewFor.current === JSON.stringify(current.values);
     const edge = !blocked && scope && hit.edge && !scope.hidden.has(hit.edge.body)
-      ? sourceRevolveAxis(current, scope.bodies, hit, ownsPreview) : null;
+      ? sourceRevolveAxis(current, scope.bodies, hit, ownsPreview, scope.preview) : null;
     const picked = edge && current.cmd.onPick?.(current.ctx, current.values, { face: null, edge });
     if (!picked || typeof picked.error === 'string') {
       setToast({ title: 'Axis not selected', hint: typeof picked?.error === 'string' ? picked.error : 'Pick one original straight edge in the sketch plane.', detail: '', axisPick: current.cmd });
@@ -1850,6 +1850,37 @@ export function App() {
     return true;
   };
   const replaceRevolveAxis = editNode === null ? null : editSavedRevolveAxisCommand(commandDoc, editNode);
+  const axisReplacementRequest = useRef(0);
+  const startRevolveAxisReplacement = async () => {
+    if (editNode === null || !replaceRevolveAxis || !ownsEvaluatedSource() || markerNow.current !== null || shownVariant.current
+      || !fresh || busy || !canChangeDocument()) {
+      setToast({ title: 'Axis replacement not started', hint: 'Show the master at the latest History and wait for the model.', detail: '' });
+      return;
+    }
+    const request = ++axisReplacementRequest.current, owner = bearingEditScope.current, open = openIntent.current;
+    const joined = joinedRevolveStock(commandDoc, editNode);
+    let stock: BodyResult | undefined;
+    if (joined) {
+      const current = () => request === axisReplacementRequest.current && owner === bearingEditScope.current
+        && open === openIntent.current && ownsEvaluatedSource() && !activeStore.get() && !nodeEditorDraft.current;
+      try {
+        const result = await engine.part(prefixDoc(commandDoc, editNode), revision.current++, 'refs');
+        if (!current()) return;
+        const candidates = result.ok ? result.bodies.filter(body => body.ref?.node === joined.stock.node
+          && body.ref.side === joined.stock.side && body.key === bodyKeyFor(commandDoc.nodes, joined.stock.node, joined.stock.side)) : [];
+        if (candidates.length !== 1) throw new Error('The original stock did not resolve to one source body.');
+        stock = candidates[0];
+      } catch (error) {
+        if (current()) setToast({ title: 'Axis replacement not started', hint: 'The original stock is unavailable.', detail: String(error) });
+        return;
+      }
+      if (!canChangeDocument()) return;
+    }
+    discardFeatureDraft();
+    setEditNode(null);
+    setActive({ cmd: replaceRevolveAxis, ctx: stock ? { ...ctx, bodies: [...bodies, stock] } : ctx,
+      ...(joined && stock ? { joinedRevolvePick: { union: joined.union, stock } } : {}), values: {}, preview: 'busy' });
+  };
   const sectionBoxRef = useRef<{ min: Vec3; max: Vec3 }>(null!);
   const changeFillet = (type: FilletType, mode?: RadiusMode) => {
     if (docNow.current !== doc || evaluatedRef.current !== evaluated || activeStore.get()?.ctx.doc !== ctx.doc) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
@@ -2568,7 +2599,7 @@ export function App() {
   const bandShown = active?.cmd.id === 'band-surface' ? bandHighlight(bodies, bandPicksOf(active.values)) : null;
   commandPickScope.current = fresh && !busy && !section && !sketch && !inPlace && !cageEd.session && !routePreviewBodies
     && !ghost && !rendering && !drawing && !bodyDrag && previewMode === 'none' && (shownBodies === drawnBodies || shownBodies === previewBodies)
-    ? { bodies: shownBodies, hidden: hiddenBodies } : null;
+    ? { bodies: shownBodies, hidden: hiddenBodies, preview: shownBodies === previewBodies } : null;
   const shownEndFace = active && commandPickScope.current && isExtrudeToFace(active.cmd.id, active.values) && active.preview === 'ok'
     ? shownExtrudeEndFace(active, shownBodies) : null;
   const sectionEdgeSources = useMemo(() => {
@@ -3146,16 +3177,7 @@ export function App() {
             if (doc.nodes[s]?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
             editSketch(s);
           };
-        })()} onReplaceAxis={replaceRevolveAxis ? () => {
-          if (docNow.current !== doc || evaluatedRef.current !== evaluated || markerNow.current !== null || shownVariant.current
-            || !fresh || busy || !canChangeDocument()) {
-            setToast({ title: 'Axis replacement not started', hint: 'Show the master at the latest History and wait for the model.', detail: '' });
-            return;
-          }
-          discardFeatureDraft();
-          setEditNode(null);
-          setActive({ cmd: replaceRevolveAxis, ctx, values: {}, preview: 'busy' });
-        } : undefined} onPickEndFace={canEditSavedExtrudeEndFace(doc, editNode) ? () => {
+        })()} onReplaceAxis={replaceRevolveAxis ? () => void startRevolveAxisReplacement() : undefined} onPickEndFace={canEditSavedExtrudeEndFace(doc, editNode) ? () => {
           if (docNow.current !== doc || evaluatedRef.current !== evaluated || markerNow.current !== null || shownVariant.current
             || !fresh || busy || !canChangeDocument()) {
             setToast({ title: 'End face not started', hint: 'Show the master at the latest History and wait for the model.', detail: '' });
@@ -3229,7 +3251,8 @@ export function App() {
   const applyHud = (owner: Active) => {
     const current = activeStore.get();
     if (!current || !filletApplyCurrent(owner, current)) return;
-    if (owner !== current && (isExtrudeToFace(owner.cmd.id, owner.values) || isExtrudeToFace(current.cmd.id, current.values)
+    if (owner !== current && (owner.cmd.id === REVOLVE_AXIS_EDIT || current.cmd.id === REVOLVE_AXIS_EDIT
+      || isExtrudeToFace(owner.cmd.id, owner.values) || isExtrudeToFace(current.cmd.id, current.values)
       || (current.cmd.id === 'extrude' && owner.values.region !== current.values.region))) return;
     apply();
   };

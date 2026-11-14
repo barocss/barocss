@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkOutput, evaluateCadPart, massPropertiesOf } from '@barocss/cad';
 import type { Ctx } from '../src/app/commands';
-import { awaitingRevolveAxis, editSavedRevolveAxisCommand } from '../src/app/revolveAxisEdit';
+import { awaitingRevolveAxis, editSavedRevolveAxisCommand, joinedRevolveStock } from '../src/app/revolveAxisEdit';
 import { addPart } from '../src/assembly/edit';
 import { deleteFeature, duplicateBody, featureDependents } from '../src/chat/features';
 import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
@@ -145,4 +145,17 @@ test('a linked axis resolves an earlier Move using its original prism edge names
   const flattened = outputs(flattenAssembly(assembly));
   assert.equal(flattened.length, 3);
   assert.equal(flattened.filter(b => Math.abs(mass(b) - 1110 * Math.PI) < 1e-7).length, 1);
+});
+
+test('the joined History source requires the current Union on the saved sketch stock', () => {
+  const base = patch(fixture(), 2, { on: ref(1) });
+  const doc = withNode(base, { kind: 'union', left: ref(1), right: ref(3) });
+  assert.deepEqual(joinedRevolveStock(doc, 3), { union: 4, stock: ref(1) });
+  assert.ok(editSavedRevolveAxisCommand(doc, 3));
+  assert.equal(joinedRevolveStock(patch(doc, 4, { left: ref(3), right: ref(1) }), 3), undefined);
+  assert.equal(joinedRevolveStock(patch(doc, 4, { suppressed: true }), 3), undefined);
+  assert.equal(joinedRevolveStock(patch(doc, 2, { on: undefined }), 3), undefined);
+  assert.equal(joinedRevolveStock({ ...doc, outputs: { ...doc.outputs, alias: ref(4) } }, 3), undefined);
+  const moved = withNode(doc, { kind: 'translate', parent: ref(4), offset: [0, 20, 0] });
+  assert.equal(editSavedRevolveAxisCommand(moved, 3), null);
 });
