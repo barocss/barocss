@@ -12,6 +12,7 @@ import { nativeCylinderAreaReader } from './nativeCylinderArea';
 
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from './vec3';
+import type { Axis } from './doc';
 export type { Vec3 };
 
 /** Canonical quality-8 geometry of one native member of a merged display face. */
@@ -20,6 +21,8 @@ export interface NativeDisplayFace { name: string; kind: 'plane' | 'curved'; nor
 export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; area: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true; /** O8: the lump (the B-rep body, 0 first) this face is on — only on a body of two or more lumps. */ lump?: number;
   /** The full native name of an unmerged planar face in the root body mesh. */
   nativePlaneName?: string;
+  /** Exact constant coordinate of the unmerged native planar support. */
+  nativeAxisPlane?: { axis: Axis; at: number };
   /** A non-linear B-rep boundary of this planar face, including hidden tangent joints. */
   curvedBoundary?: true;
   /** The face's exact surface where the kernel knows it (A6.3: datums and measures to rounding, not to the Float32 mesh): a plane (a point, the normal out of the face) or a cylinder (a point on the axis, its direction, the radius). */
@@ -36,8 +39,8 @@ export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number;
   chordDepth?: number }
 /** Native member coordinates belong only to the original unplaced body. */
 export function withoutNativeFaces(face: DisplayFace): DisplayFace {
-  const { nativeFaces, nativePlaneName, ...display } = face;
-  return nativeFaces || nativePlaneName !== undefined ? display : face;
+  const { nativeFaces, nativePlaneName, nativeAxisPlane, ...display } = face;
+  return nativeFaces || nativePlaneName !== undefined || nativeAxisPlane ? display : face;
 }
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[];
   /** B-rep vertex IDs in display endpoint order, for one ungrouped native prism edge. */
@@ -170,7 +173,18 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8, readBoundar
       // normal of the widest triangle of them, turned out of the face as the display normal is.)
       const nativeFace = faceById.get(root)!, sf = nativeFace.surface, df = b.faces[b.faces.length - 1];
       if (members.length === 1 && nativeFace.name && !nativeFace.name.includes('+')) df.nativePlaneName = nativeFace.name;
-      if (sf.kind === 'surface') { const pl = planeOfPoints(sf.controlPoints); if (pl) { const sg = pl.n[0] * df.normal[0] + pl.n[1] * df.normal[1] + pl.n[2] * df.normal[2] < 0 ? -1 : 1; df.exact = { kind: 'plane', o: pl.o, n: [pl.n[0] * sg, pl.n[1] * sg, pl.n[2] * sg] }; } }
+      if (sf.kind === 'surface') {
+        const pl = planeOfPoints(sf.controlPoints);
+        if (pl) {
+          const sign = dot(pl.n, df.normal) < 0 ? -1 : 1;
+          df.exact = { kind: 'plane', o: pl.o, n: [pl.n[0] * sign, pl.n[1] * sign, pl.n[2] * sign] };
+          if (df.nativePlaneName) {
+            const axis = (['x', 'y', 'z'] as const).find((_, k) => Number.isFinite(pl.o[k])
+              && sf.controlPoints.every(row => row.every(point => point[k] === pl.o[k])));
+            if (axis) df.nativeAxisPlane = { axis, at: pl.o['xyz'.indexOf(axis)] };
+          }
+        }
+      }
     }
     if (rootKind !== 'planar' && rootKind !== 'facet') {
       // A round face's radius: a cylinder's, or a sphere's (a profile arc centred on its axis).

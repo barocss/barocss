@@ -67,6 +67,7 @@ import { DRAFT_EDIT, editSavedDraftCommand } from '@barocss/cad-model/app/draftE
 import { holePatternEditProblem } from '@barocss/cad-model/app/holePatternInput';
 import { awaitingRevolveAxis, editSavedRevolveAxisCommand, joinedRevolveStock, REVOLVE_AXIS_EDIT } from '@barocss/cad-model/app/revolveAxisEdit';
 import { filletApplyCurrent, filletLaunchAvailability, filletType, newFilletActive, pickedFilletSelection, prepareFilletPick, replaceFilletSelection, replaceFillet, type FilletType, type RadiusMode } from './app/filletFamily';
+import { sourceSplitPlaneFace } from './app/splitPlanePick';
 import { currentNativePlanePick, midpointFaces, midpointSelectionHint, SKETCH_AT_MIDPOINT } from './app/midpointSketch';
 import { footprintBody, PROJECT_TO_SKETCH } from './app/materialFootprint';
 import { useModelExports } from './files/useModelExports';
@@ -1470,7 +1471,7 @@ export function App() {
     const region = active.cmd.id === 'extrude' && active.values.region !== undefined && active.values.region !== 'all';
     const replaceAxis = active.cmd.id === REVOLVE_AXIS_EDIT;
     const sweep = active.cmd.id === SWEEP_CURVE;
-    if ((active.fillet || toFace || region || replaceAxis || sweep || active.cmd.id === OFFSET_FACE_EDIT || active.cmd.id === DRAFT_EDIT) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
+    if ((active.fillet || toFace || region || replaceAxis || sweep || active.cmd.id === 'split' || active.cmd.id === OFFSET_FACE_EDIT || active.cmd.id === DRAFT_EDIT) && (active.ctx.doc !== commandDoc || docNow.current !== doc || evaluatedRef.current !== evaluated)) { commandPreview.retire(); applyWhenReady.current = null; setActive(null); return; }
     if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
       setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
@@ -1715,14 +1716,19 @@ export function App() {
     // Before the first link exists, the base memo does not depend on placed parts. Bearing still needs
     // the current authored targets when it builds its candidate, as well as when it lists choices.
     // Loft also captures the shown document's current curves without changing its evaluated prefix.
-    const startCtx: Ctx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } }
+    const splitFace = cmd.id === 'split' && selection.faces.length === 1 && !selection.edges.length
+      && !selection.bodies.length && !selection.vertices?.length && !selection.sketches?.length && !directSel.length
+      && (footprintState.current.midpointReady || footprintState.current.insetReady)
+      && currentNativePlanePick(ctx, selection.faces[0], doc) ? selection.faces[0] : undefined;
+    const startCtx: Ctx = splitFace ? { ...ctx, splitPlanePick: splitFace }
+      : cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } }
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } }
       : cmd.id === 'hole' ? { ...ctx, holeSnapStep: snapStep }
       : cmd.id === 'extrude' ? { ...ctx, viewportEndFace: true }
       : cmd === LINKED_INSET_EXTRUDE ? { ...ctx, doc } : ctx;
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, doc, selection, instanceSel, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, modelUnavailable, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview, snapStep]);
+  }, [ctx, doc, selection, instanceSel, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, modelUnavailable, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview, snapStep, directSel]);
 
   const readFeatureTransitionDraft = () => assembly.currentDraft() ?? commandDraft() ?? nodeEditorDraft.current;
   const openHistoryFeature = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -1839,6 +1845,30 @@ export function App() {
     }
     commandPreview.retire();
     setActive({ ...current, values: picked, preview: 'busy', error: undefined });
+    return true;
+  };
+  const pickSplitPlane = (hit: ExtrudeEndHit, blocked: boolean): boolean => {
+    const current = activeStore.get();
+    if (current?.cmd.id !== 'split') return false;
+    if (!hit.face && !hit.edge && !hit.vertex && !hit.instance && !hit.direct) return true;
+    applyWhenReady.current = null;
+    again.current = null;
+    if (current.ctx.doc !== commandDoc || !ownsEvaluatedSource()) {
+      commandPreview.retire();
+      setActive(null);
+      return true;
+    }
+    const scope = commandPickScope.current;
+    const face = !blocked && scope && hit.face && !scope.hidden.has(hit.face.body)
+      ? sourceSplitPlaneFace(current.ctx, doc, scope.bodies, hit) : null;
+    const values = face && current.cmd.onPick?.(current.ctx, current.values, { face, edge: null });
+    if (!values || typeof values.error === 'string') {
+      setToast({ title: 'Split plane not selected', hint: 'Pick an original planar face normal to X, Y or Z.', detail: '', inputPick: current.cmd });
+      return true;
+    }
+    setToast(notice => notice?.inputPick === current.cmd ? null : notice);
+    commandPreview.retire();
+    setActive({ ...current, values, preview: 'busy', error: undefined });
     return true;
   };
   const pickRevolveAxis = (hit: RevolveAxisHit, blocked: boolean): boolean => {
@@ -1962,7 +1992,7 @@ export function App() {
   const placedMeasureContextReady = () => placedMeasureContext && docNow.current === doc
     && workerSessionNow.current === workerSession && explodeStore.get() === 0 && !sectionRef.current
     && !activeStore.get() && !halvesShownRef.current;
-  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, onRevolveAxisPick: pickRevolveAxis, retargetSweep: retargetActiveSweep, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+  const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, onRevolveAxisPick: pickRevolveAxis, onSplitPlanePick: pickSplitPlane, retargetSweep: retargetActiveSweep, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
     sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, directSel, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
@@ -3323,8 +3353,8 @@ export function App() {
   const changeHudValue = (key: string, value: number | string) => {
     const current = activeStore.get();
     if (!current) return;
-    if (current.cmd.id === 'extrude' && (key === 'region'
-      || (key === 'depth' && (isExtrudeToFace(current.cmd.id, current.values) || value === 'to-face')))) {
+    if (current.cmd.id === 'split' || (current.cmd.id === 'extrude' && (key === 'region'
+      || (key === 'depth' && (isExtrudeToFace(current.cmd.id, current.values) || value === 'to-face'))))) {
       applyWhenReady.current = null;
       again.current = null;
       commandPreview.retire();

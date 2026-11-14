@@ -53,7 +53,7 @@ export interface EdgeSel { body: number; edge: number }
 /** `vertices`: corners picked (ends of edges), by body and position. */
 export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[]; profileRegions?: { sketch: number; indices: number[] }; vertices?: { body: number; at: [number, number, number] }[] }
 /** `direct`: the direct curves and surfaces picked (their ids). */
-export interface Ctx { viewportEndFace?: true; sewSnapshot?: SewSnapshot; thickenSnapshot?: ThickenSnapshot; fillPatternRegion?: FillFeaturePatternRegion; fillPatternAnchor?: readonly [number, number]; curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; holeSnapStep?: number; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
+export interface Ctx { splitPlanePick?: FaceSel; viewportEndFace?: true; sewSnapshot?: SewSnapshot; thickenSnapshot?: ThickenSnapshot; fillPatternRegion?: FillFeaturePatternRegion; fillPatternAnchor?: readonly [number, number]; curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; holeSnapStep?: number; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
 
 export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
@@ -336,6 +336,13 @@ function remembered(cmd: Command): Command {
 function splitNormal(v: Values): [number, number, number] | null {
   const n = [Number(v.nx), Number(v.ny), Number(v.nz)] as [number, number, number];
   return n.every(Number.isFinite) && Math.hypot(...n) > 1e-9 ? n : null;
+}
+
+function splitPlaneOfPick(ctx: Ctx, pick: FaceSel | undefined): Values | null {
+  if (!pick) return null;
+  const face = ctx.bodies[pick.body]?.mesh.faces[pick.face];
+  if (!face?.nativePlaneName || !face.nativeAxisPlane || face.facet) return null;
+  return { ...face.nativeAxisPlane, planeFace: face.nativePlaneName };
 }
 
 /** The side faces picked for a draft (one body, flat, square to Z), and the extrusion they all are the sides of, if so. */
@@ -995,9 +1002,18 @@ const allCommands: Command[] = [
     fields: () => [{ key: 'axis', label: 'Normal', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }, { value: 'n', label: 'Any direction' }] },
       { key: 'nx', label: 'Normal X', kind: 'number', when: v => v.axis === 'n' }, { key: 'ny', label: 'Normal Y', kind: 'number', when: v => v.axis === 'n' }, { key: 'nz', label: 'Normal Z', kind: 'number', when: v => v.axis === 'n' },
       { key: 'at', label: 'At', kind: 'mm' }],
-    defaults: ctx => { const b = oneBody(ctx); return { axis: 'x', nx: 1, ny: 1, nz: 0, at: b ? r1((b.mesh.bounds.min[0] + b.mesh.bounds.max[0]) / 2) : 0 }; },
-    // (A new normal starts the plane through the body's middle: at = n·centre.)
+    defaults: ctx => {
+      const b = oneBody(ctx);
+      return { axis: 'x', nx: 1, ny: 1, nz: 0, at: b ? r1((b.mesh.bounds.min[0] + b.mesh.bounds.max[0]) / 2) : 0,
+        ...splitPlaneOfPick(ctx, ctx.splitPlanePick) };
+    },
+    onPick: (ctx, v, hit) => {
+      const plane = splitPlaneOfPick(ctx, hit.face ?? undefined);
+      return plane ? { ...v, ...plane } : { error: 'Pick an original planar face normal to X, Y or Z.' };
+    },
+    // A manual normal starts the plane through the body's middle: at = n·centre.
     derive: (ctx, v, changed) => {
+      if (changed.includes('at') || changed.some(k => ['axis', 'nx', 'ny', 'nz'].includes(k))) v = { ...v, planeFace: '' };
       const b = oneBody(ctx); if (!b || !changed.some(k => ['axis', 'nx', 'ny', 'nz'].includes(k))) return v;
       if (v.axis === 'n') { const c = centreOf(b), n = splitNormal(v); return n ? { ...v, at: r1(n[0] * c[0] + n[1] * c[1] + n[2] * c[2]) } : v; }
       const k = 'xyz'.indexOf(String(v.axis)); return { ...v, at: r1((b.mesh.bounds.min[k] + b.mesh.bounds.max[k]) / 2) };
@@ -1012,7 +1028,8 @@ const allCommands: Command[] = [
       const k = 'xyz'.indexOf(String(v.axis)), at = centreOf(b), dir: [number, number, number] = [0, 0, 0]; dir[k] = 1; at[k] = Number(v.at);
       return [{ key: 'at', at, dir, min: Math.ceil((b.mesh.bounds.min[k] + 0.5) * 2) / 2, max: Math.floor((b.mesh.bounds.max[k] - 0.5) * 2) / 2, step: 0.5 }];
     },
-    steps: (_ctx, v) => v.axis === 'n' ? [{ label: 'Plane', text: splitNormal(v) ? `${planeText(splitNormal(v)!)} = ${Number(v.at)}` : 'Give the plane a direction: its normal must not be zero.', done: !!splitNormal(v) }] : [],
+    steps: (_ctx, v) => v.axis === 'n' ? [{ label: 'Plane', text: splitNormal(v) ? `${planeText(splitNormal(v)!)} = ${Number(v.at)}` : 'Give the plane a direction: its normal must not be zero.', done: !!splitNormal(v) }]
+      : typeof v.planeFace === 'string' && v.planeFace ? [{ label: 'Plane face', text: v.planeFace, done: true }] : [],
     build: (ctx, v) => {
       if (v.axis !== 'n') return withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, at: Number(v.at) });
       const n = splitNormal(v); if (!n) throw refusal('SPLIT_PLANE', 'Give the plane a direction: its normal must not be zero.');

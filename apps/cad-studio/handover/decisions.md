@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1197 — use a picked native plane for Split](notes/split-picked-native-plane-2026-11-14/README.md).
 - [D1196 — keep a straight linked Path cut through decimal Stretch](notes/path-cut-decimal-stretch-2026-11-14/README.md).
 - [D1195 — disclose the active Cut Pattern source](notes/cut-pattern-active-source-2026-11-14/README.md).
 - [D1194 — align the Linear Pattern Count arrow to signed spacing](notes/linear-pattern-signed-count-drag-2026-11-14/README.md).

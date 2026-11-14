@@ -1,0 +1,142 @@
+{
+  "decision": "D1197",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "5ce475a3f84c8eb5cee8b1cf406311bfffa74d8e",
+  "commands": [
+    "gate.sh acquire heavy 600 D1197-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs feature-handles editFields",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/commands.ts packages/barocss-cad-model/src/engine/mesh.ts apps/cad-studio/src/app/splitPlanePick.ts apps/cad-studio/src/viewport/useViewportPicking.ts",
+    "node --check apps/cad-studio/test/split-picked-plane-browser.mjs",
+    "D1197_SOURCE_FROZEN=1 node apps/cad-studio/test/split-picked-plane-browser.mjs <external-evidence>/baseline --baseline",
+    "D1197_SOURCE_FROZEN=1 node apps/cad-studio/test/split-picked-plane-browser.mjs <external-evidence>/owned",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build-owned",
+    "git diff --check"
+  ],
+  "focused": {
+    "modelPassed": 19
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "wrong-default-plane",
+        "failure"
+      ],
+      "frozenFiles": 876,
+      "receiptSHA256": "5442c27a7362106f4f72443f10a07283e0e751d89d32bb6e1f29722eb15c886f",
+      "sourceManifestSHA256": "8e0f2ba951224838a4b18894525f34824c5e89e838c7258d0e5fbfadddf262f9",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Stock top Z=10 started Split at X=30."
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "stock-top-tangent",
+        "reference-top-preview",
+        "reference-top-applied",
+        "history-at-4.5"
+      ],
+      "frozenFiles": 877,
+      "receiptSHA256": "93419c484041df648262ae7c20852c6c8faf48280183ea2c234e2b634fdea70d",
+      "sourceManifestSHA256": "a130804d6919d6329ff4be7f505c368c5f9fc58db6acdf9e77520daa290678e1",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observation": "Pre-review face-pick run"
+    },
+    "owned": {
+      "status": "PASS",
+      "states": [
+        "stock-top-tangent",
+        "reference-top-preview",
+        "reference-top-applied",
+        "history-at-4.5"
+      ],
+      "frozenFiles": 877,
+      "receiptSHA256": "f70922bf563902f5a64ad81292cc3502cd0acb6a1dbeb9dd487d912aa706db04",
+      "sourceManifestSHA256": "95e9858ba2925e8925374218c9997648bc4aef7e668686f51a3ec0482984c16e",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "actual-picked-plane",
+          "at": 4.000123456789,
+          "outputs": [
+            {
+              "key": "b3",
+              "volume": 256.00790123449565,
+              "centroid": [
+                74.00000000000009,
+                4.000000000000005,
+                2.0000617283945
+              ]
+            },
+            {
+              "key": "b4_negative",
+              "volume": 7200.2222222202,
+              "centroid": [
+                30.000000000000004,
+                15.000000000000002,
+                2.0000617283945
+              ]
+            },
+            {
+              "key": "b4_positive",
+              "volume": 10799.7777777798,
+              "centroid": [
+                30.000000000000004,
+                15.000000000000002,
+                7.0000617283945
+              ]
+            }
+          ]
+        },
+        {
+          "label": "history-plane",
+          "at": 4.5,
+          "outputs": [
+            {
+              "key": "b3",
+              "volume": 256.00790123449565,
+              "centroid": [
+                74.00000000000009,
+                4.000000000000005,
+                2.0000617283945
+              ]
+            },
+            {
+              "key": "b4_negative",
+              "volume": 8100,
+              "centroid": [
+                30.000000000000004,
+                15.000000000000002,
+                2.25
+              ]
+            },
+            {
+              "key": "b4_positive",
+              "volume": 9900,
+              "centroid": [
+                30.000000000000007,
+                15.000000000000004,
+                7.25
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
