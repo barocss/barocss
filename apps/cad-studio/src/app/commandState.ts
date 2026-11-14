@@ -12,7 +12,7 @@ export function missingCommandField(fields: readonly Field[], values: Values): F
 }
 
 export type JoinedRevolvePick = { union: number; stock: import('@barocss/cad-model/engine/evaluate').BodyResult };
-export interface Active { joinedRevolvePick?: JoinedRevolvePick; cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error' | 'input'; error?: FeatureFailure; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error'; fillet?: { type: import('./filletFamily').FilletType; radiusMode: import('./filletFamily').RadiusMode }; extrudeResult?: { target: string; pieces: number; solid: boolean } }
+export interface Active { joinedRevolvePick?: JoinedRevolvePick; cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error' | 'input'; error?: FeatureFailure; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error'; fillet?: { type: import('./filletFamily').FilletType; radiusMode: import('./filletFamily').RadiusMode }; extrudeResult?: { target: string; pieces: number; solid: boolean }; filletScope?: { picked: readonly string[]; added: readonly string[]; radius: number } }
 /** Stable numbers for objects (a command's context, its values), for the App's subscription key. */
 const objectIds = new WeakMap<object, number>();
 let nextObjectId = 0;

@@ -80,7 +80,8 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
       {active.cmd.place && <div className="hud-steps"><div className={'hud-step' + (active.placing ? '' : ' done')}>
         <Icon name={active.placing ? 'radio_button_unchecked' : 'check_circle'} small /><b>Place</b><span>{active.placing ? 'click where it goes (on the ground or a top face)' : 'placed — drag its arrows to size it'}</span></div></div>}
       {active.cmd.steps && <div className="hud-steps">
-        {active.cmd.steps(active.ctx, active.values).map(step => {
+        {active.cmd.steps(active.ctx, active.values).filter(step =>
+          !(active.preview === 'ok' && active.filletScope && step.label === 'Edges')).map(step => {
           const endFace = step.label === 'End face' && isExtrudeToFace(active.cmd.id, active.values);
           const requiresPreview = endFace || (step.label === 'Axis' && replacingAxis);
           const done = step.done && (!requiresPreview || active.preview === 'ok');
@@ -88,6 +89,11 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
             <Icon name={done ? 'check_circle' : 'radio_button_unchecked'} small /><b>{step.label}</b><span>{step.text}</span>
           </div>;
         })}
+      </div>}
+      {active.preview === 'ok' && active.filletScope && <div className="hud-steps" role="group" aria-label="Fillet scope">
+        <div className="field"><span>Picked native edges</span><span title={active.filletScope.picked.join('\n')}>{active.filletScope.picked.length}</span></div>
+        <div className="field"><span>Tangent edges added</span><span title={active.filletScope.added.join('\n')}>{active.filletScope.added.length}</span></div>
+        <div className="field"><span>Radius</span><span>{active.filletScope.radius} mm</span></div>
       </div>}
       {active.preview === 'ok' && active.extrudeResult && <div className="hud-steps" aria-label="Extrude result">
         <div className="field"><span>Target</span><span>{active.extrudeResult.target}</span></div>

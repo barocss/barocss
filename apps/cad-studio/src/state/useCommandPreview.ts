@@ -146,6 +146,15 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         }
         if (result.ok) {
           let extrudeResult: Active['extrudeResult'];
+          let filletScope: Active['filletScope'];
+          if (shown === candidate && cmd.id === 'fillet' && terminal?.kind === 'fillet'
+            && candidate.nodes.length === ctx.doc.nodes.length + 1 && result.revision === revision
+            && typeof terminal.radius === 'number' && !terminal.radii && !terminal.section) {
+            const body = result.bodies.find(body => body.ref?.node === candidate.nodes.length - 1 && body.ref.side === 'solid');
+            const targets = body?.filletTargets, picked = [...new Set(terminal.edges)];
+            if (targets && picked.every(edge => targets.includes(edge)))
+              filletScope = { picked, added: targets.filter(edge => !picked.includes(edge)), radius: terminal.radius };
+          }
           if (shown === candidate && cmd.id === 'extrude' && candidate.nodes.length > ctx.doc.nodes.length
             && ((values.op === 'join' && terminal?.kind === 'union') || (values.op === 'cut' && terminal?.kind === 'difference'))) {
             const ref = terminal.kind === 'union' ? terminal.left : terminal.parent;
@@ -163,7 +172,9 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
           setActive(a => {
             if (!a || a.cmd !== cmd || a.ctx !== ctx) return a;
             const ready = !rolled && JSON.stringify(a.values) === JSON.stringify(values);
-            return { ...a, preview: ready ? 'ok' : 'busy', error: undefined, extrudeResult: ready && a.values === values ? extrudeResult : undefined };
+            return { ...a, preview: ready ? 'ok' : 'busy', error: undefined,
+              extrudeResult: ready && a.values === values ? extrudeResult : undefined,
+              filletScope: ready && a.values === values ? filletScope : undefined };
           });
         }
         else if (live && current?.cmd === cmd && current.ctx === ctx && current.values === values) {

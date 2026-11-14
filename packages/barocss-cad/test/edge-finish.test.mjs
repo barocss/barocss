@@ -14,6 +14,40 @@ function watertight(b) {
   return [...he].every(([s, n]) => { const [x, y] = s.split('>'); return he.get(y + '>' + x) === n; });
 }
 
+test('constant fillet reports native tangent targets separately from the authored seed', () => {
+  const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+    { id: 'sketch', kind: 'sketch', profile: 'loop', segments: [
+      { kind: 'line', start: [0, -4] },
+      { kind: 'arc', start: [20, -4], center: [20, 0], direction: 'ccw' },
+      { kind: 'line', start: [20, 4] },
+      { kind: 'arc', start: [0, 4], center: [0, 0], direction: 'ccw' },
+    ] },
+    { id: 'stock', kind: 'extrude', sketch: 'sketch', height: 6 },
+  ] };
+  const [{ brep }] = evaluateCadPart(doc).outputs;
+  const rim = brep.edges.map(edge => edge.name).filter(name => name?.includes('|stock.top') && name.includes('stock.side'));
+  const one = rim.find(name => name === 'stock.side0|stock.top');
+  assert.ok(one);
+  assert.equal(rim.length, 4);
+  for (const edges of [[one], rim]) {
+    const candidate = { ...doc, features: [...doc.features, { id: 'round', kind: 'fillet', target: 'stock', edges, radius: 1 }] };
+    const snapshot = evaluateCadPart(candidate), [output] = snapshot.outputs;
+    assert.deepEqual(snapshot.document.features.at(-1).edges, edges);
+    assert.deepEqual([...output.filletTargets].sort(), [...rim].sort());
+    assert.ok(Object.isFrozen(output.filletTargets));
+  }
+  const passthrough = evaluateCadPart({ ...doc, features: [...doc.features,
+    { id: 'round', kind: 'fillet', target: 'stock', edges: [one], radius: 1 },
+    { id: 'far', kind: 'translate', target: 'stock', offset: [0, 0, 100] },
+    { id: 'empty', kind: 'intersect', target: 'stock', tool: 'far' },
+    { id: 'unchanged', kind: 'difference', target: 'round', tool: 'empty' },
+  ] });
+  assert.equal(passthrough.outputs.find(output => output.id === 'unchanged')?.filletTargets, undefined);
+  const published = new Set(['previous']);
+  assert.throws(() => finishBrepEdges(brep, [one], 0, 'fillet', 'refused', { tangentTargets: published }));
+  assert.deepEqual([...published], ['previous']);
+});
+
 test('fillets meeting at the corners of a box top form mitres (checked against a direct grid count)', () => {
   const box = prism(rect(0, 0, 20, 10), 5, 'e');
   // Inside test of the finished box: outside a fillet's cylinder within its corner wedge is removed.

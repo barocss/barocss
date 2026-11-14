@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1183 — show picked and tangent edges in a Fillet preview](notes/fillet-native-tangent-scope-2026-11-14/README.md).
 - [D1182 — edit the centre of a circular Hole layout in History](notes/hole-circle-history-centre-2026-11-14/README.md).
 - [D1181 — edit signed Hole row spacing in History](notes/hole-row-history-step-2026-11-14/README.md).
 - [D1180 — use Hole Type from the keyboard without applying](notes/hole-type-keyboard-2026-11-14/README.md).

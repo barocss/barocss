@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
+const showScope = process.argv[3] === '--scope';
+const scopeMutation = process.env.D1183_MUTATION;
 const pins = [
   'apps/cad-studio/test/fillet-chain-selection-browser.mjs',
   'apps/cad-studio/test/model-rail-helper.mjs',
@@ -10,9 +12,16 @@ const pins = [
   'packages/barocss-cad-model/src/app/edgeChain.ts',
   'packages/barocss-cad-model/src/app/commands.ts',
   'packages/barocss-cad/src/blend/edge-finish.ts',
+  ...(showScope ? [
+    'apps/cad-studio/src/app/commandState.ts', 'apps/cad-studio/src/engine/engine.worker.ts',
+    'apps/cad-studio/src/state/useCommandPreview.ts', 'apps/cad-studio/src/ui/Hud.tsx',
+    'packages/barocss-cad-model/src/engine/evaluate.ts',
+    'packages/barocss-cad/src/part/part-finish.ts', 'packages/barocss-cad/src/part/part-model.ts',
+    'packages/barocss-cad/src/part/part-types.ts',
+  ] : []),
 ];
 const f = await createFlow({
-  name: 'fillet-chain-selection', output: process.argv[2], envFrozen: 'D901_SOURCE_FROZEN',
+  name: 'fillet-chain-selection', output: process.argv[2], envFrozen: showScope ? 'D1183_SOURCE_FROZEN' : 'D901_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Compare stored targets and native geometry after single-edge and tangent-chain Fillet picks.',
   limits: ['One stadium prism with a full top rim. Desktop WebGPU and the existing constant circular Fillet.',
@@ -169,6 +178,21 @@ await f.run(async () => {
   f.browser.newContext = async options => {
     const context = await createContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
     context.setDefaultTimeout(10000);
+    if (scopeMutation) await context.addInitScript(() => {
+      const descriptor = Object.getOwnPropertyDescriptor(Worker.prototype, 'onmessage');
+      Object.defineProperty(Worker.prototype, 'onmessage', {
+        ...descriptor,
+        set(listener) {
+          descriptor.set.call(this, listener && (event => {
+            for (const body of event.data?.result?.bodies ?? []) {
+              if (body.filletTargets?.length === 4)
+                body.filletTargets = body.filletTargets.map((name, index) => index === 1 ? 'unrelated.native.edge' : name);
+            }
+            listener.call(this, event);
+          }));
+        },
+      });
+    });
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -203,6 +227,18 @@ await f.run(async () => {
     await f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 60000 });
     await f.same(seed);
     await f.snapshot(`${label}-preview`);
+    if (showScope) {
+      const scope = hud.getByRole('group', { name: 'Fillet scope', exact: true });
+      assert.equal(await scope.count(), 1, 'The preview did not distinguish picked edges from native tangent targets');
+      const checkTargets = async (label, names) => {
+        const field = scope.locator('.field').filter({ hasText: label }).locator('span[title]');
+        assert.equal(await field.innerText(), String(names.length));
+        assert.deepEqual((await field.getAttribute('title')).split('\n').filter(Boolean).sort(), [...names].sort());
+      };
+      await checkTargets('Picked native edges', selected);
+      await checkTargets('Tangent edges added', names.filter(name => !selected.includes(name)));
+      assert.match(await scope.innerText(), /Radius\s+1 mm/);
+    }
     await button(hud, 'Apply').click();
     await hud.waitFor({ state: 'hidden' });
     await f.changed(seed);

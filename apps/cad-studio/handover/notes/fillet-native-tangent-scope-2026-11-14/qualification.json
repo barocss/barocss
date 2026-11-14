@@ -1,0 +1,67 @@
+{
+  "decision": "D1183",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "parent": "81d9938c0a3ae126217357f68f3b9da3991adf41",
+  "commands": [
+    "gate.sh acquire heavy 600 D1183-<run>",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast && node --test --test-concurrency=1 test/edge-finish.test.mjs test/api-variable-fillet.test.mjs test/api-part.test.mjs",
+    "cd packages/barocss-cad-model && node scripts/test.mjs filletNames feature-handles",
+    "cd apps/cad-studio && node scripts/test.mjs fillet-family",
+    "pnpm --filter @barocss/cad type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/{app/commandState,state/useCommandPreview}.ts apps/cad-studio/src/ui/Hud.tsx packages/barocss-cad-model/src/engine/evaluate.ts packages/barocss-cad/src/{blend/edge-finish,part/part-finish,part/part-types,part/part-model}.ts",
+    "node --check apps/cad-studio/test/fillet-chain-selection-browser.mjs",
+    "D1183_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/final --scope",
+    "D1183_MUTATION=1 D1183_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/mutation --scope",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "focused": {
+    "kernel": 16,
+    "model": 17,
+    "studio": 15
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "single-edge-selected",
+        "single-edge-preview",
+        "failure"
+      ],
+      "frozenFiles": 876,
+      "receiptSHA256": "a3327151436ec0024c22532c9dfbf6dc6d3dc5cf745e971abb7adc502db685c9",
+      "sourceManifestSHA256": "f59bf87c5af4cceec7893659e75a42b3f76e5492907184ca58c8573926643f61",
+      "firstFailure": "No separate picked and tangent scope in the preview"
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "single-edge-selected",
+        "single-edge-preview",
+        "single-edge-applied",
+        "tangent-chain-selected",
+        "tangent-chain-preview",
+        "tangent-chain-applied",
+        "tangent-chain-fresh-open"
+      ],
+      "frozenFiles": 877,
+      "receiptSHA256": "e08c739d053c1828b0c0ffe40e77ef398c7e237a530232827bec6d4f4c0350d9",
+      "sourceManifestSHA256": "eeb34a90833ab515d12f8f5b47c3b1cc6acae76b65f5ae865a1080e01e83b149"
+    },
+    "mutation": {
+      "status": "FAIL",
+      "states": [
+        "single-edge-selected",
+        "single-edge-preview",
+        "failure"
+      ],
+      "frozenFiles": 877,
+      "receiptSHA256": "82ac56f7614f5a1f07605156b494b68d7b014a69bb6bf1401a2056ef510e9133",
+      "sourceManifestSHA256": "eeb34a90833ab515d12f8f5b47c3b1cc6acae76b65f5ae865a1080e01e83b149",
+      "firstFailure": "Exact scope rejected unrelated.native.edge"
+    }
+  }
+}

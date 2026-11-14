@@ -37,12 +37,14 @@ export function finishOperation(f: CadPartFeature & Record<string, unknown>, t: 
       return () => {
         const t = target[0], kind = f.kind as 'chamfer' | 'fillet', reports: FilletReport[] = [];
         const radii = authored && atChainEnds(authored, k.brepOf(t, 'target'), f.edges as string[], fail);
-        const solid = finishEdges(t, f.edges as string[], size, kind, at, fail, reports, radii, shape);
+        const targets = kind === 'fillet' && !radii && !shape ? new Set<string>() : undefined;
+        const solid = finishEdges(t, f.edges as string[], size, kind, at, fail, reports, radii, shape, targets);
         // A body that left the upright family keeps how it was made, so that it can still be shelled — past a
         // variable-radius fillet too (its hollow's radius is the outer one less the wall, D108), not past a conic or G2 one.
         const base = t.solid.kind === 'upright' ? t.solid.solid : t.history?.base, before = t.solid.kind === 'upright' ? [] : t.history?.finishes ?? [];
         const history = solid.kind === 'brep' && base && !shape ? { base, finishes: [...before, { kind, edges: f.edges as string[], size, id: at, ...(radii ? { radii } : {}) }] } : undefined;
-        return { kind: 'solid', parts: [{ solid, ...(history ? { history } : {}), ...(reports.length ? { fillet: reports } : {}) }] };
+        return { kind: 'solid', parts: [{ solid, ...(history ? { history } : {}), ...(reports.length ? { fillet: reports } : {}),
+          ...(targets?.size ? { filletTargets: [...targets] } : {}) }] };
       };
     }
   }
@@ -74,7 +76,7 @@ function atChainEnds(radii: readonly { at: Point; radius: number; atEnd: boolean
 }
 // Edge-finishing helpers moved from part-model.ts (3b, D361).
 // ---- chamfers and fillets ------------------------------------------------------------------------------
-export function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail'], reports?: FilletReport[], radii?: readonly { at: Point; radius: number }[], shape?: { kind: 'conic'; rho: number } | { kind: 'g2'; tension: number }): Solid {
+export function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail'], reports?: FilletReport[], radii?: readonly { at: Point; radius: number }[], shape?: { kind: 'conic'; rho: number } | { kind: 'g2'; tension: number }, targets?: Set<string>): Solid {
   if (profiling) profiling.finishes++;
   // Vertical corners of an upright body keep it upright (its section is finished exactly); straight
   // chamfers elsewhere cut a wedge; every other edge (sloping or curved, on any body) gets a rolling-ball
@@ -103,17 +105,24 @@ export function finishEdges(part: Part, names: string[], size: number, kind: 'ch
     }
   }
   let solid = part.solid;
+  const tangentTargets = targets ? new Set<string>() : undefined;
   if (vertical.length) solid = { kind: 'upright', solid: cornerFinish((solid as Extract<Solid, { kind: 'upright' }>).solid, vertical, size, kind, at, fail) };
   for (const e of wedges) solid = wedgeChamfer(solid, brep, e, size, at, fail);
   if (general.length) {
     const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
-    try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at, { reports, ...(radii ? { radii } : {}), ...(shape ? { shape } : {}) }) }; }
+    try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at, { reports, tangentTargets, ...(radii ? { radii } : {}), ...(shape ? { shape } : {}) }) }; }
     catch (cause) {
       const m = cause instanceof BrepError ? /^B-rep: (SELECTION|CAPABILITY|PARAMETER): (.*)$/s.exec(cause.message) : null;
       if (m) fail(m[1] as CadPartErrorCode, m[2]);
       if (cause instanceof BrepError && /not supported yet/.test(cause.message)) fail('CAPABILITY', cause.message.replace(/^B-rep: analytic Boolean: /, ''));
       throw cause;
     }
+  }
+  if (targets) {
+    // The general pass of a mixed finish sees a body already changed by its upright pass.
+    if (!general.length) for (const edge of vertical) targets.add(edge.name);
+    if (!vertical.length && tangentTargets && [...tangentTargets].every(name => byName.has(name)))
+      for (const edge of tangentTargets) targets.add(edge);
   }
   return solid;
 }

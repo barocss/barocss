@@ -68,8 +68,17 @@ export function finishBrepEdges(body: Brep, names: readonly string[], size: numb
     if (!options.radii.length || options.radii.some(p => !(p.radius > 0) || !Number.isFinite(p.radius))) refuse('PARAMETER', 'radii must give positive radii at points of the edges');
     options = { ...options, general: true };
   }
-  for (let tries = 0, opts = options; ; tries++) {
-    try { return finishGuarded(body, names, size, kind, id, opts); }
+  const published = options.tangentTargets;
+  const staged = published && !options.phased ? new Set<string>() : undefined;
+  for (let tries = 0, opts = { ...options, tangentTargets: staged }; ; tries++) {
+    try {
+      const result = finishGuarded(body, names, size, kind, id, opts);
+      if (published && staged) {
+        published.clear();
+        for (const name of staged) published.add(name);
+      }
+      return result;
+    }
     catch (cause) {
       if (options.reports) options.reports.length = n0;
       // (The rolling ball's tool made there, but the analytic Boolean cannot close the result — its cap coplanar with an
@@ -90,7 +99,7 @@ function finishGuarded(body: Brep, names: readonly string[], size: number, kind:
     return finishEdges(body, names, size, kind, id, { ...options, squareAtCylinders: true });
   }
 }
-interface FinishOptions { readonly reports?: FilletReport[]; readonly general?: boolean; readonly phased?: boolean; readonly squareAtCylinders?: boolean; readonly generalEdges?: readonly string[]; /** A variable radius (R10.5, D100): the radius at points of the edges, `size` their largest; the rolling ball's. */ readonly radii?: readonly RadiusAt[]; /** The section's shape (R10.5b, D103); not circular: the rolling ball's. */ readonly shape?: SectionShape }
+interface FinishOptions { readonly reports?: FilletReport[]; readonly tangentTargets?: Set<string>; readonly general?: boolean; readonly phased?: boolean; readonly squareAtCylinders?: boolean; readonly generalEdges?: readonly string[]; /** A variable radius (R10.5, D100): the radius at points of the edges, `size` their largest; the rolling ball's. */ readonly radii?: readonly RadiusAt[]; /** The section's shape (R10.5b, D103); not circular: the rolling ball's. */ readonly shape?: SectionShape }
 function finishEdges(body: Brep, names: readonly string[], size: number, kind: EdgeFinishKind, id: string, options: FinishOptions, used: { cylinder: boolean } = { cylinder: false }): Brep {
   let usedCylinder = false;
   try {
@@ -151,6 +160,12 @@ function finishEdges(body: Brep, names: readonly string[], size: number, kind: E
   for (const queue = [...chain.values()]; queue.length;) {
     const e = queue.pop()!;
     for (const end of ends(e)) for (const o of continues(e, end)) if (!chain.has(o.id)) { chain.set(o.id, o); queue.push(o); }
+  }
+  // Capture the original body's scope. Phased passes can use newly generated names.
+  if (options.tangentTargets) {
+    options.tangentTargets.clear();
+    const edges = [...chain.values()];
+    if (edges.every(edge => edge.name)) for (const edge of edges) options.tangentTargets.add(edge.name!);
   }
 
   // R10.3b (D93): a corner where three finished edges meet the two ways round — a boss's upright edge and its foot, an
