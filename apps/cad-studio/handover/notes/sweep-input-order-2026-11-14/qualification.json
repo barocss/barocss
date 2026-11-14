@@ -1,0 +1,227 @@
+{
+  "decision": "D1167",
+  "tier": "FEATURE",
+  "parent": "b3e5731c5ec7c040ec0a4eeec3eb84dd6aade4a8",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1167-<run>",
+    "D1167_SOURCE_FROZEN=1 node apps/cad-studio/test/sweep-input-order-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1166_SOURCE_FROZEN=1 node apps/cad-studio/test/revolve-joined-history-browser.mjs <external-evidence>/join-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs profiles-parameters revolve-axis engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/viewport/useViewportPicking.ts packages/barocss-cad-model/src/app/profileCommands.ts packages/barocss-cad-model/test/profiles-parameters.test.ts",
+    "node --check apps/cad-studio/test/sweep-input-order-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "baseline-profile-first",
+        "baseline-path-first",
+        "failure"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "e56c8fdca9af125cb8775213805f2c6852b89c9b027356a9096a9a29ac1e51b6",
+      "sourceManifestSHA256": "13e1e903c9bb82d9d118ef2cb6bfff053743028f0a44e08d0ab0016883477a6b",
+      "observations": [
+        {
+          "label": "profile-first",
+          "picked": {
+            "sketches": [],
+            "paths": [
+              "Rail A"
+            ]
+          }
+        },
+        {
+          "label": "path-first",
+          "picked": {
+            "sketches": [
+              0
+            ],
+            "paths": []
+          }
+        }
+      ]
+    },
+    "first": {
+      "status": "PASS",
+      "states": [
+        "sweep-preview-profile-first",
+        "sweep-applied-profile-first",
+        "sweep-preview-path-first",
+        "sweep-applied-path-first",
+        "sweep-reopened"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "0f8b7afcbc32e52f7cc724d188de60f749e6cbebba1813447ec19a1456bc2da4",
+      "sourceManifestSHA256": "c0f55cf8f6d45501e0c6f446367ff337823d52a433b215e43479d2f808a52572"
+    },
+    "qualified": {
+      "status": "PASS",
+      "states": [
+        "sweep-preview-profile-first",
+        "sweep-applied-profile-first",
+        "sweep-preview-path-first",
+        "sweep-applied-path-first",
+        "sweep-reopened"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "7ed26ee60f8e2245392a1459f5f9be0a286a1736e40b7f9a5ad59abf9382f5c4",
+      "sourceManifestSHA256": "086d7f0f8c502cde316ba5a9d4f0d37748e821dd86bd724c2da924bace645b6c",
+      "observations": [
+        {
+          "label": "profile-first",
+          "picked": {
+            "sketches": [
+              0
+            ],
+            "paths": [
+              "Rail A"
+            ]
+          }
+        },
+        {
+          "label": "sweep-profile-first",
+          "sketch": 0,
+          "name": "Rail A",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              32
+            ]
+          ],
+          "native": {
+            "valid": true,
+            "count": 1,
+            "z": [
+              0,
+              32
+            ],
+            "rings": [
+              {
+                "count": 32,
+                "min": 2.9999999999999996,
+                "max": 3.0000000000000004
+              },
+              {
+                "count": 32,
+                "min": 2.9999999999999996,
+                "max": 3.0000000000000004
+              }
+            ]
+          }
+        },
+        {
+          "label": "path-first",
+          "picked": {
+            "sketches": [
+              0
+            ],
+            "paths": [
+              "Rail A"
+            ]
+          }
+        },
+        {
+          "label": "sweep-path-first",
+          "sketch": 0,
+          "name": "Rail A",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              32
+            ]
+          ],
+          "native": {
+            "valid": true,
+            "count": 1,
+            "z": [
+              0,
+              32
+            ],
+            "rings": [
+              {
+                "count": 32,
+                "min": 2.9999999999999996,
+                "max": 3.0000000000000004
+              },
+              {
+                "count": 32,
+                "min": 2.9999999999999996,
+                "max": 3.0000000000000004
+              }
+            ]
+          }
+        },
+        {
+          "label": "sweep-reopened-native",
+          "sketch": 0,
+          "name": "Rail A",
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              32
+            ]
+          ],
+          "native": {
+            "valid": true,
+            "count": 1,
+            "z": [
+              0,
+              32
+            ],
+            "rings": [
+              {
+                "count": 32,
+                "min": 2.9999999999999996,
+                "max": 3.0000000000000004
+              },
+              {
+                "count": 32,
+                "min": 2.9999999999999996,
+                "max": 3.0000000000000004
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "join-regression": {
+      "status": "PASS",
+      "states": [
+        "generated-edge-refused",
+        "joined-axis-preview",
+        "original-edge-repicked",
+        "joined-axis-cancelled",
+        "joined-axis-replaced",
+        "joined-axis-reopened"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "75b1fb953d86a1ca5d05fa3504b348b032fd8893050ad92e95e15f29bb3e983e",
+      "sourceManifestSHA256": "2fc0c92614e56167195065ad55bced8e94258ae5367bd91c3dab47d3cd64444a"
+    }
+  }
+}

@@ -8,7 +8,7 @@ import { copyLoftGuide } from '../src/app/loftGuides';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { framedLoftSections, loftSections, profileMiddle, profileRings } from '../src/app/profiles';
 import { resolveSketchDims } from '../src/sketch/reopen';
-import { extrudeCommand, loftCommand, revolveCommand } from '../src/app/profileCommands';
+import { extrudeCommand, loftCommand, revolveCommand, sweepCurveCommand, sweepPath } from '../src/app/profileCommands';
 import { editCommand } from '../src/app/editCommand';
 import type { Ctx } from '../src/app/commands';
 
@@ -140,4 +140,27 @@ test('D357 Loft refusal names the sketch and drops the bracketed code', () => {
 test('D357 loftTop refuses a parameter-bound sketch, not NaN', () => {
   assert.throws(() => loftTop(sk({ profile: 'circle', center: [0, 0], radius: A }), 'scaled', 2), { code: 'VALUE' });
   assert.deepEqual(loftTop(sk({ profile: 'circle', center: [0, 0], radius: 2 }), 'scaled', 2), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4 });
+});
+
+test('Sweep resolves exactly one visible path and uses the explicitly picked older profile', async () => {
+  await loadDirect();
+  const direct = importSource(emptyDirect(), `@model rails {
+    version: 0; length-unit: mm;
+    @curve #rail { type: nurbs; degree: 1; knots: [0,0,1,1]; control-points: [[0,0,0],[0,0,32]]; weights: [1,1]; }
+  }`, 'Sweep rail');
+  const [object] = direct.objects;
+  const doc = { ...docOf(sk({ profile: 'circle', center: [0, 0], radius: 3 }), sk({ profile: 'circle', center: [30, 0], radius: 6 })), direct };
+  const ctx = { ...ctxOf(doc, [0]), direct: [object.id] };
+  assert.deepEqual(sweepCurveCommand.available(ctx), { ok: true });
+  assert.deepEqual(sweepCurveCommand.steps!(ctx, {}).map(step => [step.label, step.text, step.done]),
+    [['Profile', 'Sketch 1', true], ['Path', 'Sweep rail · rail · Faceted', true]]);
+  const swept = sweepCurveCommand.build!(ctx, {}).nodes.at(-1);
+  assert.ok(swept?.kind === 'sweep-curve');
+  assert.equal(swept.sketch, 0);
+  assert.deepEqual(swept.path.controlPoints, [[0, 0, 0], [0, 0, 32]]);
+  for (const objects of [[], [{ ...object, hidden: true }], [object, { ...object, name: 'Duplicate' }]]) {
+    const invalid = { ...doc, direct: { ...direct, objects } };
+    assert.match(String(sweepPath(invalid, [object.id])), /visible and unambiguous/);
+    assert.equal(sweepCurveCommand.available({ ...ctx, doc: invalid }).ok, false);
+  }
 });

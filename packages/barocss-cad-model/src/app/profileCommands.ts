@@ -400,15 +400,22 @@ export const loftCommand: Command = {
 };
 
 /** The one direct curve picked, as a path (its NURBS data), or why there is none. */
-function pickedPath(ctx: Ctx): { name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] } } | string {
-  const ids = ctx.direct ?? [], d = ctx.doc.direct;
+export function sweepPath(doc: StudioDoc, ids: readonly string[]): { name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] } } | string {
+  const d = doc.direct;
   if (ids.length !== 1 || !d) return 'Pick one curve as the path (in the Browser, under Curves and surfaces): draw it in a sketch and Make curves, or take a model edge as a curve.';
-  const o = d.objects.find(x => x.id === ids[0]); if (!o) return 'The picked curve is gone.';
+  const objects = d.objects.filter(object => object.id === ids[0]);
+  if (objects.length !== 1 || objects[0].hidden) return 'Pick one visible and unambiguous curve for the path.';
+  const [o] = objects;
   // (The direct tools load with the document's direct geometry; a moment after it opens they are there.)
   const direct = directNow(); if (!direct) return 'The curve tools are still loading: try again in a moment.';
-  const g = direct.geometryOf(d, o); if (g.kind !== 'curve') return 'The path must be a curve, not a surface.';
+  let g;
+  try { g = direct.geometryOf(d, o); }
+  catch { return 'The selected path could not be read. Pick another curve.'; }
+  if (g.kind !== 'curve') return 'The path must be a curve, not a surface.';
   return { name: o.name, path: { degree: g.degree, knots: [...g.knots], controlPoints: g.controlPoints.map(p => [p[0], p[1], p[2]] as [number, number, number]), weights: [...g.weights] } };
 }
+
+const pickedPath = (ctx: Ctx) => sweepPath(ctx.doc, ctx.direct ?? []);
 
 export const sweepCurveCommand: Command = {
   id: 'sweep-curve', label: 'Sweep', icon: 'cad-sweep', group: 'create', keywords: 'sweep path rail curve along tube wire spring pipe route',
@@ -416,7 +423,13 @@ export const sweepCurveCommand: Command = {
   available: ctx => { if (!oneProfile(ctx)) return needProfile(ctx); const p = pickedPath(ctx); return typeof p === 'string' ? no(p) : ok; },
   fields: ctx => { const p = oneProfile(ctx); return [...opFields(!!(p && baseOf(ctx, p.node)))]; },
   defaults: (ctx): Values => { const p = oneProfile(ctx); return p && baseOf(ctx, p.node) ? { op: 'new' } : {}; },
-  steps: ctx => { const p = pickedPath(ctx); return typeof p === 'string' ? [] : [{ label: 'Path', text: `along ${p.name} (faceted; a path tighter than the profile folds it)`, done: true }]; },
+  steps: ctx => {
+    const profile = oneProfile(ctx), path = pickedPath(ctx);
+    return [
+      { label: 'Profile', text: profile ? `Sketch ${profile.index + 1}` : 'Pick a finished sketch', done: !!profile },
+      { label: 'Path', text: typeof path === 'string' ? path : `${path.name} · Faceted`, done: typeof path !== 'string' },
+    ];
+  },
   build: (ctx, v) => {
     const p = oneProfile(ctx)!, path = pickedPath(ctx);
     if (typeof path === 'string') throw refusal('SWEEP_PATH', path);

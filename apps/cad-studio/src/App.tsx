@@ -227,7 +227,7 @@ import { ReferencesPanel } from './ui/ReferencesPanel';
 import { placeReference, readReferences } from '@barocss/cad-model/chat/references';
 import { confirmDimension, liveDrafts } from '@barocss/cad-model/chat/drafts';
 import { DraftsPanel } from './ui/DraftsPanel';
-import { extrudeProfile } from '@barocss/cad-model/app/profileCommands';
+import { sweepPath, extrudeProfile } from '@barocss/cad-model/app/profileCommands';
 import { editCommand } from '@barocss/cad-model/app/editCommand';
 import { failedFeatureText } from './app/failedFeature';
 import { useHeldFinishEdge } from './state/useHeldFinishEdge';
@@ -1915,7 +1915,7 @@ export function App() {
     && workerSessionNow.current === workerSession && explodeStore.get() === 0 && !sectionRef.current
     && !activeStore.get() && !halvesShownRef.current;
   const { onPick, picking } = useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState: footprintState, sectionPickRef, activeStore, setActive, onFilletPick: pickFillet, onExtrudeTargetPick: pickExtrudeEndFace, onRevolveAxisPick: pickRevolveAxis, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
-    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef,
+    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, directSel, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef,
     scene: { active, section, sketch: !!sketch, bodies, selection, setMenu } });
   pickRef.current = onPick;
   const finishEdgePicking = finishEdgeEditor.current ? {
@@ -2952,7 +2952,10 @@ export function App() {
           title={o.hidden ? 'Hidden: click to show' : o.name}
           onClick={e => {
             if (o.hidden) { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(x => x.id === o.id ? { ...x, hidden: false } : x) }, [o.id]); return; }
-            setSelection(emptySel); setDirectSel(prev => e.shiftKey ? (prev.includes(o.id) ? prev.filter(x => x !== o.id) : [...prev, o.id]) : [o.id]);
+            const keepProfile = !e.shiftKey && typeof sweepPath(doc, [o.id]) !== 'string';
+            setSelection(previous => keepProfile && previous.sketches?.length === 1 && !previous.profileRegions?.indices.length
+              ? { ...emptySel, sketches: previous.sketches } : emptySel);
+            setDirectSel(prev => e.shiftKey ? (prev.includes(o.id) ? prev.filter(x => x !== o.id) : [...prev, o.id]) : [o.id]);
           }}><Icon name={o.hidden ? 'visibility_off' : 'gesture'} small />{o.name}</button>)}
         <SpecifyPanel doc={doc} onAnswer={answerQuestions} onAcceptAll={acceptAll} />
         <DraftsPanel drafts={liveDrafts(doc)} underlays={doc.underlays ?? []} onUnderlay={(id, hidden) => commit({ ...doc, underlays: (doc.underlays ?? []).map(u => u.id === id ? { ...u, hidden } : u) }, false)} onAddDrawing={f => void addDrawingFile(f)} onConfirm={(key, value) => { try { commit(confirmDimension(doc, key, value, new Date().toISOString())); } catch (e) { setToast({ title: 'Dimension not changed', hint: e instanceof Error ? e.message.replace(/^\[[A-Z_]+\] /, '') : String(e), detail: '' }); } }} />

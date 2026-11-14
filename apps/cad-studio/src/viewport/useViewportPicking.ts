@@ -5,6 +5,7 @@ import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { selectedBodies, type Selection, type Values } from '@barocss/cad-model/app/commands';
+import { sweepPath } from '@barocss/cad-model/app/profileCommands';
 import { edgeChain } from '@barocss/cad-model/app/edgeChain';
 import type { MeasurePick } from '@barocss/cad-model/app/measure';
 import type { useAssembly } from '../assembly/useAssembly';
@@ -31,7 +32,7 @@ export type SectionPick = (hit: { face: FaceRef | null; edge: EdgeRef | null }) 
 
 export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, nativePlanePickState, sectionPickRef, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, scene }: {
+  directSel, setDirectSel, setMeasure, measureNativeReady, measureInstances, placedMeasureContextReady, pickFilterRef, onFilletPick, onExtrudeTargetPick, onRevolveAxisPick, scene }: {
   onExtrudeTargetPick(hit: ExtrudeEndHit, blocked: boolean): boolean;
   onRevolveAxisPick(hit: RevolveAxisHit, blocked: boolean): boolean;
   onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
@@ -44,6 +45,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
   setSectionFacePick: Dispatch<SetStateAction<number | null>>; setToast(notice: FriendlyError): void;
   activeRef: RefObject<Active | null>; halvesShownRef: RefObject<boolean>; setPick: Dispatch<SetStateAction<Vec3 | null>>;
   setInstanceSel: Dispatch<SetStateAction<string[]>>; setSelection: Dispatch<SetStateAction<Selection>>;
+  directSel: readonly string[];
   setDirectSel: Dispatch<SetStateAction<string[]>>; setMeasure: Dispatch<SetStateAction<MeasureTarget[] | null>>;
   measureNativeReady: RefObject<boolean>;
   measureInstances: RefObject<ReadonlyMap<string, PlacedMeasureSource>>;
@@ -127,7 +129,10 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
     if (hit.direct) {
       const id = hit.direct;
       setDirectSel(prev => additive ? (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]) : [id]);
-      setSelection(emptySel); setInstanceSel([]); return;
+      const keepProfile = !additive && typeof sweepPath(doc, [id]) !== 'string';
+      setSelection(previous => keepProfile && previous.sketches?.length === 1 && !previous.profileRegions?.indices.length
+        ? { ...emptySel, sketches: previous.sketches } : emptySel);
+      setInstanceSel([]); return;
     }
     if (hit.instance) { setInstanceSel([hit.instance]); setSelection(emptySel); setDirectSel([]); return; }
     if (!additive) { setDirectSel([]); setInstanceSel([]); }
@@ -164,7 +169,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
   // The viewport, Browser and History use the same action for a finished sketch.
   const onPickProfile = useCallback((id: number | null, additive: boolean, region?: number) => {
     if (id === null) return;
-    setDirectSel([]);
+    if (region !== undefined || typeof sweepPath(doc, directSel) === 'string') setDirectSel([]);
     setInstanceSel([]);
     setSelection(prev => {
       const list = prev.sketches ?? [];
@@ -175,7 +180,7 @@ export function useViewportPicking({ doc, modelUnavailable, nativeVertexReady, n
       }
       return { ...emptySel, sketches: additive ? (list.includes(id) ? list.filter(x => x !== id) : [...list, id]) : [id] };
     });
-  }, []);
+  }, [doc, directSel]);
 
   const picking = {
     onPick,
