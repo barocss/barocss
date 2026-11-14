@@ -95,7 +95,10 @@ export function Hud({ store, onChange, onApply, onCancel, onFile, onFilletType, 
       {active.preview === 'ok' && active.filletScope && <div className="hud-steps" role="group" aria-label="Fillet scope">
         <div className="field"><span>Picked native edges</span><span title={active.filletScope.picked.join('\n')}>{active.filletScope.picked.length}</span></div>
         <div className="field"><span>Tangent edges added</span><span title={active.filletScope.added.join('\n')}>{active.filletScope.added.length}</span></div>
-        <div className="field"><span>Radius</span><span>{active.filletScope.radius} mm</span></div>
+        {active.filletScope.pickedRadii ? <>
+          <div className="field"><span>Picked start radius</span><span>{active.filletScope.pickedRadii[0]} mm</span></div>
+          <div className="field"><span>Picked end radius</span><span>{active.filletScope.pickedRadii[1]} mm</span></div>
+        </> : <div className="field"><span>Radius</span><span>{active.filletScope.radius} mm</span></div>}
       </div>}
       {active.fillet?.type === 'edge' && onRemoveFilletEdge && active.ctx.selection.edges.length > 0
         && <FilletPickedEdges active={active} onRemove={onRemoveFilletEdge} />}

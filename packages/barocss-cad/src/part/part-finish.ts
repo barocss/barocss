@@ -37,7 +37,7 @@ export function finishOperation(f: CadPartFeature & Record<string, unknown>, t: 
       return () => {
         const t = target[0], kind = f.kind as 'chamfer' | 'fillet', reports: FilletReport[] = [];
         const radii = authored && atChainEnds(authored, k.brepOf(t, 'target'), f.edges as string[], fail);
-        const targets = kind === 'fillet' && !radii && !shape ? new Set<string>() : undefined;
+        const targets = kind === 'fillet' && !shape ? new Set<string>() : undefined;
         const solid = finishEdges(t, f.edges as string[], size, kind, at, fail, reports, radii, shape, targets);
         // A body that left the upright family keeps how it was made, so that it can still be shelled — past a
         // variable-radius fillet too (its hollow's radius is the outer one less the wall, D108), not past a conic or G2 one.

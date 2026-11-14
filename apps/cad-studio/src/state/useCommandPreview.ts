@@ -149,11 +149,17 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
           let filletScope: Active['filletScope'];
           if (shown === candidate && cmd.id === 'fillet' && terminal?.kind === 'fillet'
             && candidate.nodes.length === ctx.doc.nodes.length + 1 && result.revision === revision
-            && typeof terminal.radius === 'number' && !terminal.radii && !terminal.section) {
+            && typeof terminal.radius === 'number' && !terminal.section) {
             const body = result.bodies.find(body => body.ref?.node === candidate.nodes.length - 1 && body.ref.side === 'solid');
             const targets = body?.filletTargets, picked = [...new Set(terminal.edges)];
-            if (targets && picked.every(edge => targets.includes(edge)))
-              filletScope = { picked, added: targets.filter(edge => !picked.includes(edge)), radius: terminal.radius };
+            if (targets && picked.every(edge => targets.includes(edge))) {
+              const added = targets.filter(edge => !picked.includes(edge));
+              const [start, end] = terminal.radii ?? [];
+              if (!terminal.radii) filletScope = { picked, added, radius: terminal.radius };
+              else if (terminal.radii.length === 2 && start.atEnd && end.atEnd
+                && typeof start.radius === 'number' && typeof end.radius === 'number')
+                filletScope = { picked, added, pickedRadii: [start.radius, end.radius] };
+            }
           }
           if (shown === candidate && cmd.id === 'extrude' && candidate.nodes.length > ctx.doc.nodes.length
             && ((values.op === 'join' && terminal?.kind === 'union') || (values.op === 'cut' && terminal?.kind === 'difference'))) {

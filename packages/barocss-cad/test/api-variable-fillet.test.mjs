@@ -28,6 +28,10 @@ test('public variable fillet: one straight edge stores its a/b radius direction 
   assert.deepEqual(node.edges, edge.names); assert.equal(Object.hasOwn(node, 'radius'), false);
   assert.deepEqual(node.radii, [{ at: [0, 0, 10], radius: 1, atEnd: true }, { at: [40, 0, 10], radius: 3, atEnd: true }]);
   volume(accepted, 1, 3);
+  const evaluated = outputOf(evaluateCadPart(accepted.doc), node.id);
+  assert.deepEqual(evaluated.filletTargets, edge.names);
+  assert.ok(Object.isFrozen(evaluated.filletTargets));
+  assert.deepEqual(evaluated.fillet.flatMap(report => report.edges), edge.names);
   const opposite = source.fillet(picked, { radius: 3, endRadius: 1 });
   assert.deepEqual(opposite.doc.features.at(-1).radii, [{ at: [0, 0, 10], radius: 3, atEnd: true }, { at: [40, 0, 10], radius: 1, atEnd: true }]);
   volume(opposite, 3, 1);

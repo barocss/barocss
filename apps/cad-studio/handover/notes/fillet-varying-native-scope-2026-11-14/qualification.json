@@ -1,0 +1,153 @@
+{
+  "decision": "D1187",
+  "tier": "FULL",
+  "node": "22.19.0",
+  "parent": "fc192c40c8250c50aa43b3a30f06a557e52f8710",
+  "commands": [
+    "gate.sh acquire heavy 600 D1187-<run>",
+    "cd packages/barocss-cad && node scripts/tool.mjs build:fast && node --test --test-concurrency=1 test/api-variable-fillet.test.mjs test/edge-finish.test.mjs test/api-part.test.mjs",
+    "cd apps/cad-studio && node scripts/test.mjs fillet-family failed-feature",
+    "pnpm --filter @barocss/cad type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/{app/commandState,state/useCommandPreview}.ts apps/cad-studio/src/ui/Hud.tsx packages/barocss-cad/src/part/part-finish.ts",
+    "node --check apps/cad-studio/test/fillet-chain-selection-browser.mjs",
+    "D1187_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/<run> --varying",
+    "D1183_MUTATION=1 D1187_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/mutation-qualified --varying",
+    "D1185_SOURCE_FROZEN=1 node apps/cad-studio/test/fillet-chain-selection-browser.mjs <external-evidence>/regression --remove",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "focused": {
+    "kernel": 16,
+    "studio": 19
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "closed-rim-refused",
+        "varying-open-preview",
+        "failure"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "ca67c9196d083f89110c2d66841e29ad2b18604d2fa9a1e0ab80f658c2d3e71c",
+      "sourceManifestSHA256": "5e36c1c0d2ead52ba73abd04217e64c5a079715b646e5bbb6bdb7b99a9b85fd6",
+      "firstFailure": "The successful varying preview did not show native scope"
+    },
+    "regression": {
+      "status": "PASS",
+      "states": [
+        "two-rim-preview",
+        "top-only-preview",
+        "top-only-applied",
+        "top-only-reopened"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "20db4e4c3e514be650d23e4e3ea2efdfcaaa76649232f8a210ea5ec86cd71372",
+      "sourceManifestSHA256": "cc5406a396eaab5518099587e2cd2061ce53fdedf8c3776aee63016f091e5fbc"
+    },
+    "mutation": {
+      "status": "FAIL",
+      "states": [],
+      "frozenFiles": 878,
+      "receiptSHA256": "6b00d4adee9896e13223b310834a76ad51363fa9e9bcbf42bc1e0b7be71b6a7a",
+      "sourceManifestSHA256": "50002fec2b69bf5366d38218ef7b2ed47bb2c2ffc9b7da16e742f0c66b280b89",
+      "firstFailure": "Navigation timed out before the mutation oracle"
+    },
+    "mutation-retry": {
+      "status": "FAIL",
+      "states": [],
+      "frozenFiles": 878,
+      "receiptSHA256": "5a22cb70fe64c78c56f95ba2b85866d39cbace30ac8264d9ad9aadb512c2e9a9",
+      "sourceManifestSHA256": "50002fec2b69bf5366d38218ef7b2ed47bb2c2ffc9b7da16e742f0c66b280b89",
+      "firstFailure": "Navigation timed out before the mutation oracle"
+    },
+    "mutation-qualified": {
+      "status": "FAIL",
+      "states": [
+        "closed-rim-refused",
+        "varying-open-preview",
+        "failure"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "aea300f9f383ea236753604dfe7cf032fa6ae5bd8889584ae2606d0ef05fa269",
+      "sourceManifestSHA256": "8c333c9283b9661b689a7be2b86e62b2374f4e7551eba4e71084c5bf99f4e222",
+      "firstFailure": "Expected scope assertion rejected the response containing a different original edge"
+    },
+    "latest": {
+      "status": "PASS",
+      "states": [
+        "closed-rim-refused",
+        "varying-open-preview",
+        "varying-open-applied",
+        "varying-reopened"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "bade3787928d6344ced95974ee034f999a9571a577f7d86fd9e49a1027405b73",
+      "sourceManifestSHA256": "8c333c9283b9661b689a7be2b86e62b2374f4e7551eba4e71084c5bf99f4e222",
+      "nativeControls": [
+        {
+          "label": "varying-native",
+          "expected": 11962.802348322224,
+          "volume": 11962.802348322295,
+          "edge": [
+            "n1.side0|n1.top"
+          ],
+          "contacts": [
+            [
+              0,
+              0,
+              9
+            ],
+            [
+              0,
+              1,
+              10
+            ],
+            [
+              40,
+              0,
+              7
+            ],
+            [
+              40,
+              3,
+              10
+            ]
+          ]
+        },
+        {
+          "label": "varying-reopened-native",
+          "expected": 11962.802348322224,
+          "volume": 11962.802348322295,
+          "edge": [
+            "n1.side0|n1.top"
+          ],
+          "contacts": [
+            [
+              0,
+              0,
+              9
+            ],
+            [
+              0,
+              1,
+              10
+            ],
+            [
+              40,
+              0,
+              7
+            ],
+            [
+              40,
+              3,
+              10
+            ]
+          ]
+        }
+      ]
+    }
+  }
+}

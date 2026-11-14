@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1187 — show native scope for varying circular Fillet](notes/fillet-varying-native-scope-2026-11-14/README.md).
 - [D1186 — explain the linked inset Fillet restriction](notes/rounded-inset-fillet-refusal-2026-11-14/README.md).
 - [D1185 — remove a picked edge while Fillet is in preview](notes/fillet-preview-remove-edge-2026-11-14/README.md).
 - [D1184 — explain why a STEP edge finish was refused](notes/step-edge-finish-refusal-2026-11-14/README.md).

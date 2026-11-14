@@ -3,7 +3,8 @@ import { createFlow, sha256 } from './flow-helper.mjs';
 import { clickModelCommand } from './model-rail-helper.mjs';
 
 const removeEdge = process.argv[3] === '--remove';
-const showScope = removeEdge || process.argv[3] === '--scope';
+const varying = process.argv[3] === '--varying';
+const showScope = varying || removeEdge || process.argv[3] === '--scope';
 const scopeMutation = process.env.D1183_MUTATION;
 const pins = [
   'apps/cad-studio/test/fillet-chain-selection-browser.mjs',
@@ -23,17 +24,18 @@ const pins = [
   ...(removeEdge ? ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/FilletPickedEdges.tsx'] : []),
 ];
 const f = await createFlow({
-  name: 'fillet-chain-selection', output: process.argv[2], envFrozen: removeEdge ? 'D1185_SOURCE_FROZEN' : showScope ? 'D1183_SOURCE_FROZEN' : 'D901_SOURCE_FROZEN',
+  name: 'fillet-chain-selection', output: process.argv[2], envFrozen: varying ? 'D1187_SOURCE_FROZEN' : removeEdge ? 'D1185_SOURCE_FROZEN' : showScope ? 'D1183_SOURCE_FROZEN' : 'D901_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
-  qualification: removeEdge ? 'Remove an authored original edge while the preview has rounded it away.'
+  qualification: varying ? 'Report the native scope and endpoint radii of one open variable fillet.'
+    : removeEdge ? 'Remove an authored original edge while the preview has rounded it away.'
     : 'Compare stored targets and native geometry after single-edge and tangent-chain Fillet picks.',
-  limits: ['One stadium prism. Desktop WebGPU and the existing constant circular Fillet.',
+  limits: ['Desktop WebGPU, stadium and rectangular prism controls.',
     'The two straight rims and two semicircular rims may have distinct native member and display-edge counts.'],
   inspectorSource: `
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { checkBrep, faceGeometry, massPropertiesOf, revolutionOf } from '@barocss/cad';
-import { emptyDoc, withNode } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
 import { bodyMesh } from '@barocss/cad-model/engine/mesh';
 import { partSnapshot } from '@barocss/cad-model/engine/part';
 if (process.argv[3] === '"seed"') {
@@ -48,6 +50,10 @@ if (process.argv[3] === '"seed"') {
   console.log(JSON.stringify(withNode(sketch, { kind: 'extrude', sketch: 0, height: 6 })));
   process.exit(0);
 }
+if (process.argv[3] === '"box"') {
+  console.log(JSON.stringify(rectanglePart(40, 30, 10)));
+  process.exit(0);
+}
 const doc = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const { outputs } = partSnapshot(doc);
 assert.equal(outputs.length, 1);
@@ -60,6 +66,8 @@ assert.ok(brep.shells[0].closed);
 const mesh = bodyMesh(brep, 0);
 console.log(JSON.stringify({
   mass: massPropertiesOf(output),
+  reportEdges: output.fillet?.flatMap(report => report.edges),
+  vertices: brep.vertices.map(vertex => vertex.point),
   faces: brep.faces.map(face => ({
     name: face.name, geometry: faceGeometry(face),
     ...(face.name?.startsWith('n2.face') && face.surface.kind === 'surface' ? { revolution: revolutionOf(face.surface, 100) } : {}),
@@ -105,14 +113,14 @@ async function save(doc) {
   return bytes;
 }
 
-async function selectRim(chain, edges, seedIndex) {
+async function selectRim(chain, edges, seedIndex, world = [10, -4, 6]) {
   const views = f.page.getByRole('group', { name: 'Views', exact: true });
   await button(views, 'Iso').click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
   const filter = button(f.page, 'Selection filter');
   for (let attempt = 0; attempt < 4 && !(await filter.innerText()).trim().endsWith('Edges'); attempt++) await filter.click();
   assert.match((await filter.innerText()).trim(), /Edges$/);
-  const world = [10, -4, 6], pixel = await f.page.evaluate(world => {
+  const pixel = await f.page.evaluate(world => {
     const at = window.__studioScreenOf(world);
     return at && document.elementFromPoint(...at)?.closest('canvas.vp-canvas') ? at : null;
   }, world);
@@ -175,7 +183,7 @@ async function validate(label, doc, seed, wanted) {
   return native;
 }
 
-async function checkScope(hud, picked, added) {
+async function checkScope(hud, picked, added, constant = true) {
   const scope = hud.getByRole('group', { name: 'Fillet scope', exact: true });
   assert.equal(await scope.count(), 1, 'The preview did not distinguish picked edges from native tangent targets');
   for (const [label, names] of [['Picked native edges', picked], ['Tangent edges added', added]]) {
@@ -183,7 +191,7 @@ async function checkScope(hud, picked, added) {
     assert.equal(await field.innerText(), String(names.length));
     assert.deepEqual((await field.getAttribute('title')).split('\n').filter(Boolean).sort(), [...names].sort());
   }
-  assert.match(await scope.innerText(), /Radius\s+1 mm/);
+  if (constant) assert.match(await scope.innerText(), /Radius\s+1 mm/);
 }
 
 async function checkRemoval(seed, stock, top, seedEdge, topNames) {
@@ -242,27 +250,98 @@ async function checkRemoval(seed, stock, top, seedEdge, topNames) {
   await f.snapshot('top-only-reopened');
 }
 
+async function checkVarying(seed, top, seedEdge) {
+  f.phase = 'Refuse unequal variable radii on the full closed rim';
+  await selectRim(true, top, seedEdge.index);
+  await clickModelCommand(f.page, 'Modify', 'Fillet');
+  let hud = f.page.getByRole('dialog', { name: 'Fillet', exact: true });
+  await hud.getByLabel('Fillet radius mode', { exact: true }).selectOption('varying');
+  await hud.getByLabel('Radius', { exact: true }).fill('1');
+  await hud.getByLabel('End radius (0: same)', { exact: true }).fill('3');
+  await hud.locator('.status.error').waitFor();
+  assert.match(await hud.getByRole('status').innerText(), /one open chain/i);
+  assert.equal(await button(hud, 'Apply').isEnabled(), false);
+  await f.same(seed);
+  await f.snapshot('closed-rim-refused');
+  await button(hud, 'Cancel').click();
+
+  f.phase = 'Preview R1 to R3 on the original straight edge';
+  const box = await f.inspect('box-seed', {}, 'box');
+  const stock = await f.inspect('box-stock-native', box);
+  const edge = stock.displayEdges.find(edge => edge.names.includes('n1.side0|n1.top'));
+  assert.ok(edge);
+  await f.newPage();
+  if (scopeMutation) await f.page.evaluate(() => {
+    // Mutate the evaluated box reply, after the closed-rim control.
+    window.__d1187CorruptTargets = true;
+  });
+  await open(box);
+  await selectRim(false, [edge], edge.index, [20, 0, 10]);
+  await clickModelCommand(f.page, 'Modify', 'Fillet');
+  hud = f.page.getByRole('dialog', { name: 'Fillet', exact: true });
+  await hud.getByLabel('Fillet radius mode', { exact: true }).selectOption('varying');
+  await hud.getByLabel('Radius', { exact: true }).fill('1');
+  await hud.getByLabel('End radius (0: same)', { exact: true }).fill('3');
+  await hud.locator('.status.ok').waitFor();
+  await f.same(box);
+  await f.snapshot('varying-open-preview');
+  await checkScope(hud, edge.names, [], false);
+  const scope = hud.getByRole('group', { name: 'Fillet scope' });
+  assert.match(await scope.innerText(), /Picked start radius\s+1 mm/);
+  assert.match(await scope.innerText(), /Picked end radius\s+3 mm/);
+  await button(hud, 'Apply').click();
+  await f.changed(box);
+  const next = (await f.snapshot('varying-open-applied')).doc;
+  const node = next.nodes.at(-1);
+  assert.equal(node.kind, 'fillet');
+  assert.deepEqual(node.edges, edge.names);
+  assert.deepEqual(node.radii, [
+    { at: [0, 0, 10], radius: 1, atEnd: true },
+    { at: [40, 0, 10], radius: 3, atEnd: true },
+  ]);
+  async function verify(label) {
+    const native = await f.inspect(label, next);
+    const expected = 12000 - (1 - Math.PI / 4) * 40 * 13 / 3;
+    near(native.mass.volume, expected, 1e-7);
+    assert.deepEqual(native.reportEdges, edge.names);
+    const contacts = [[0, 0, 9], [0, 1, 10], [40, 0, 7], [40, 3, 10]];
+    for (const contact of contacts)
+      assert.ok(native.vertices.some(point => point.every((coordinate, axis) => Math.abs(coordinate - contact[axis]) < 1e-7)));
+    f.report.observations.push({ label, expected, volume: native.mass.volume, edge: edge.names, contacts });
+  }
+  await verify('varying-native');
+  await f.undo();
+  await f.same(box);
+  await f.redo();
+  await f.same(next);
+  const bytes = await save(next);
+  await f.newPage();
+  await open(next, bytes);
+  await verify('varying-reopened-native');
+  await f.snapshot('varying-reopened');
+}
+
 await f.run(async () => {
   const origin = new URL(f.server.resolvedUrls.local[0]).origin;
   const createContext = f.browser.newContext.bind(f.browser);
   f.browser.newContext = async options => {
     const context = await createContext({ ...options, acceptDownloads: false, serviceWorkers: 'block' });
-    context.setDefaultTimeout(10000);
-    if (scopeMutation) await context.addInitScript(() => {
+    context.setDefaultTimeout(scopeMutation ? 30000 : 10000);
+    if (scopeMutation) await context.addInitScript(targetCount => {
       const descriptor = Object.getOwnPropertyDescriptor(Worker.prototype, 'onmessage');
       Object.defineProperty(Worker.prototype, 'onmessage', {
         ...descriptor,
         set(listener) {
           descriptor.set.call(this, listener && (event => {
             for (const body of event.data?.result?.bodies ?? []) {
-              if (body.filletTargets?.length === 4)
-                body.filletTargets = body.filletTargets.map((name, index) => index === 1 ? 'unrelated.native.edge' : name);
+              if ((targetCount !== 1 || window.__d1187CorruptTargets) && body.filletTargets?.length === targetCount)
+                body.filletTargets = body.filletTargets.map((name, index) => index === Math.min(1, targetCount - 1) ? 'unrelated.native.edge' : name);
             }
             listener.call(this, event);
           }));
         },
       });
-    });
+    }, varying ? 1 : 4);
     await context.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'fonts.googleapis.com') return route.fulfill({ contentType: 'text/css', body: '' });
@@ -284,6 +363,7 @@ await f.run(async () => {
 
   await f.newPage();
   await open(seed);
+  if (varying) { await checkVarying(seed, top, edge); return; }
   if (removeEdge) { await checkRemoval(seed, stock, top, edge, names); return; }
   const result = [];
   for (const chain of [false, true]) {
