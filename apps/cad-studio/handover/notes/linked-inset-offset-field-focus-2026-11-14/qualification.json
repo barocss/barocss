@@ -1,0 +1,224 @@
+{
+  "decision": "D1242",
+  "tier": "SMALL",
+  "parent": "0c77aceb015820070f1d24161bf8e0247d2ad35f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1242-<run>",
+    "D1205_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs <external-evidence> --oversize --active-link --field-enter --narrow --offset-focus [--focus-baseline]",
+    "node --check apps/cad-studio/test/linked-inset-face-eligibility-browser.mjs",
+    "pnpm exec eslint apps/cad-studio/src/ui/SketchPanel.tsx",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "frozenFiles": 882,
+      "receiptSHA256": "eaad8a0f75fa27212ce6d0188ea8a85e5edd059eedbfb4aa20e7d6e87b80ac8e",
+      "sourceManifestSHA256": "2d81dda0a81cf08aa88e585f1e5a91c50de71bb66c1df096173fa9cc6ae3615d",
+      "sourceAfterCleanupSHA256": "2d81dda0a81cf08aa88e585f1e5a91c50de71bb66c1df096173fa9cc6ae3615d",
+      "focus": [
+        {
+          "label": "offset-focus-new",
+          "entry": {
+            "top": 784,
+            "bottom": 802,
+            "dockBottom": 800,
+            "visible": false,
+            "focused": true
+          },
+          "linked": {
+            "top": 688,
+            "bottom": 703,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          },
+          "history": {
+            "top": 715,
+            "bottom": 745,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          }
+        },
+        {
+          "label": "offset-focus-reopened-dock",
+          "entry": {
+            "top": 784,
+            "bottom": 802,
+            "dockBottom": 800,
+            "visible": false,
+            "focused": true
+          },
+          "linked": {
+            "top": 688,
+            "bottom": 703,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          },
+          "history": {
+            "top": 715,
+            "bottom": 745,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          }
+        },
+        {
+          "label": "offset-focus-from-history",
+          "entry": {
+            "top": 784,
+            "bottom": 802,
+            "dockBottom": 800,
+            "visible": false,
+            "focused": true
+          },
+          "linked": {
+            "top": 688,
+            "bottom": 703,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          },
+          "history": {
+            "top": 715,
+            "bottom": 745,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          }
+        }
+      ]
+    },
+    "final": {
+      "status": "FAIL",
+      "frozenFiles": 882,
+      "receiptSHA256": "afa884e0133ea066364a6bb69eef8e7238be80181a1aec12013a9a4401b786c7",
+      "sourceManifestSHA256": "70f608b69f5905fdf15bfda12ec197468c264a3026d332eeedabf9e9c5613faf",
+      "sourceAfterCleanupSHA256": "70f608b69f5905fdf15bfda12ec197468c264a3026d332eeedabf9e9c5613faf",
+      "focus": [
+        {
+          "label": "offset-focus-new",
+          "entry": {
+            "top": 784,
+            "bottom": 802,
+            "dockBottom": 800,
+            "visible": false,
+            "focused": true
+          },
+          "linked": {
+            "top": 688,
+            "bottom": 703,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          },
+          "history": {
+            "top": 715,
+            "bottom": 745,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          }
+        }
+      ]
+    },
+    "final2": {
+      "status": "PASS",
+      "frozenFiles": 882,
+      "receiptSHA256": "a3bed3593886e2ff13cf3f8b22b3a6c9eccc5941020b3be5362a926d6c97ec72",
+      "sourceManifestSHA256": "06e6b8008a3f0230b2d2fa0bb4e86b4a5175cdc7bd7919c4e397679c1037a12a",
+      "sourceAfterCleanupSHA256": "06e6b8008a3f0230b2d2fa0bb4e86b4a5175cdc7bd7919c4e397679c1037a12a",
+      "focus": [
+        {
+          "label": "offset-focus-new",
+          "entry": {
+            "top": 779,
+            "bottom": 797,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": true
+          },
+          "linked": {
+            "top": 683,
+            "bottom": 698,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          },
+          "history": {
+            "top": 710,
+            "bottom": 740,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          }
+        },
+        {
+          "label": "offset-focus-reopened-dock",
+          "entry": {
+            "top": 779,
+            "bottom": 797,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": true
+          },
+          "linked": {
+            "top": 683,
+            "bottom": 698,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          },
+          "history": {
+            "top": 710,
+            "bottom": 740,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          }
+        },
+        {
+          "label": "offset-focus-from-history",
+          "entry": {
+            "top": 779,
+            "bottom": 797,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": true
+          },
+          "linked": {
+            "top": 683,
+            "bottom": 698,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          },
+          "history": {
+            "top": 710,
+            "bottom": 740,
+            "dockBottom": 800,
+            "visible": true,
+            "focused": false
+          }
+        }
+      ],
+      "nativeSaveSHA256": "703a0880057fe9721548a38374d3dbd7bc56daa58d38e1917ee6ac6e4813e637"
+    }
+  },
+  "checks": {
+    "studioTypeCheck": "PASS",
+    "focusedLint": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "assistiveTechnology": "NOT_RUN",
+    "strictBrep": "NOT_RUN",
+    "full": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  }
+}

@@ -8,6 +8,8 @@ const perforated = process.argv.includes('--perforated');
 const activeLink = process.argv.includes('--active-link');
 const ordinaryOffset = process.argv.includes('--ordinary-offset');
 const narrow = process.argv.includes('--narrow');
+const offsetFocus = process.argv.includes('--offset-focus');
+const focusBaseline = process.argv.includes('--focus-baseline');
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/ui/SketchPanel.tsx',
   'apps/cad-studio/src/sketch/useSketchActions.ts', 'packages/barocss-cad-model/src/engine/insetOutline.ts',
   'packages/barocss-cad-model/src/engine/mesh.ts', 'packages/barocss-cad-model/src/engine/part.ts'];
@@ -43,6 +45,40 @@ else {
 
 const button = (scope, name) => scope.getByRole('button', { name, exact: true });
 const linked = () => button(f.sketchPanel(), 'Link face outline + inset');
+async function narrowDock() {
+  await f.page.setViewportSize({ width: 1024, height: 800 });
+  await f.page.getByRole('button', { name: 'Chat', exact: true }).first().click();
+  await f.page.locator('.chat-col.open').waitFor();
+}
+
+async function checkOffsetFocus(label, expected, reopened = false) {
+  f.phase = label;
+  const panel = f.sketchPanel();
+  const distance = panel.getByLabel('Offset distance', { exact: true });
+  const value = panel.getByText('Linked face outline and inset · 2 mm', { exact: true });
+  const path = panel.getByText(reopened ? 'To change the linked distance, return to its History editor.'
+    : 'To change the linked distance, finish the sketch and edit it in History.', { exact: true });
+  await value.waitFor();
+  await path.waitFor();
+  await distance.fill('3');
+  await f.page.keyboard.press('Enter');
+  const position = element => {
+    const rect = element.getBoundingClientRect();
+    const dock = element.closest('.dock-scroll').getBoundingClientRect();
+    return { top: rect.top, bottom: rect.bottom, dockBottom: dock.bottom,
+      visible: rect.top >= dock.top && rect.bottom <= Math.min(dock.bottom, innerHeight),
+      focused: document.activeElement === element };
+  };
+  await f.snapshot(label);
+  const entry = await distance.evaluate(position);
+  const linked = await value.evaluate(position);
+  const history = await path.evaluate(position);
+  f.report.observations.push({ label, entry, linked, history });
+  await f.same(expected);
+  assert.ok(entry.focused && linked.visible && history.visible);
+  if (!focusBaseline) assert.ok(entry.visible, JSON.stringify(entry));
+}
+
 async function startSketchOnTop(x) {
   await button(f.page.getByRole('group', { name: 'Views', exact: true }), 'Top').click();
   await f.page.getByTitle('Frame all (F)', { exact: true }).click();
@@ -63,9 +99,7 @@ await f.run(async () => {
   await chooser.setFiles({ name: 'inset-faces.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(seed)) });
   await f.same(seed);
   if (narrow) {
-    await f.page.setViewportSize({ width: 1024, height: 800 });
-    await f.page.getByRole('button', { name: 'Chat', exact: true }).first().click();
-    await f.page.locator('.chat-col.open').waitFor();
+    await narrowDock();
     if (await button(f.page, 'Close the dock').isVisible()) await button(f.page, 'Close the dock').click();
   }
   if (await button(f.page, 'Ortho').getAttribute('aria-pressed') !== 'true') await button(f.page, 'Ortho').click();
@@ -205,7 +239,12 @@ await f.run(async () => {
     }
   } else await linked().click();
   await f.sketchPanel().getByText(/Linked face outline and inset/).waitFor();
-  if (activeLink) {
+  if (offsetFocus) {
+    await checkOffsetFocus('offset-focus-new', seed);
+    await button(f.page, 'Close the dock').click();
+    await button(f.page, 'Open the dock').click();
+    await checkOffsetFocus('offset-focus-reopened-dock', seed);
+  } else if (activeLink) {
     f.phase = 'read the active linked inset and keep the ordinary Offset separate';
     const panel = f.sketchPanel();
     if (baseline && !narrow) {
@@ -254,4 +293,23 @@ await f.run(async () => {
   const volume = (await f.bodies()).bodies.find(body => body.key === key)?.volume;
   assert.ok(Math.abs(volume - (20 * 10 - 16 * 6) * 4) < 1e-7);
   f.report.observations.push({ label: 'straight-linked-ring', volume, association: saved.nodes[4].association });
+  if (offsetFocus) {
+    await f.page.setViewportSize({ width: 1440, height: 1000 });
+    await f.undo();
+    await f.same(saved);
+    await f.redo();
+    await f.same(accepted);
+    const { file } = await f.save('offset-focus-ring');
+    await f.freshOpen(file, accepted, 'offset-focus-ring-reopened');
+    await narrowDock();
+    if (await button(f.page, 'Open the dock').isVisible()) await button(f.page, 'Open the dock').click();
+    await f.openFeatureEditor(5, 'linked ring');
+    await button(f.editor(), 'Edit sketch').click();
+    await checkOffsetFocus('offset-focus-from-history', accepted, true);
+    if (focusBaseline) {
+      const checks = f.report.observations.filter(item => item.label.startsWith('offset-focus-'));
+      assert.ok(checks.some(item => !item.entry.visible), JSON.stringify(checks));
+      throw new Error('The focused Offset distance is clipped by the Dock.');
+    }
+  }
 });

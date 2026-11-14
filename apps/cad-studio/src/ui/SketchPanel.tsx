@@ -19,6 +19,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 
+function revealOffsetField(input: HTMLInputElement | null) {
+  if (!input) return;
+  requestAnimationFrame(() => {
+    if (document.activeElement === input) input.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
+}
+
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 const NONE: SketchPick[] = [];
 
@@ -45,6 +52,8 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
   const [offsetBy, setOffsetBy] = useState(2);
   const [insetRefusal, setInsetRefusal] = useState<{ draft: SketchState; message: string } | null>(null);
   const offsetInput = useRef<HTMLInputElement>(null), insetErrorId = useId();
+  // Linking adds rows above the field while it still has focus.
+  useEffect(() => revealOffsetField(offsetInput.current), [sketch.association]);
   const insetError = onLinkedInset && insetRefusal?.draft === sketch ? insetRefusal : null;
   const canLinkInset = !!onLinkedInset && !sketch.association && !sketch.shape && !sketch.done?.length;
   const linkInset = () => {
@@ -232,6 +241,8 @@ export function SketchPanel({ sketch, constraintInspection, constraintDocument, 
         <div className="sk-offset">
           <span className="num"><Input ref={offsetInput} aria-label="Offset distance" type="number" step="any" min={0.1} value={offsetBy}
             data-sketch-action
+            className="scroll-my-1"
+            onFocus={event => revealOffsetField(event.currentTarget)}
             aria-invalid={insetError ? true : undefined} aria-describedby={insetError ? insetErrorId : undefined}
             onKeyDown={event => {
               if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;

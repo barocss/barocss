@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1242 — keep the focused Offset distance visible](notes/linked-inset-offset-field-focus-2026-11-14/README.md).
 - [D1241 — identify the current hidden or long-name Align target](notes/align-history-hidden-and-long-targets-2026-11-14/README.md).
 - [D1240 — enforce the Align Floor Gap range during creation](notes/align-floor-gap-bounds-2026-11-14/README.md).
 - [D1239 — distinguish Gap bounds from the Align placement limit](notes/align-history-gap-and-placement-limit-2026-11-14/README.md).
