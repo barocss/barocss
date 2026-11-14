@@ -298,9 +298,9 @@ export function App() {
   const openIntent = useRef<OpenScope>({});
   const midpointSketch = useMidpointSketch();
   const insetRelink = useInsetRelink();
-  const cancelNativeReview = useCallback(() => {
+  const cancelNativeReview = useCallback((restoreInsetFocus = false) => {
     const midpoint = midpointSketch.cancel();
-    return insetRelink.cancel() || midpoint;
+    return insetRelink.cancel(restoreInsetFocus) || midpoint;
   }, [midpointSketch.cancel, insetRelink.cancel]);
   const discardDirectCandidateRef = useRef<() => void>(() => {});
   const cancelStepExportRef = useRef<() => void>(() => {});
@@ -2540,7 +2540,7 @@ export function App() {
   const onKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
   const dismissInspectionRef = useRef<() => boolean>(() => false);
   dismissInspectionRef.current = () => !help && !palette && !stepAsk && !workspaceModeExit.pending
-    && (cancelNativeReview() || clearConstraintInspection(constraintInspection, sketch));
+    && (cancelNativeReview(true) || clearConstraintInspection(constraintInspection, sketch));
   useEffect(() => {
     const listen = (e: KeyboardEvent) => onKeyRef.current(e);
     let dismissed = false;
@@ -3082,7 +3082,7 @@ export function App() {
   const editFeature = editNode === null ? undefined : doc.nodes[editNode];
   const insetSketchIndex = editFeature?.kind === 'sketch' ? editNode : editFeature?.kind === 'extrude' ? editFeature.sketch : null;
   const insetSketch = insetSketchIndex === null ? undefined : doc.nodes[insetSketchIndex];
-  const reviewInsetSource = () => {
+  const reviewInsetSource = (opener: HTMLButtonElement) => {
     if (insetSketchIndex === null || insetSketch?.kind !== 'sketch' || !insetSketch.association || !insetSketch.on) return;
     const refuse = (hint: string) => setToast({ title: 'Inset source not replaced', hint, detail: '' });
     if (!footprintState.current.insetReady || docNow.current !== doc || !canChangeDocument()) {
@@ -3105,17 +3105,28 @@ export function App() {
       read: () => engine.previewInsetRelink(doc, insetSketchIndex,
         { bodyKey: pick.bodyKey, faceId: pick.face.id, faceName: pick.face.name }, revision.current++),
       refuse,
+      returnFocus: () => requestAnimationFrame(() => {
+        if (current() && opener.isConnected && !opener.disabled && document.activeElement === document.body)
+          opener.focus({ preventScroll: true });
+      }),
       apply: ({ association }) => {
         if (!current() || !canChangeDocument()) return;
         const nodes = doc.nodes.map((node, index) => index === insetSketchIndex ? { ...insetSketch, association } : node);
-        commit({ ...doc, nodes }, false, false, true);
+        const next = { ...doc, nodes };
+        if (!commit(next, false, false, true)) return;
+        requestAnimationFrame(() => {
+          if (docNow.current !== next || document.activeElement !== document.body) return;
+          const step = historyBar.current?.querySelector<HTMLButtonElement>(`[data-node-index="${editNode}"]`);
+          if (step?.getClientRects().length) step.focus({ preventScroll: true });
+          else historyBar.current?.querySelector<HTMLButtonElement>('.hs-more')?.focus({ preventScroll: true });
+        });
       },
     });
   };
   const inspector = (
       <Profiler id="right-col" onRender={onBlockRender}><div className="right-col">
 
-      {insetReview && <InsetSourceReview review={insetReview} cancel={insetRelink.cancel} apply={insetRelink.apply} />}
+      {insetReview && <InsetSourceReview review={insetReview} cancel={() => insetRelink.cancel(true)} apply={insetRelink.apply} />}
       {midpointReview && <MidpointSketchReview review={midpointReview} cancel={cancelNativeReview} adopt={midpointSketch.adopt} />}
       {sketch && <SketchPanel sketch={sketch} constraintInspection={constraintInspection} constraintDocument={doc} toolControls={<><SketchSnapControls twoPoint={twoPointSnap} extension={arcExtensionSnap} objectKinds={objectSnapKinds}
         crossingToolSupported={usesNativeCrossings}

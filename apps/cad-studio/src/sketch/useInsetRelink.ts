@@ -7,6 +7,7 @@ type Request = {
   current(): boolean;
   read(): Promise<InsetRelinkReply>;
   refuse(message: string): void;
+  returnFocus(): void;
   apply(preview: InsetRelinkPreview): void;
 };
 
@@ -16,10 +17,12 @@ export function useInsetRelink() {
   const owner = useRef<Request | null>(null);
   const [state, setState] = useState<(InsetRelinkReview & { owner: Request }) | null>(null);
 
-  const cancel = useCallback(() => {
-    if (!owner.current) return false;
+  const cancel = useCallback((restoreFocus = false) => {
+    const request = owner.current;
+    if (!request) return false;
     owner.current = null;
     setState(null);
+    if (restoreFocus) request.returnFocus();
     return true;
   }, []);
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import type { InsetRelinkReview } from '../sketch/useInsetRelink';
 
@@ -38,6 +38,8 @@ function RingThumbnail({ rings }: { rings: NonNullable<InsetRelinkReview['previe
 
 export function InsetSourceReview({ review, apply, cancel }: { review: InsetRelinkReview; apply(): void; cancel(): void }) {
   const { labels, preview } = review;
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  useLayoutEffect(() => { cancelButton.current?.focus({ preventScroll: true }); }, []);
   const format = (value: number) => Number(value.toPrecision(12));
   return <aside className="card props" aria-label="Inset source replacement" aria-busy={!preview}>
     <div className="card-title">INSET SOURCE</div>
@@ -50,7 +52,7 @@ export function InsetSourceReview({ review, apply, cancel }: { review: InsetReli
       <p>Extrude · {format(preview.volume)} mm³</p>
     </> : <p role="status">Checking the replacement face…</p>}
     <div className="row-actions">
-      <Button type="button" variant="ghost" onClick={cancel}>Cancel</Button>
+      <Button ref={cancelButton} type="button" variant="ghost" onClick={cancel}>Cancel</Button>
       <Button type="button" disabled={!preview} onClick={apply}>Apply source</Button>
     </div>
   </aside>;

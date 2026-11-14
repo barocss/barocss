@@ -1,0 +1,89 @@
+{
+  "decision": "D1204",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "1e059d9261555d0ff995b41ca5fdbd1448038537",
+  "commands": [
+    "gate.sh acquire heavy 600 D1204-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline-polygon --baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/App.tsx apps/cad-studio/src/sketch/useInsetRelink.ts apps/cad-studio/src/ui/{NodeEditor,InsetSourceReview}.tsx",
+    "pnpm exec eslint apps/cad-studio/src/sketch/useInsetRelink.ts apps/cad-studio/src/ui/{NodeEditor,InsetSourceReview}.tsx",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "source-picked",
+        "cancel-Enter",
+        "failure"
+      ],
+      "observations": [
+        {
+          "label": "cancel-Enter",
+          "focused": [
+            "BODY"
+          ]
+        }
+      ],
+      "frozenFiles": 392,
+      "receiptSHA256": "093da18a8d17207bac0415ec1e646efc565b80e4a66d90076a81bcad0d1acc69",
+      "sourceManifestSHA256": "9a0d46e1ab8843112f7a25d636ca9a1a9928b4b31c7f56397d88b4072056c936",
+      "sourceAfterCleanupSHA256": "9a0d46e1ab8843112f7a25d636ca9a1a9928b4b31c7f56397d88b4072056c936",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "source-picked",
+        "cancel-Enter",
+        "cancel-Escape",
+        "applied-source"
+      ],
+      "observations": [
+        {
+          "label": "cancel-Enter",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "cancel-Escape",
+          "focused": [
+            "BUTTON",
+            null,
+            "Replace inset source"
+          ]
+        },
+        {
+          "label": "apply",
+          "focused": [
+            "BUTTON",
+            "Extrude 4",
+            ""
+          ],
+          "volume": 1024.0000000000014
+        }
+      ],
+      "frozenFiles": 392,
+      "receiptSHA256": "106de863653fd58614f25c274146a13dd08ad74ad845131826b3d52e03d8e155",
+      "sourceManifestSHA256": "9ebfaeeae237ada07622b75513df71bc4c1c2a304416a5da44195b37edd1c30b",
+      "sourceAfterCleanupSHA256": "9ebfaeeae237ada07622b75513df71bc4c1c2a304416a5da44195b37edd1c30b",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}
