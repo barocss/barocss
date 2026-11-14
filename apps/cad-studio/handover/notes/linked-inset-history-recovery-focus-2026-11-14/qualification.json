@@ -1,0 +1,116 @@
+{
+  "decision": "D1236",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "e12abe58971424e9068f5e74c15d7b6bb0a372df",
+  "commands": [
+    "gate.sh acquire heavy 600 D1236-<run>",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/baseline --source-recovery-focus --focus-baseline",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/final --source-recovery-focus",
+    "D1204_SOURCE_FROZEN=1 node apps/cad-studio/test/linked-inset-review-focus-browser.mjs <external-evidence>/direct-control --source-dimension",
+    "pnpm --filter @barocss/cad-studio-app test fillet-family failed-feature",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint apps/cad-studio/src/ui/NodeEditor.tsx",
+    "node --check apps/cad-studio/test/linked-inset-review-focus-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 883,
+      "receiptSHA256": "57c56217a4836b4381f79d2bac02134b0219b95df412293887e54cc8709d1585",
+      "sourceManifestSHA256": "f36171c810f4427e00c003aa18ff8f8f2843b28b38a53e3ecffd971dc03b4ffa",
+      "sourceAfterCleanupSHA256": "f36171c810f4427e00c003aa18ff8f8f2843b28b38a53e3ecffd971dc03b4ffa",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "fixed": {
+      "status": "FAIL",
+      "observations": [],
+      "frozenFiles": 883,
+      "receiptSHA256": "9399ffc4402c1c95280ad799616f3575cde8187ed76324dcba32343eaf687924",
+      "sourceManifestSHA256": "ae01ec4cfba489a01fde692475e74b6a53a76ed36c918b265807c882b7bb215a",
+      "sourceAfterCleanupSHA256": "ae01ec4cfba489a01fde692475e74b6a53a76ed36c918b265807c882b7bb215a",
+      "savedSHA256": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "stacked-inset-recovery",
+          "failed": [
+            "n8",
+            "n4"
+          ],
+          "volumes": [
+            1548.0000000000018,
+            1006.9999999999992
+          ],
+          "independent": [
+            1548,
+            1007
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "9450617aad65c0619c76ebcea35fa694d763d41265da08ef05ea07cbb262c5f1",
+      "sourceManifestSHA256": "5569afd7e62370a6cb622e70fae59b3b69c440156ee3be5450b56e089ec20194",
+      "sourceAfterCleanupSHA256": "5569afd7e62370a6cb622e70fae59b3b69c440156ee3be5450b56e089ec20194",
+      "savedSHA256": [
+        "34f73388c34401953d44a86549a5f80ff46c337bd849572e290616b805d18566"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "direct-control": {
+      "status": "PASS",
+      "observations": [
+        {
+          "label": "source-dimension-recovered",
+          "sourceVia": null,
+          "sourceFace": "n3.side0",
+          "heights": [
+            10,
+            12
+          ],
+          "volumes": [
+            2195.999999999999,
+            2268
+          ],
+          "expected": [
+            2196,
+            2268
+          ]
+        }
+      ],
+      "frozenFiles": 883,
+      "receiptSHA256": "d0563111dcb3617ef6ed308f64f8d81bd768df390341bc52f064a93b2b2248fb",
+      "sourceManifestSHA256": "5569afd7e62370a6cb622e70fae59b3b69c440156ee3be5450b56e089ec20194",
+      "sourceAfterCleanupSHA256": "5569afd7e62370a6cb622e70fae59b3b69c440156ee3be5450b56e089ec20194",
+      "savedSHA256": [
+        "eb7cc5b5301bf6e58af2cc6981b10c2dc66ec6192cd0896609d5de28d5b90620"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

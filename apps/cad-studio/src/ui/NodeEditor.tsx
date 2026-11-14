@@ -36,9 +36,11 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   const [readingEnd, setReadingEnd] = useState(false);
   const ordinaryLocked = pending || !!edgeReplacement?.draft;
   const request = useRef<object | null>(null);
+  const applyButton = useRef<HTMLButtonElement>(null), resetButton = useRef<HTMLButtonElement>(null);
+  const failureArea = useRef<HTMLDivElement>(null);
   const draftScope = useRef({ nodes, index });
   const sameDraftScope = draftScope.current.nodes === nodes && draftScope.current.index === index;
-  const [evaluation, setEvaluation] = useState<{ nodes: ModelNode[]; index: number; error?: FeatureFailure } | null>(null);
+  const [evaluation, setEvaluation] = useState<{ nodes: ModelNode[]; index: number; error?: FeatureFailure; opener?: HTMLElement } | null>(null);
   useLayoutEffect(() => {
     draftScope.current = { nodes, index };
     recoveredLengths.current = new WeakSet();
@@ -46,6 +48,14 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
   }, [nodes, index]);
   useEffect(() => { setDraft(nodes); setTyped({}); setEvaluation(null); setModeProblem(null); setLengthProblem(null); setReadingEnd(false); }, [nodes, index]);
   const current = evaluation?.nodes === nodes && evaluation.index === index ? evaluation : null;
+  useLayoutEffect(() => {
+    const opener = current?.opener, error = current?.error;
+    if (!opener?.isConnected || !error?.linkedInsetFeature) return;
+    const focused = document.activeElement;
+    if (focused !== opener && !(focused === document.body && opener === applyButton.current)) return;
+    if (opener === applyButton.current) resetButton.current?.focus({ preventScroll: true });
+    failureArea.current?.scrollIntoView({ block: 'end', inline: 'nearest' });
+  }, [current]);
   const retireEvaluation = () => {
     onRelinkInset?.cancel();
     request.current = null;
@@ -147,7 +157,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
     if (previewAlignDraft && draft[index]?.kind === 'align' && nodes[index]?.kind === 'align') return readAlignPreview?.(draft);
   }, [readAlignPreview, previewAlignDraft, draft, nodes, index]);
   const alignResult = previewAlignDraft ? alignPreview?.result : null;
-  const apply = () => {
+  const apply = (opener?: HTMLElement) => {
     if (!changed || pending || edgeReplacement?.draft || incompleteInset || hasInvalidNumber || lengthProblem || request.current) return;
     setModeProblem(null);
     const ticket = {};
@@ -159,14 +169,16 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
     void result.then(error => {
       if (!ownsDraft()) return;
       request.current = null;
-      setEvaluation(error ? { nodes, index, error } : null);
+      setEvaluation(error ? { nodes, index, error, opener } : null);
     });
   };
   const close = () => { retireEvaluation(); onClose(); };
   const remove = (opener: HTMLElement) => { retireEvaluation(); onDelete?.(opener); };
   return (
     <div className="node-editor" onKeyDown={event => {
-      if (event.key === 'Enter') apply();
+      if (event.key === 'Enter' && event.target instanceof HTMLElement && !event.target.closest('button')) {
+        apply(event.target);
+      }
       else if (event.key === 'Escape') close();
       else if (event.key === 'Delete' && onDelete && !ordinaryLocked && event.target instanceof HTMLElement
         && !(event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement)) {
@@ -290,8 +302,10 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {!current && alignResult?.kind === 'pending' && <div className="empty" role="status">Checking Align preview…</div>}
       {!current && alignResult?.kind === 'ready' && <div className="small" role="status">Align preview</div>}
       {!current && alignResult?.kind === 'error' && <FeatureFailureNotice error={alignResult.error} />}
-      {current?.error && <FeatureFailureNotice error={current.error} />}
-      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending || !!edgeReplacement?.draft || incompleteInset || hasInvalidNumber || !!lengthProblem || (current !== null && !current.error)} onClick={apply}>Apply</button><button className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset && !hasInvalidNumber && !lengthProblem) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); setLengthProblem(null); }}>Reset</button></div>}
+      <div ref={failureArea} className={current?.error?.linkedInsetFeature ? 'scroll-mb-2' : undefined}>
+        {current?.error && <FeatureFailureNotice error={current.error} />}
+        {fields.length > 0 && <div className="row-actions"><button ref={applyButton} className="primary" disabled={!changed || pending || !!edgeReplacement?.draft || incompleteInset || hasInvalidNumber || !!lengthProblem || (current !== null && !current.error)} onClick={event => apply(event.currentTarget)}>Apply</button><button ref={resetButton} className="ghost" disabled={(!changed && !hasInsetDraft && !incompleteInset && !hasInvalidNumber && !lengthProblem) || pending} onClick={() => { retireEvaluation(); setDraft(nodes); setTyped({}); setLengthProblem(null); }}>Reset</button></div>}
+      </div>
     </div>
   );
 }

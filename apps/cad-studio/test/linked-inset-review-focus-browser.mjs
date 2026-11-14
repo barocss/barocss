@@ -6,7 +6,9 @@ const historySummary = process.argv.includes('--history-summary');
 const narrowDock = process.argv.includes('--narrow-dock');
 const automaticRefusal = process.argv.includes('--automatic-refusal');
 const beforeExtrude = process.argv.includes('--before-extrude');
-const sourceVia = process.argv.includes('--source-hole') ? 'hole' : process.argv.includes('--source-move') ? 'move' : null;
+const sourceRecoveryFocus = process.argv.includes('--source-recovery-focus');
+const focusBaseline = process.argv.includes('--focus-baseline');
+const sourceVia = process.argv.includes('--source-hole') || sourceRecoveryFocus ? 'hole' : process.argv.includes('--source-move') ? 'move' : null;
 const sourceDimension = process.argv.includes('--source-dimension') || sourceVia !== null;
 const sourceFace = sourceVia === 'move' ? 'n3.side1' : 'n3.side0';
 const editInsetDistance = process.argv.includes('--edit-inset-distance');
@@ -74,6 +76,16 @@ if (sourceVia) {
   seed.nodes.splice(4, 0, carried);
   seed.outputs = { b1: seed.outputs.b1, b6: { node: 4, side: 'solid' }, b5: { node: 6, side: 'solid' } };
   seed.nextId = 7;
+}
+if (sourceRecoveryFocus) {
+  seed.nodes.splice(5, 0, { kind: 'translate', parent: { node: 4, side: 'solid' }, offset: [0, 40, 0], id: 'n7' });
+  const first = seed.nodes[6];
+  Object.assign(first.association, { source: { node: 5, side: 'solid' }, sourceFeature: 'n7' });
+  seed.nodes[7].sketch = 6;
+  seed.nodes.push({ ...structuredClone(first), id: 'n8', association: { ...first.association, face: 'n3.side1', insetMM: 4.75 } },
+    { kind: 'extrude', sketch: 8, height: 4, id: 'n9' });
+  seed.outputs = { b1: seed.outputs.b1, b7: { node: 5, side: 'solid' }, b5: { node: 7, side: 'solid' }, b9: { node: 9, side: 'solid' } };
+  seed.nextId = 10;
 }
 if (beforeExtrude) {
   seed.nodes.pop();
@@ -299,6 +311,55 @@ await f.run(async () => {
     await f.openFeatureEditor(3);
     const distance = f.editor().getByLabel('Distance', { exact: true });
     const orig = await f.snapshot('source-height-before');
+    if (sourceRecoveryFocus) {
+      const apply = button('Apply', f.editor()), reset = button('Reset', f.editor());
+      const notice = f.editor().getByRole('status').filter({ hasText: 'The linked inset opening closes' });
+      const visible = async locator => {
+        const box = await locator.boundingBox();
+        return !!box && box.y >= 36 && box.y + box.height <= 800;
+      };
+      const reject = async (height, key, face, inset, withButton) => {
+        await distance.fill(height);
+        if (withButton) await apply.press('Enter');
+        else await distance.press('Enter');
+        const hint = notice.getByText(`The ${inset} mm inset on ${face} fails with the new source size. Increase the source dimension or reset this edit.`, { exact: true });
+        await hint.waitFor();
+        await notice.getByText(new RegExp('Failed feature · Sketch · polygon \\(' + key + '\\)')).waitFor();
+        const after = await f.snapshot('linked-refusal-' + height);
+        for (const field of ['doc', 'history', 'bodies', 'selection']) assert.deepEqual(after[field], orig[field], field);
+        if (focusBaseline) {
+          assert.ok(!(await visible(hint)) || (await focused())[0] === 'BODY');
+          throw new Error('Linked Inset failure loses the Apply focus or hides its first recovery instruction.');
+        }
+        assert.ok(await visible(hint), JSON.stringify(await hint.boundingBox()));
+        assert.ok(await visible(reset), JSON.stringify(await reset.boundingBox()));
+      };
+      await reject('9.25', 'n8', 'n3.side1', 4.75, true);
+      await waitFocus(reset);
+      await reset.press('Enter');
+      assert.equal(await distance.inputValue(), '10');
+      await reject('9', 'n4', 'n3.side0', 4.5, false);
+      await waitFocus(distance);
+      await distance.fill('12');
+      await distance.press('Enter');
+      await f.changed(seed);
+      const accepted = await f.doc(), expected = structuredClone(seed);
+      expected.nodes[3].height = 12;
+      assert.deepEqual(accepted, expected);
+      const result = await f.inspect('stacked-insets-recovered', accepted);
+      assert.equal(result.length, 4);
+      const independent = [4 * (40 * 12 - 31 * 3), 4 * (24 * 12 - 14.5 * 2.5)];
+      const volumes = result.slice(-2).map(body => body.volume);
+      volumes.forEach((volume, i) => assert.ok(Math.abs(volume - independent[i]) < 1e-7));
+      f.report.observations.push({ label: 'stacked-inset-recovery', failed: ['n8', 'n4'], volumes, independent });
+      await f.undo();
+      await f.same(seed);
+      await f.redo();
+      await f.same(accepted);
+      const { file } = await f.save('stacked-inset-height-recovered');
+      await f.freshOpen(file, accepted, 'stacked-inset-recovery-reopened');
+      return;
+    }
     await distance.fill('9');
     await button('Apply', f.editor()).click();
     const notice = f.editor().getByRole('status').filter({ hasText: baseline ? 'The kernel could not build this' : 'The linked inset opening closes' });
