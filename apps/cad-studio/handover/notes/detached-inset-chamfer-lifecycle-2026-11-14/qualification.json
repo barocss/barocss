@@ -1,0 +1,85 @@
+{
+  "decision": "D1224",
+  "tier": "SMALL",
+  "node": "22.19.0",
+  "parent": "96ed835dabd2d3d0dae0f9271203c9d6408b1dc8",
+  "commands": [
+    "gate.sh acquire heavy 600 D1224-detached-chamfer-verified",
+    "D918_SOURCE_FROZEN=1 node apps/cad-studio/test/rounded-sketch-offset-browser.mjs <external-evidence>/verified --detached-source-edit --chamfer",
+    "node --check apps/cad-studio/test/rounded-sketch-offset-browser.mjs",
+    "git diff --check"
+  ],
+  "studio": {
+    "chamfer": {
+      "status": "FAIL",
+      "states": [
+        "round-1",
+        "round-2",
+        "round-3",
+        "round-4",
+        "drawn-source",
+        "drawn-linked-rounded",
+        "drawn-linked-sharp",
+        "failure"
+      ],
+      "observations": [],
+      "nativeComparisons": [],
+      "frozenFiles": 884,
+      "savedProjectFiles": [],
+      "receiptSHA256": "bae7fbca89cdf610447e87f1124222d300b3abf03e404f5eb887b2f0585fde86",
+      "sourceManifestSHA256": "e614c9b501ad5544da90818cecd42a3b46614122e08a4b0f6c389380c678fbec",
+      "sourceAfterCleanupSHA256": "e614c9b501ad5544da90818cecd42a3b46614122e08a4b0f6c389380c678fbec",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "verified": {
+      "status": "PASS",
+      "states": [
+        "round-1",
+        "round-2",
+        "round-3",
+        "round-4",
+        "drawn-source",
+        "drawn-linked-rounded",
+        "drawn-linked-sharp",
+        "detached-chamfer-applied",
+        "detached-source-radius-edited",
+        "detached-edited-fresh-open"
+      ],
+      "observations": [
+        {
+          "label": "former-source-independent",
+          "radiusBefore": 2,
+          "radiusAfter": 2.25,
+          "solidVolumeMm3": 1213.7887061435897,
+          "edge": "n2.side[e10]|n2.top",
+          "removed": 1.875000000001819
+        }
+      ],
+      "nativeComparisons": [
+        "detached-chamfer-applied",
+        "detached-source-radius-edited",
+        "detached-edited-fresh-open"
+      ],
+      "frozenFiles": 884,
+      "savedProjectFiles": [
+        {
+          "bytes": 5647,
+          "sha256": "4c08848a325583cc1b64b0a5cdbf0014b945e12b052ed1fac639fb5b40e292e9"
+        }
+      ],
+      "receiptSHA256": "ba9f1b67651c5bbddbb987128b8ecca2ad7fb77fec68292677574b9ab5b6c71f",
+      "sourceManifestSHA256": "6560d48aad519d59a1994e2fa4f3e907a81e9a12c8cb7fcc6502312cb5c4428c",
+      "sourceAfterCleanupSHA256": "6560d48aad519d59a1994e2fa4f3e907a81e9a12c8cb7fcc6502312cb5c4428c",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  }
+}

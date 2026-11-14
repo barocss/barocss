@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { clickModelCommand } from './model-rail-helper.mjs';
 
 const sourceEdit = process.argv[3] === '--source-edit';
 const nestedOffset = process.argv[3] === '--nested-offset';
@@ -8,6 +9,7 @@ const radiusFloor = process.argv[3] === '--radius-floor';
 const reopenedTarget = process.argv[3] === '--reopened-target';
 const insetRefusals = process.argv[3] === '--inset-refusals';
 const detachedSourceEdit = process.argv[3] === '--detached-source-edit';
+const detachedChamfer = process.argv.includes('--chamfer');
 const widthInset = process.argv[3] === '--width-inset';
 const widthGuidance = process.argv.includes('--width-guidance');
 const widthBaseline = process.argv.includes('--baseline');
@@ -1093,6 +1095,41 @@ async function verifyDetachedSourceEdit(linked) {
   const solid = await f.inspect('detached-original-solid', detached);
   close(solid.volume, stockVolume - 750);
   const accepted = await f.bodies();
+  let finished = detached, finishedNative = solid, finishedBodies = accepted;
+  if (detachedChamfer) {
+    f.phase = 'Chamfer the inner straight edge after Detach';
+    await button(f.page.getByRole('group', { name: 'Views', exact: true }), 'Top').click();
+    await f.page.getByTitle('Frame all (F)', { exact: true }).click();
+    const filter = button(f.page, 'Selection filter');
+    for (let i = 0; i < 4 && !(await filter.innerText()).trim().endsWith('Edges'); i++) await filter.click();
+    assert.match((await filter.innerText()).trim(), /Edges$/);
+    const point = await f.page.evaluate(() => window.__studioScreenOf([10, 2.5, 10]));
+    assert.ok(point?.length === 2);
+    await f.page.mouse.click(...point);
+    await f.page.waitForFunction(() => window.__studioSelection.selection.edges.length === 1);
+    await clickModelCommand(f.page, 'Modify', 'Chamfer');
+    const hud = f.page.getByRole('dialog', { name: 'Chamfer', exact: true });
+    await hud.getByLabel('Distance', { exact: true }).fill('0.5');
+    await f.page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await button(hud, 'Apply').click();
+    await f.changed(detached);
+    finished = await f.doc();
+    const chamfer = finished.nodes[3];
+    assert.equal(chamfer.kind, 'chamfer');
+    assert.deepEqual(chamfer.parent, { node: 2, side: 'solid' });
+    assert.equal(chamfer.distance, 0.5);
+    assert.equal(chamfer.edges.length, 1);
+    assert.equal(chamfer.edges[0], 'n2.side[e10]|n2.top');
+    assert.deepEqual(finished.nodes[1], detached.nodes[1]);
+    finishedNative = await f.inspect('detached-chamfer-native', finished);
+    close(finishedNative.volume, solid.volume - 15 * 0.5 ** 2 / 2);
+    assert.ok(finishedNative.faces.includes('n3.face'));
+    for (const x of [2.5, 17.5]) for (const [y, z] of [[2, 10], [2.5, 9.5]]) {
+      assert.ok(finishedNative.vertices.some(p => Math.hypot(p[0] - x, p[1] - y, p[2] - z) < 1e-7));
+    }
+    finishedBodies = await f.bodies();
+    await f.snapshot('detached-chamfer-applied');
+  }
 
   f.phase = 'Edit the former source independently';
   const history = f.page.getByRole('group', { name: 'History', exact: true });
@@ -1102,32 +1139,39 @@ async function verifyDetachedSourceEdit(linked) {
   assert.equal(await radius.inputValue(), '2');
   await radius.fill('2.25');
   await button(f.editor(), 'Apply').click();
-  await f.changed(detached);
+  await f.changed(finished);
   const edited = await f.doc();
   assert.equal(edited.nodes[0].outline.radii[0], 2.25);
   assert.notDeepEqual(edited.nodes[0].segments, detached.nodes[0].segments);
   assert.equal(edited.nodes[0].id, detached.nodes[0].id);
   assert.deepEqual(edited.nodes[0].sideTags, detached.nodes[0].sideTags);
-  assert.deepEqual(edited, { ...detached, nodes: [edited.nodes[0], ...detached.nodes.slice(1)] });
-  assert.deepEqual(await f.inspect('detached-after-source-edit', edited), solid);
-  assert.deepEqual(await f.bodies(), accepted);
+  assert.deepEqual(edited, { ...finished, nodes: [edited.nodes[0], ...finished.nodes.slice(1)] });
+  assert.deepEqual(await f.inspect('detached-after-source-edit', edited), finishedNative);
+  assert.deepEqual(await f.bodies(), finishedBodies);
   await f.snapshot('detached-source-radius-edited');
 
   await f.undo();
+  await f.same(finished);
+  if (detachedChamfer) await f.undo();
   await f.same(detached);
   await f.undo();
   await f.same(linked);
   await f.redo();
   await f.same(detached);
+  if (detachedChamfer) {
+    await f.redo();
+    await f.same(finished);
+  }
   await f.redo();
   await f.same(edited);
-  assert.deepEqual(await f.inspect('detached-after-redo', edited), solid);
+  assert.deepEqual(await f.inspect('detached-after-redo', edited), finishedNative);
   const saved = await save(edited);
   await f.newPage();
   await open(edited, saved);
-  assert.deepEqual(await f.inspect('detached-edited-fresh-open', edited), solid);
+  assert.deepEqual(await f.inspect('detached-edited-fresh-open', edited), finishedNative);
   await f.snapshot('detached-edited-fresh-open');
-  f.report.observations.push({ label: 'former-source-independent', radiusBefore: 2, radiusAfter: 2.25, solidVolumeMm3: solid.volume });
+  f.report.observations.push({ label: 'former-source-independent', radiusBefore: 2, radiusAfter: 2.25,
+    solidVolumeMm3: finishedNative.volume, ...(detachedChamfer ? { edge: finished.nodes[3].edges[0], removed: solid.volume - finishedNative.volume } : {}) });
 }
 
 await f.run(async () => {
