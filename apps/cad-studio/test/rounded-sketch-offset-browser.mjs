@@ -23,6 +23,7 @@ const mixedSelection = process.argv.includes('--mixed-selection');
 const detachedTangent = process.argv.includes('--detached-tangent');
 const chamferScope = process.argv.includes('--chamfer-scope');
 const mixedChamferScope = process.argv.includes('--mixed-chamfer-scope');
+const chamferDistanceRecovery = process.argv.includes('--chamfer-distance-recovery');
 const chamferScopeMutation = process.argv.includes('--mutate-chamfer-scope');
 const dependentInset = process.argv[3] === '--dependent-inset';
 const storedInset = dependentInset || insetRefusals || drawnInset || authorInset || detachInset || editInset || process.argv[3] === '--stored-inset';
@@ -83,7 +84,8 @@ const initialFiles = [
 ];
 const f = await createFlow({
   name: 'rounded-sketch-offset', envFrozen: reopenedTarget ? 'D1102_SOURCE_FROZEN' : radiusFloor ? 'D1101_SOURCE_FROZEN' : outwardSource ? 'D1100_SOURCE_FROZEN' : nestedOffset ? 'D1099_SOURCE_FROZEN' : dependentInset ? 'D999_SOURCE_FROZEN' : insetRefusals ? 'D919_SOURCE_FROZEN' : detachedSourceEdit ? 'D918_SOURCE_FROZEN' : widthInset ? 'D917_SOURCE_FROZEN' : drawnInset ? 'D916_SOURCE_FROZEN' : authorInset ? 'D915_SOURCE_FROZEN' : detachInset ? 'D914_SOURCE_FROZEN' : editInset ? 'D913_SOURCE_FROZEN' : storedInset ? 'D912_SOURCE_FROZEN' : plannedInset ? 'D910_SOURCE_FROZEN' : lostCorner ? 'D909_SOURCE_FROZEN' : sharpCandidate ? 'D908_SOURCE_FROZEN' : sourceEdit ? 'D907_SOURCE_FROZEN' : 'D906_SOURCE_FROZEN', output: process.argv[2],
-  qualification: mixedChamferScope ? 'Show an unresolved tangent scope for both orders of a mixed Chamfer.'
+  qualification: chamferDistanceRecovery ? 'Recover an excessive mixed Chamfer distance without losing native picks.'
+    : mixedChamferScope ? 'Show an unresolved tangent scope for both orders of a mixed Chamfer.'
     : chamferScope ? 'Compare the exact original picked and tangent Chamfer targets on a detached rounded inset.'
     : translatedWidth ? 'Compare the authored rounded inset width at three source positions and reopen legacy geometry.'
     : reopenedTarget ? 'Distinguish the selected R1 inner target from the R2 outer target after fresh Open.'
@@ -917,7 +919,7 @@ async function verifyChamferScope(candidate) {
     assert.deepEqual(preview.doc, detached);
     const scope = hud.getByRole('group', { name: 'Chamfer scope', exact: true });
     const added = indexes[0] === 0 ? [] : targets.filter(edge => !names.includes(edge));
-    if (widthBaseline) {
+    if (widthBaseline && !chamferDistanceRecovery) {
       assert.match(await hud.innerText(), mixedChamferScope ? /Edges\s+2 edges/ : /Edges\s+1 edge/);
       assert.equal(await scope.count(), 0);
     } else if (mixedChamferScope) {
@@ -935,6 +937,22 @@ async function verifyChamferScope(candidate) {
       }
     }
     assert.deepEqual(preview.selection.selection.edges, picked);
+    if (chamferDistanceRecovery) {
+      const distance = hud.getByLabel('Distance', { exact: true });
+      await distance.fill('6');
+      await hud.locator('.status.error').waitFor();
+      const failure = hud.getByRole('status');
+      const title = widthBaseline ? 'The selected edge no longer exists' : 'The Chamfer distance could not finish these edges';
+      await failure.getByText(title, { exact: true }).waitFor();
+      if (!widthBaseline) await failure.getByText('Reduce Distance or return to the last distance that gave a preview.', { exact: true }).waitFor();
+      assert.ok(await button(hud, 'Apply').isDisabled());
+      assert.equal(await scope.count(), 0);
+      const rejected = await f.snapshot(label + '-distance-refusal');
+      for (const field of ['doc', 'history', 'bodies', 'selection']) assert.deepEqual(rejected[field], preview[field], field);
+      await distance.fill(String(d));
+      await hud.locator('.status.ok').waitFor();
+      await scope.getByText('Exact tangent scope unavailable', { exact: true }).waitFor();
+    }
     await button(hud, 'Apply').click();
     await f.changed(detached);
     const applied = await f.doc(), edgeFinish = applied.nodes[3];
@@ -961,7 +979,9 @@ async function verifyChamferScope(candidate) {
       await f.snapshot(label + '-chamfer-reopened');
     }
   }
-  if (widthBaseline) throw new Error(mixedChamferScope
+  if (widthBaseline) throw new Error(chamferDistanceRecovery
+    ? 'An excessive distance asks for reselection even though the original edges are present.'
+    : mixedChamferScope
     ? 'Mixed Chamfer reports only the pick count and omits the unknown tangent scope.'
     : 'Both distinct Chamfer previews report only one selected edge.');
 }

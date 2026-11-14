@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D1238 — explain an excessive mixed Chamfer distance](notes/mixed-chamfer-distance-recovery-2026-11-14/README.md).
 - [D1237 — check authored rounded inset width before translation](notes/rounded-inset-authored-width-and-origin-2026-11-14/README.md).
 - [D1236 — show Linked Inset recovery at keyboard focus](notes/linked-inset-history-recovery-focus-2026-11-14/README.md).
 - [D1235 — validate the Align History Gap before Apply](notes/align-history-gap-input-bounds-2026-11-14/README.md).

@@ -112,6 +112,11 @@ export function finishEdges(part: Part, names: string[], size: number, kind: 'ch
   for (const e of wedges) solid = wedgeChamfer(solid, brep, e, size, at, fail);
   if (general.length) {
     const body = solid.kind === 'upright' ? brepFromPrismatic(solid.solid) : solid.brep;
+    if (kind === 'chamfer' && (vertical.length || wedges.length)) {
+      const remaining = new Set(body.edges.map(edge => edge.name));
+      const missing = general.find(name => !remaining.has(name));
+      if (missing !== undefined) fail('SELECTION', `Chamfer intermediate edge ${missing} is unavailable at this distance.`);
+    }
     try { solid = { kind: 'brep', brep: finishBrepEdges(body, general, size, kind, at, { reports, tangentTargets, ...(radii ? { radii } : {}), ...(shape ? { shape } : {}) }) }; }
     catch (cause) {
       const m = cause instanceof BrepError ? /^B-rep: (SELECTION|CAPABILITY|PARAMETER): (.*)$/s.exec(cause.message) : null;

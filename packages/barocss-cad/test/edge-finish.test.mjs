@@ -79,6 +79,14 @@ test('chamfer reports exact original targets from its own successful finishing p
       { id: 'moved', kind: 'translate', target: 'finish', offset: [0, 20, 0] }] });
     assert.equal(moved.outputs.find(body => body.id === 'moved')?.chamferTargets, undefined);
   }
+  const attempt = (edges, distance) => evaluateCadPart({ ...doc,
+    features: [...doc.features, { id: 'finish', kind: 'chamfer', target: 'stock', edges, distance }] });
+  for (const edges of [[rim[0], rim[1]], [rim[1], rim[0]]]) {
+    assert.throws(() => attempt(edges, 6), error => error.code === 'SELECTION' && error.feature === 'finish'
+      && error.message.includes(`Chamfer intermediate edge ${rim[1]} is unavailable at this distance.`));
+  }
+  assert.throws(() => attempt([rim[0], 'missing.original.edge'], 6), error => error.code === 'SELECTION'
+    && error.feature === 'finish' && error.message.includes('no edge named missing.original.edge'));
 });
 
 test('fillets meeting at the corners of a box top form mitres (checked against a direct grid count)', () => {
