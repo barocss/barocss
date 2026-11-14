@@ -21,20 +21,39 @@ const positiveHeight = (height: unknown, parameters: StudioDoc['parameters']) =>
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 };
 
-/** Only a plain source prism can give an unambiguous top-cap edge role in this version. */
-export function revolveAxisReference(doc: StudioDoc, source: number, sketch: number, edge: string, dormant = false): RevolveAxisRef | undefined {
-  const stock = doc.nodes[source], profile = doc.nodes[sketch];
-  if (stock?.kind !== 'extrude' || stock.cutDepth || (!dormant && (stock.suppressed || stock.draft || !positiveHeight(stock.height, doc.parameters)))
-    || profile?.kind !== 'sketch' || (!dormant && profile.suppressed) || profile.association || profile.pocketFloor || !isXY(profile.plane)) return;
+function uniqueSourceId(doc: StudioDoc, index: number): string | undefined {
+  const id = featureId(doc.nodes, index);
+  if (/^n\d+$/.test(id) && doc.nodes.filter((_, i) => featureId(doc.nodes, i) === id).length === 1) return id;
+}
+
+/** Recognize a plain stock prism or one earlier Move of that prism. */
+export function revolveAxisStock(doc: StudioDoc, source: number, sketch: number, dormant = false) {
+  const output = doc.nodes[source], profile = doc.nodes[sketch];
+  if (!output || (!dormant && output.suppressed) || profile?.kind !== 'sketch' || (!dormant && profile.suppressed)
+    || profile.association || profile.pocketFloor || !isXY(profile.plane)) return;
+  let prism = source;
+  if (output.kind === 'translate') {
+    const parent = output.parent;
+    if (parent?.side !== 'solid' || !Number.isInteger(parent.node) || parent.node < 0 || parent.node >= source) return;
+    prism = parent.node;
+  }
+  const stock = doc.nodes[prism];
+  if (stock?.kind !== 'extrude' || stock.cutDepth || (!dormant && (stock.suppressed || stock.draft || !positiveHeight(stock.height, doc.parameters)))) return;
   const section = doc.nodes[stock.sketch];
-  if (stock.sketch >= source || section?.kind !== 'sketch' || section.profile !== 'rectangle' || !isXY(section.plane)
+  if (stock.sketch >= prism || section?.kind !== 'sketch' || section.profile !== 'rectangle' || !isXY(section.plane)
     || (!dormant && section.suppressed) || section.association || section.pocketFloor || section.regions?.length || section.holes?.length) return;
-  const sourceFeature = featureId(doc.nodes, source);
-  if (!/^n\d+$/.test(sourceFeature) || doc.nodes.filter((_, i) => featureId(doc.nodes, i) === sourceFeature).length !== 1) return;
-  const names = edge.split('|'), top = `${sourceFeature}.top`;
-  const tags = section.sideTags?.outer;
-  if (section.sideTags && (!Array.isArray(tags) || tags.length !== 4 || new Set(tags).size !== 4 || tags.some(tag => !/^e[0-9]+$/.test(tag)))) return;
-  const sides = tags ? tags.map(tag => `${sourceFeature}.side[${tag}]`) : [0, 1, 2, 3].map(i => `${sourceFeature}.side${i}`);
+  const sourceFeature = uniqueSourceId(doc, source), edgeOwner = prism === source ? sourceFeature : uniqueSourceId(doc, prism);
+  if (sourceFeature && edgeOwner) return { sourceFeature, edgeOwner, sideTags: section.sideTags };
+}
+
+export function revolveAxisReference(doc: StudioDoc, source: number, sketch: number, edge: string, dormant = false): RevolveAxisRef | undefined {
+  const stock = revolveAxisStock(doc, source, sketch, dormant);
+  if (!stock) return;
+  const { sourceFeature, edgeOwner, sideTags } = stock;
+  const names = edge.split('|'), top = `${edgeOwner}.top`;
+  const tags = sideTags?.outer;
+  if (sideTags && (!Array.isArray(tags) || tags.length !== 4 || new Set(tags).size !== 4 || tags.some(tag => !/^e[0-9]+$/.test(tag)))) return;
+  const sides = tags ? tags.map(tag => `${edgeOwner}.side[${tag}]`) : [0, 1, 2, 3].map(i => `${edgeOwner}.side${i}`);
   const side = sides.findIndex(name => names.includes(name));
   if (names.length === 2 && names.includes(top) && side >= 0) return { version: 1, sourceFeature, edge, side };
 }

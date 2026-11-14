@@ -1,0 +1,157 @@
+{
+  "decision": "D1165",
+  "tier": "FEATURE",
+  "parent": "9661426ea15faa1b59cab19d1654bbe3b1b9d203",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1165-<run>",
+    "D1165_SOURCE_FROZEN=1 node apps/cad-studio/test/revolve-moved-axis-browser.mjs <external-evidence>/<run> [--baseline]",
+    "D1164_SOURCE_FROZEN=1 node apps/cad-studio/test/revolve-history-axis-browser.mjs <external-evidence>/history-regression",
+    "cd packages/barocss-cad-model && node scripts/test.mjs revolve-axis profiles-parameters engine.test",
+    "cd apps/cad-studio && node scripts/test.mjs extrude-end-face-pick failed-feature",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/app/revolveAxisEdit.ts packages/barocss-cad-model/src/engine/revolveAxis.ts packages/barocss-cad-model/test/revolve-axis.test.ts",
+    "node --check apps/cad-studio/test/revolve-moved-axis-browser.mjs",
+    "git diff --check",
+    "pnpm --filter @barocss/cad-studio-app exec vite build --outDir <external-evidence>/build"
+  ],
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "axis-y22",
+        "earlier-move-y6",
+        "failure"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "3c372584b4573973f3efb54f266f2bcc4ed739060a030739d146063da81841d6",
+      "sourceManifestSHA256": "6749882167d4a13adc5496828d34d7831967ee6795a29723d24754d43f1e95b4",
+      "observations": [
+        {
+          "label": "axis-y22",
+          "axisY": 22,
+          "stockY": 2,
+          "stockId": "n2",
+          "volume": 2733.185608623119,
+          "expected": 2733.18560862312,
+          "stockVolume": 16000.000000000002
+        },
+        {
+          "label": "fixed-axis-y22",
+          "axisY": 22,
+          "stockY": 6,
+          "stockId": "n2",
+          "volume": 2733.185608623119,
+          "expected": 2733.18560862312,
+          "stockVolume": 16000.000000000002
+        }
+      ]
+    },
+    "first": {
+      "status": "FAIL",
+      "states": [
+        "axis-y22",
+        "earlier-move-y6",
+        "off-plane-move-refused",
+        "moved-axis-replacement-cancelled",
+        "failure"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "d2a2adadcbcc75c187d9d0100c8e7001f73b956f76a258afc70a1ffce51a6dc9",
+      "sourceManifestSHA256": "f896b0e84de7791b58371a750ea436d9e65e4d3c5ce3619c9351cf15f946f916"
+    },
+    "qualified": {
+      "status": "FAIL",
+      "states": [
+        "axis-y22",
+        "earlier-move-y6",
+        "off-plane-move-refused",
+        "moved-axis-replacement-cancelled",
+        "failure"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "2ef901c24259d185168116b792092180ebe570b5557e28e693f3019e5bba77e9",
+      "sourceManifestSHA256": "f896b0e84de7791b58371a750ea436d9e65e4d3c5ce3619c9351cf15f946f916"
+    },
+    "final": {
+      "status": "FAIL",
+      "states": [
+        "axis-y22",
+        "earlier-move-y6",
+        "off-plane-move-refused",
+        "moved-axis-replacement-cancelled",
+        "failure"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "06d30b976e9f2de6e387e8c8cac2cafad9a2d637db0c8fcbd235d4c31d6200f6",
+      "sourceManifestSHA256": "f896b0e84de7791b58371a750ea436d9e65e4d3c5ce3619c9351cf15f946f916"
+    },
+    "replay": {
+      "status": "PASS",
+      "states": [
+        "axis-y22",
+        "earlier-move-y6",
+        "off-plane-move-refused",
+        "moved-axis-replacement-cancelled",
+        "later-move-keeps-order",
+        "moved-axis-reopened"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "b8cec40546c40c525e86b9d10698293267ead9aa78134b24e710ea563a724df2",
+      "sourceManifestSHA256": "f896b0e84de7791b58371a750ea436d9e65e4d3c5ce3619c9351cf15f946f916",
+      "observations": [
+        {
+          "label": "axis-y22",
+          "axisY": 22,
+          "stockY": 2,
+          "stockId": "n2",
+          "volume": 2733.185608623119,
+          "expected": 2733.18560862312,
+          "stockVolume": 16000.000000000002
+        },
+        {
+          "label": "axis-y26",
+          "axisY": 26,
+          "stockY": 6,
+          "stockId": "n2",
+          "volume": 3487.1678454846697,
+          "expected": 3487.1678454846706,
+          "stockVolume": 16000.000000000002
+        },
+        {
+          "label": "later-move-keeps-order",
+          "axisY": 26,
+          "stockY": 13,
+          "stockId": "n5",
+          "volume": 3487.1678454846697,
+          "expected": 3487.1678454846706,
+          "stockVolume": 16000.000000000002
+        },
+        {
+          "label": "reopened-axis-y26",
+          "axisY": 26,
+          "stockY": 13,
+          "stockId": "n5",
+          "volume": 3487.1678454846697,
+          "expected": 3487.1678454846706,
+          "stockVolume": 16000.000000000002
+        }
+      ]
+    },
+    "history-regression": {
+      "status": "PASS",
+      "states": [
+        "later-edge-refused",
+        "axis-preview",
+        "axis-cancelled",
+        "axis-replaced",
+        "axis-reopened",
+        "fixed-axis-replaced"
+      ],
+      "frozenFiles": 870,
+      "receiptSHA256": "c7b357067a236686fa3bcedb323eef79027bd3ede32d54c8f1b7646cdbf93ca4",
+      "sourceManifestSHA256": "f896b0e84de7791b58371a750ea436d9e65e4d3c5ce3619c9351cf15f946f916"
+    }
+  }
+}

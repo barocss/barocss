@@ -1,6 +1,7 @@
 import type { StudioDoc } from '../engine/doc';
 import { featureId } from '../engine/ids';
 import { refusal } from '../engine/refusal';
+import { revolveAxisStock } from '../engine/revolveAxis';
 import type { Command, Values } from './commands';
 import { pickedRevolveAxisReference, revolveAxis, revolveCommand } from './profileCommands';
 
@@ -19,7 +20,7 @@ export function editSavedRevolveAxisCommand(doc: StudioDoc, index: number): Comm
     || doc.nodes[node.sketch]?.kind !== 'sketch' || doc.nodes[node.sketch].suppressed
     || doc.nodes.filter((_, i) => featureId(doc.nodes, i) === id).length !== 1
     || !Object.values(doc.outputs).some(ref => ref.node === index && ref.side === 'solid')
-    || !Object.values(doc.outputs).some(ref => ref.node < index && ref.side === 'solid' && doc.nodes[ref.node]?.kind === 'extrude')) return null;
+    || !Object.values(doc.outputs).some(ref => ref.node < index && ref.side === 'solid' && revolveAxisStock(doc, ref.node, node.sketch))) return null;
 
   return {
     id: REVOLVE_AXIS_EDIT, label: 'Replace axis', icon: 'cad-revolve', group: 'modify',

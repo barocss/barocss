@@ -9,6 +9,7 @@ import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/
 import { evaluateDoc } from '../src/engine/evaluate';
 import { flattenAssembly } from '../src/engine/flatten';
 import { readStudioDoc } from '../src/engine/migrate';
+import { revolveAxisReference } from '../src/engine/revolveAxis';
 import { currentLinkedRevolveAxis, featureOf, toPartDocument } from '../src/engine/part';
 
 const ref = (node: number) => ({ node, side: 'solid' as const });
@@ -106,4 +107,42 @@ test('History replaces only the saved Revolve after an earlier current edge pick
   const rotor = outputs(candidate).find(body => body.id === 'n3')!;
   assert.ok(checkOutput(rotor).valid);
   near(massPropertiesOf(rotor).volume, 450 * Math.PI);
+});
+
+test('a linked axis resolves an earlier Move using its original prism edge names', () => {
+  const stock = withNode(rectanglePart(40, 20, 20), { kind: 'translate', parent: ref(1), offset: [0, 2, 0] });
+  const profile = withNode(stock, { kind: 'sketch', profile: 'rectangle', min: [10, 6], max: [20, 9],
+    plane: { origin: [0, 0, 20], normal: [0, 0, 1], xAxis: [1, 0, 0] } });
+  const axisRef = { version: 1, sourceFeature: 'n2', edge: 'n1.side2|n1.top', side: 2 } as const;
+  const doc = withNode(profile, { kind: 'revolve', sketch: 3, axis: 'x', origin: [40, 22], dir: [-1, 0], angle: 360, axisRef });
+  const moved = patch(doc, 2, { offset: [0, 6, 0] });
+  assert.deepEqual(revolveAxisReference(profile, 2, 3, axisRef.edge), axisRef);
+  assert.equal(revolveAxisReference(profile, 2, 3, 'n2.side2|n2.top'), undefined);
+  assert.deepEqual(featureDependents(doc, 2), [4]);
+  assert.ok('error' in deleteFeature(doc, 2));
+  assert.deepEqual(currentLinkedRevolveAxis(moved, 4), { origin: [40, 26], dir: [-1, 0] });
+  assert.throws(() => toPartDocument(patch(moved, 2, { offset: [0, 6, 4] })), /edge must remain in the sketch plane/);
+  assert.throws(() => toPartDocument(patch(moved, 2, { suppressed: true })), /earlier rectangular solid/);
+  assert.doesNotThrow(() => toPartDocument(patch(patch(moved, 4, { suppressed: true }), 2, { suppressed: true })));
+  assert.throws(() => toPartDocument(patch(moved, 2, { parent: ref(2) })), /earlier rectangular solid/);
+  const later = withNode(moved, { kind: 'translate', parent: ref(2), offset: [0, 7, 0] });
+  assert.deepEqual(currentLinkedRevolveAxis(later, 4), { origin: [40, 26], dir: [-1, 0] });
+  assert.equal(outputs(later).find(body => body.id === 'n5')?.brep.vertices[0].point[1], 13);
+  const mass = (body: ReturnType<typeof outputs>[number]) => {
+    assert.ok(checkOutput(body).valid);
+    return massPropertiesOf(body).volume;
+  };
+  near(mass(outputs(doc).find(b => b.id === 'n4')!), 870 * Math.PI);
+  near(mass(outputs(later).find(b => b.id === 'n4')!), 1110 * Math.PI);
+  const copied = outputs(duplicateBody(moved, ref(4), [55, 0, 0]).doc);
+  assert.equal(copied.length, 3);
+  assert.equal(copied.filter(b => Math.abs(mass(b) - 1110 * Math.PI) < 1e-7).length, 2);
+  const joined = withNode(doc, { kind: 'union', left: ref(2), right: ref(4) });
+  const joinedCopy = outputs(duplicateBody(joined, ref(5), [55, 0, 0]).doc);
+  assert.equal(joinedCopy.length, 2);
+  near(mass(joinedCopy[0]), mass(joinedCopy[1]));
+  const assembly = addPart(rectanglePart(4, 4, 4), { name: 'Moved axis', doc: moved, position: [65, 0, 0], rotation: [0, 0, 0] }).doc;
+  const flattened = outputs(flattenAssembly(assembly));
+  assert.equal(flattened.length, 3);
+  assert.equal(flattened.filter(b => Math.abs(mass(b) - 1110 * Math.PI) < 1e-7).length, 1);
 });
