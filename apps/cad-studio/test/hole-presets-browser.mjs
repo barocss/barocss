@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createFlow, sha256 } from './flow-helper.mjs';
+import { openModelGroup } from './model-rail-helper.mjs';
 import { runOtherHolePresets } from './hole-presets-other-types.mjs';
 
 const otherTypes = process.argv[3] === '--other-types';
-const keyboardOnly = process.argv[3] === '--keyboard';
+const focusClose = process.argv[3] === '--focus-close';
+const focusBaseline = process.argv.includes('--baseline');
+const keyboardOnly = process.argv[3] === '--keyboard' || focusClose;
 const pins = [
   'apps/cad-studio/test/hole-presets-browser.mjs',
   'apps/cad-studio/test/hole-presets-other-types.mjs',
@@ -17,7 +20,7 @@ const pins = [
 ];
 const f = await createFlow({
   name: 'hole-presets', output: process.argv[2],
-  envFrozen: keyboardOnly ? 'D1178_SOURCE_FROZEN' : otherTypes ? 'D827_SOURCE_FROZEN' : 'D826_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
+  envFrozen: focusClose ? 'D1249_SOURCE_FROZEN' : keyboardOnly ? 'D1178_SOURCE_FROZEN' : otherTypes ? 'D827_SOURCE_FROZEN' : 'D826_SOURCE_FROZEN', initialFiles: pins, requiredFrozen: pins,
   qualification: keyboardOnly ? 'Choose and use a Hole preset with real keyboard input in desktop Studio.'
     : otherTypes ? 'Apply through, counterbore and countersink presets to fresh right faces and recover from corrupt settings.'
     : 'Save hole options from the top of one part and explicitly apply them to the right face of another part.',
@@ -119,6 +122,74 @@ async function savePreset(name) {
   await presetName().press('Enter');
   assert.ok(await hud().isVisible(), 'Enter in the preset name must not commit a hole');
   await button(hud(), 'Save preset').click();
+}
+
+async function runClosingFocus() {
+  await f.newPage();
+  await f.page.setViewportSize({ width: 1024, height: 800 });
+  await open(name, second);
+  await pick('Right', [90, 25, 6]);
+  const group = await openModelGroup(f.page, 'Create');
+  const tool = button(group, 'Hole');
+  const start = async () => {
+    await tool.focus();
+    await f.page.keyboard.press('Enter');
+    await hud().waitFor();
+    if (await button(f.page, 'Open the dock').isVisible()) await button(f.page, 'Open the dock').click();
+    await preview();
+    const disclosure = hud().getByText('Hole presets', { exact: true });
+    await disclosure.focus();
+    await f.page.keyboard.press('Enter');
+    await preset().waitFor();
+  };
+  const before = await editState();
+  await start();
+  await type().selectOption('blind');
+  await field(hud(), 'Diameter').fill('6');
+  await field(hud(), 'Depth').fill('5');
+  await savePreset('Blind 6 at 5');
+  await field(hud(), 'Depth').fill('4');
+  await savePreset('Blind 6 at 4');
+  for (const action of ['Escape', 'Cancel', 'Apply']) {
+    f.phase = 'Hole focus after ' + action;
+    if (action !== 'Escape') await start();
+    await preset().focus();
+    await preset().selectOption('Blind 6 at 5');
+    await f.page.keyboard.press('ArrowDown');
+    await f.page.keyboard.press('ArrowUp');
+    assert.equal(await preset().inputValue(), 'Blind 6 at 5');
+    await f.page.keyboard.press('Tab');
+    const use = button(hud(), 'Use preset');
+    assert.equal(await use.evaluate(element => element === document.activeElement), true);
+    await f.page.keyboard.press('Enter');
+    await preview();
+    await f.same(second);
+    if (action === 'Escape') {
+      await preset().focus();
+      await f.page.keyboard.press('Escape');
+    } else {
+      await button(hud(), action).focus();
+      await f.page.keyboard.press('Enter');
+    }
+    await hud().waitFor({ state: 'hidden' });
+    const state = await f.snapshot('focus-after-' + action.toLowerCase(), () => ({
+      activeFocus: document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.nodeName,
+    }));
+    assert.equal(state.activeFocus, focusBaseline ? 'BODY' : 'Hole');
+    if (action === 'Apply') {
+      const saved = state.doc;
+      assert.equal(saved.nodes.length, 3);
+      await checkNative('focused-right-hole', saved, 5);
+      await f.undo();
+      await f.same(second);
+      await f.redo();
+      await f.same(saved);
+    } else {
+      await f.same(second);
+      assert.deepEqual(await editState(), before);
+    }
+  }
+  if (focusBaseline) throw Error('Hole closes with focus on the page body.');
 }
 
 async function runKeyboardPreset() {
@@ -240,6 +311,7 @@ await f.run(async () => {
     });
     return context;
   };
+  if (focusClose) { await runClosingFocus(); return; }
   if (keyboardOnly) {
     await runKeyboardPreset();
     return;

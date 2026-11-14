@@ -1450,11 +1450,27 @@ export function App() {
   };
   const { play, animatedAt, videoBusy, recordVideo, exportImage } = useRenderPlayback({ render, rendering, state: { time, setTime, playing, setPlaying, turnFrom }, viewport, fileName, onNotice: setToast });
 
+  const holeOpener = useRef<HTMLElement | null>(null);
+  const holeCloseFocus = useCallback((active: Active | null) => {
+    const focused = document.activeElement;
+    if (active?.cmd.id !== 'hole' || !focused?.closest('.hud')) return;
+    const opener = holeOpener.current;
+    const scope = openIntent.current;
+    requestAnimationFrame(() => {
+      if (openIntent.current !== scope || activeStore.get() || document.activeElement !== document.body) return;
+      const fallback = document.querySelector<HTMLElement>('[data-workspace-mode] button:first-child');
+      const target = opener?.isConnected && !opener.closest('[hidden]') ? opener : fallback;
+      target?.focus();
+    });
+  }, [activeStore]);
+
   const cancel = useCallback(() => {
-    const command = activeStore.get()?.cmd;
+    const running = activeStore.get();
+    const command = running?.cmd;
+    holeCloseFocus(running);
     if (command) setToast(current => current?.inputPick === command ? null : current);
     discardDirectCandidateRef.current(); discardRouteRef.current(); setActive(null); setPreviewBodies(null); setSketch(null);
-  }, [activeStore, setSketch]);
+  }, [activeStore, holeCloseFocus, setSketch]);
 
   const openRoute = () => {
     cancel(); setPole(null); setPoleDrag(null); routeEditor.open(directSel);
@@ -1527,8 +1543,9 @@ export function App() {
       if (!clearSelection) setSelection(sel => carrySelection(sel, acceptedBodies, previewBodies));
       setBodies(previewBodies); claimBodies.current = true;
     }
+    holeCloseFocus(active);
     setActive(null); setPreviewBodies(null); setSketch(null);
-  }, [activeStore, commit, previewBodies, bodies, bearingRootCurrent, commandDoc, setSketch, acceptanceScope, doc, evaluated, commandPreview.retire, stageFeatureCandidate, fresh, busy, massReady]);
+  }, [activeStore, holeCloseFocus, commit, previewBodies, bodies, bearingRootCurrent, commandDoc, setSketch, acceptanceScope, doc, evaluated, commandPreview.retire, stageFeatureCandidate, fresh, busy, massReady]);
   const uploadFont = useCallback(async (key: string, file: File) => {
     const captured = activeStore.get();
     if (!captured || key !== 'font') return;
@@ -1754,6 +1771,10 @@ export function App() {
       : cmd.id === 'hole' ? { ...ctx, holeSnapStep: snapStep }
       : cmd.id === 'extrude' ? { ...ctx, viewportEndFace: true }
       : cmd === LINKED_INSET_EXTRUDE ? { ...ctx, doc } : ctx;
+    if (cmd.id === 'hole') {
+      const focused = document.activeElement;
+      holeOpener.current = focused instanceof HTMLElement && focused.closest('nav[aria-label="Tools"]') ? focused : null;
+    }
     if (family) { commandPreview.retire(); applyWhenReady.current = null; const next = newFilletActive(family, startCtx, initial); setSelection(next.ctx.selection); setActive(next); }
     else setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, doc, selection, instanceSel, bodies, engine, commit, evaluated, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut, commandPreview.retire, discardFeatureDraft, fresh, busy, modelUnavailable, nativeVertexReady, checkInterference, midpointSketch.start, cancelNativeReview, snapStep, directSel]);

@@ -1,0 +1,85 @@
+{
+  "decision": "D1249",
+  "tier": "SMALL",
+  "parent": "43cf86d8e6a2fb2ab166ca9eb1ad992f13c3940f",
+  "node": "22.19.0",
+  "commands": [
+    "gate.sh acquire heavy 600 D1249-<run>",
+    "D1249_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-presets-browser.mjs <external-evidence> --focus-close [--baseline]",
+    "D1178_SOURCE_FROZEN=1 node apps/cad-studio/test/hole-presets-browser.mjs <external-evidence> --keyboard",
+    "pnpm --filter @barocss/cad-studio-app test hole-presets",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/hole-presets-browser.mjs",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "studio": {
+    "baseline2": {
+      "status": "FAIL",
+      "frozenFiles": 885,
+      "states": 4,
+      "receiptSHA256": "3ae3f8b28471093450c196f48fce6149e6392898f3236090da510727e05cbdc3",
+      "sourceManifestSHA256": "a8b7ac5967b041b54e05e8638d4dafead67f5f1a017967f4f4769abd195672f2",
+      "sourceAfterCleanupSHA256": "a8b7ac5967b041b54e05e8638d4dafead67f5f1a017967f4f4769abd195672f2",
+      "focus": [
+        {
+          "state": "focus-after-escape",
+          "control": "BODY"
+        },
+        {
+          "state": "focus-after-cancel",
+          "control": "BODY"
+        },
+        {
+          "state": "focus-after-apply",
+          "control": "BODY"
+        }
+      ]
+    },
+    "fixed": {
+      "status": "PASS",
+      "frozenFiles": 885,
+      "states": 3,
+      "receiptSHA256": "b444dd1cd26d40288cad87924fdbb7a1dc8d4b707c0213d6e51bb4b035a7fa4b",
+      "sourceManifestSHA256": "4cd0fd1f90d7896bffddb337e8183272a6c1f9179230a412a8ce9200bd663360",
+      "sourceAfterCleanupSHA256": "4cd0fd1f90d7896bffddb337e8183272a6c1f9179230a412a8ce9200bd663360",
+      "focus": [
+        {
+          "state": "focus-after-escape",
+          "control": "Hole"
+        },
+        {
+          "state": "focus-after-cancel",
+          "control": "Hole"
+        },
+        {
+          "state": "focus-after-apply",
+          "control": "Hole"
+        }
+      ]
+    },
+    "keyboard-regression": {
+      "status": "PASS",
+      "frozenFiles": 885,
+      "states": 2,
+      "receiptSHA256": "768305ea7efefe236cd6bcc47824f652abf1510d3f0cdf6d757f37bf7e4ca9f4",
+      "sourceManifestSHA256": "4cd0fd1f90d7896bffddb337e8183272a6c1f9179230a412a8ce9200bd663360",
+      "sourceAfterCleanupSHA256": "4cd0fd1f90d7896bffddb337e8183272a6c1f9179230a412a8ce9200bd663360",
+      "focus": []
+    }
+  },
+  "checks": {
+    "focusedStudio": {
+      "status": "PASS",
+      "tests": 3
+    },
+    "studioTypeCheck": "PASS",
+    "driverSyntax": "PASS",
+    "productionBuild": "PASS",
+    "diff": "PASS",
+    "visualReview": "PASS",
+    "nativePopupEscape": "NOT_RUN",
+    "assistiveTechnology": "NOT_RUN",
+    "mobile": "NOT_RUN"
+  }
+}
