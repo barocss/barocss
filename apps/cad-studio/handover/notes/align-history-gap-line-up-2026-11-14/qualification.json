@@ -1,0 +1,221 @@
+{
+  "decision": "D1202",
+  "tier": "FEATURE",
+  "node": "22.19.0",
+  "parent": "170c7f53a7223b1c2e4969a51e2b6bd9cde5a7e9",
+  "commands": [
+    "gate.sh acquire heavy 600 D1202-<run>",
+    "cd packages/barocss-cad-model && node scripts/test.mjs align editFields ids",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/src/engine/alignPlacement.ts packages/barocss-cad-model/src/engine/alignRecipe.ts packages/barocss-cad-model/src/app/alignCommand.ts packages/barocss-cad-model/src/app/editFields.ts packages/barocss-cad-model/src/engine/mesh.ts packages/barocss-cad-model/test/align.test.ts apps/cad-studio/src/ui/NodeEditor.tsx",
+    "node --check apps/cad-studio/test/align-retarget-preview-browser.mjs",
+    "D1202_SOURCE_FROZEN=1 node <external-evidence>/history-driver.mjs <external-evidence>/baseline --history",
+    "D1202_SOURCE_FROZEN=1 node apps/cad-studio/test/align-retarget-preview-browser.mjs <external-evidence>/final --history",
+    "cd apps/cad-studio && pnpm exec vite build --outDir <external-evidence>/build",
+    "git diff --check"
+  ],
+  "focused": {
+    "modelPassed": 29,
+    "initialModelFailure": "The initial top-level NODE_EXTRA_FIELDS spread ran within a module cycle."
+  },
+  "studio": {
+    "baseline": {
+      "status": "FAIL",
+      "states": [
+        "b-preview",
+        "generated-preview-face-refused",
+        "c-click-during-b-preview",
+        "align-applied",
+        "history-lowered-rotate-and-move",
+        "failure"
+      ],
+      "frozenFiles": 878,
+      "receiptSHA256": "3c9eba5a25c964798dd5f2b460dde8c00b4f17a3d1471efe582ae668ffa3ad03",
+      "sourceManifestSHA256": "4a48013a17a7b78ff8d7f19eb4a2059a0e5072da1bf00419fa27f9fa2d0c2b60",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "firstFailure": "Align lowered to Rotate and Move with no Gap, Line up or target in History.",
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b7",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "final": {
+      "status": "PASS",
+      "states": [
+        "b-preview",
+        "generated-preview-face-refused",
+        "c-click-during-b-preview",
+        "align-applied",
+        "history-bound-faces",
+        "history-gap-and-line-up",
+        "reopened-align-history"
+      ],
+      "frozenFiles": 880,
+      "receiptSHA256": "d89cffb3fa7c41855264d7421f28203d87da4581224dc54e4c9c5116a91f8e79",
+      "sourceManifestSHA256": "82f834e5bb1a803d74047981a3a0999899ccd1173375ca35ee38a3da4c324d94",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "observations": [
+        {
+          "label": "accepted-native",
+          "target": "n5.top",
+          "offset": [
+            89,
+            5,
+            -6
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                95,
+                10.000000000000002,
+                16.999999999999996
+              ]
+            }
+          ]
+        },
+        {
+          "label": "history-native",
+          "target": "n5.top",
+          "offset": [
+            0,
+            0,
+            -4
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                5.999999999999999,
+                5.000000000000002,
+                18.999999999999996
+              ]
+            }
+          ]
+        },
+        {
+          "label": "reopened-native",
+          "target": "n5.top",
+          "offset": [
+            0,
+            0,
+            -4
+          ],
+          "bodies": [
+            {
+              "key": "b3",
+              "volume": 2560.0000000000005,
+              "centroid": [
+                50.00000000000001,
+                8,
+                4
+              ]
+            },
+            {
+              "key": "b5",
+              "volume": 7200.000000000004,
+              "centroid": [
+                94.99999999999999,
+                9.999999999999996,
+                6
+              ]
+            },
+            {
+              "key": "b6",
+              "volume": 720.0000000000002,
+              "centroid": [
+                5.999999999999999,
+                5.000000000000002,
+                18.999999999999996
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

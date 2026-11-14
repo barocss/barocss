@@ -23,6 +23,8 @@ export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number;
   nativePlaneName?: string;
   /** Exact constant coordinate of the unmerged native planar support. */
   nativeAxisPlane?: { axis: Axis; at: number };
+  /** A single exact rectangular native trim on an unmerged axis plane. */
+  nativeAlignFace?: { axis: Axis; sign: 1 | -1 };
   /** A non-linear B-rep boundary of this planar face, including hidden tangent joints. */
   curvedBoundary?: true;
   /** The face's exact surface where the kernel knows it (A6.3: datums and measures to rounding, not to the Float32 mesh): a plane (a point, the normal out of the face) or a cylinder (a point on the axis, its direction, the radius). */
@@ -39,8 +41,8 @@ export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number;
   chordDepth?: number }
 /** Native member coordinates belong only to the original unplaced body. */
 export function withoutNativeFaces(face: DisplayFace): DisplayFace {
-  const { nativeFaces, nativePlaneName, nativeAxisPlane, ...display } = face;
-  return nativeFaces || nativePlaneName !== undefined || nativeAxisPlane ? display : face;
+  const { nativeFaces, nativePlaneName, nativeAxisPlane, nativeAlignFace, ...display } = face;
+  return nativeFaces || nativePlaneName !== undefined || nativeAxisPlane || nativeAlignFace ? display : face;
 }
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[];
   /** B-rep vertex IDs in display endpoint order, for one ungrouped native prism edge. */
@@ -143,6 +145,9 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8, readBoundar
   const groups = new Map<string, string[]>();
   for (const f of brep.faces) { const r = find(f.id), l = groups.get(r); if (l) l.push(f.id); else groups.set(r, [f.id]); }
   const faceById = new Map(brep.faces.map(f => [f.id, f]));
+  const alignLoops = new Map(brep.loops.map(loop => [loop.id, loop]));
+  const alignUses = new Map(brep.coedges.map(use => [use.id, use]));
+  const alignEdges = new Map(brep.edges.map(edge => [edge.id, edge]));
 
   // (O8: a body of two or more lumps — the kernel's D204, lumps touching along a line or at a point as lumps apart — each
   // display face on its lump; a face group never spans two, their edges are their own.)
@@ -181,7 +186,19 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8, readBoundar
           if (df.nativePlaneName) {
             const axis = (['x', 'y', 'z'] as const).find((_, k) => Number.isFinite(pl.o[k])
               && sf.controlPoints.every(row => row.every(point => point[k] === pl.o[k])));
-            if (axis) df.nativeAxisPlane = { axis, at: pl.o['xyz'.indexOf(axis)] };
+            if (axis) {
+              const k = 'xyz'.indexOf(axis);
+              df.nativeAxisPlane = { axis, at: pl.o[k] };
+              const loop = nativeFace.loops.length === 1 ? alignLoops.get(nativeFace.loops[0]) : undefined;
+              if (brep.bodies.length === 1 && brep.bodies[0].kind === 'solid' && !nativeFace.name?.includes('#')
+                && sf.degreeU === 1 && sf.degreeV === 1 && sf.controlPoints.length === 2 && sf.controlPoints.every(row => row.length === 2)
+                && loop?.kind === 'outer' && loop.coedges.length === 4 && loop.coedges.every(id => {
+                  const use = alignUses.get(id), edge = use && alignEdges.get(use.edge), curve = edge?.curve;
+                  return curve?.degree === 1 && curve.controlPoints.length === 2 && curve.weights.length === 2
+                    && curve.weights[0] > 0 && curve.weights[0] === curve.weights[1]
+                    && curve.controlPoints[0].filter((value, i) => value !== curve.controlPoints[1][i]).length === 1;
+                })) df.nativeAlignFace = { axis, sign: df.exact.n[k] < 0 ? -1 : 1 };
+            }
           }
         }
       }

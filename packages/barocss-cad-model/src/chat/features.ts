@@ -1,3 +1,4 @@
+import { alignRecipeProblem } from '../engine/alignRecipe';
 import { sewNodeProblem } from '../engine/sew';
 import { ELLIPSE_SIDE_EDGE_REFUSAL, ellipseSideEdge } from '../sketch/ellipse';
 import { solveShape } from '../sketch/rules';
@@ -33,6 +34,7 @@ const SPECS: Record<string, Spec> = {
   rotate: { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', 'pivot?': 'dim3' },
   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz', 'keep?': 'bool' },
   scale: { parent: 'ref', factor: 'pos', 'pivot?': 'dim3' },
+  align: { version: 'any', parent: 'ref', source: 'any', target: 'any', gap: 'num', lineUp: 'enum:touch|centre' },
   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
   'fill-feature-pattern': { parent: 'ref', region: 'any', anchor: 'any', spacing: 'dim', count: 'positive-index', spacing2: 'dim', count2: 'positive-index' },
   'curve-feature-pattern': { parent: 'ref', path: 'any', spacing: 'dim', count: 'positive-index' },
@@ -193,6 +195,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     if (why) return `${kind}.${key}: ${why}`;
   }
   if ((kind === 'fillet' || kind === 'chamfer') && (node.edges as string[]).some(e => ellipseSideEdge(nodes, e))) return `${kind}.edges: ${ELLIPSE_SIDE_EDGE_REFUSAL}`;
+  if (kind === 'align') return alignRecipeProblem(node, nodes.length, nodes);
   if (kind === 'mirror') return mirrorReplacementProblem(node);
   if (kind === 'sew') return sewNodeProblem(node);
   if (kind === 'thicken') return thickenNodeProblem(node, parameters);
@@ -442,6 +445,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   if (n.kind === 'loft') { (n as Extract<ModelNode, { kind: 'loft' }>).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
   if ((n.kind === 'sketch' || n.kind === 'driven-sketch') && n.on) (n as { on: BodyRef }).on = ref(n.on);
   if (n.kind === 'sketch' && n.association !== undefined) { parentsOf(n); n.association = { ...n.association, source: ref(n.association.source) }; }
+  if (n.kind === 'align') n.target = { ...n.target, body: ref(n.target.body) };
   if (n.kind === 'face-end-extrude') n.target = { ...n.target, body: ref(n.target.body) };
   if ((n.kind === 'gear' || n.kind === 'rack' || n.kind === 'bevel-gear' || n.kind === 'worm') && n.mesh) (n as { mesh: GearMesh }).mesh = { ...n.mesh, gear: map(n.mesh.gear) };
   // (R12c.3b, D157: the shaft a key, ring or pin goes on, and a key's hub keyway.)
@@ -464,6 +468,11 @@ function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode 
   const r = (name: string) => renameFeatureIds(name, rename);
   if ((node.kind === 'union' || node.kind === 'difference') && node.made?.command === 'offset-face'
     && typeof node.made.values?.face === 'string') return { ...node, made: { ...node.made, values: { ...node.made.values, face: r(node.made.values.face) } } };
+  if (node.kind === 'align') return {
+    ...node,
+    source: { ...node.source, feature: rename(node.source.feature), face: r(node.source.face) },
+    target: { ...node.target, feature: rename(node.target.feature), face: r(node.target.face) },
+  };
   if (node.kind === 'revolve' && node.axisRef) return {
     ...node, axisRef: { ...node.axisRef, sourceFeature: rename(node.axisRef.sourceFeature), edge: r(node.axisRef.edge) },
   };
@@ -666,6 +675,7 @@ export function duplicateBody(doc: StudioDoc, body: BodyRef, offset: [number, nu
     // A copied Revolve shares its earlier axis source unless its body graph already copies that source.
     stack.push(...(node.kind === 'extrude' && node.cutDepth === 'through' ? usesOf(node, nodes) : parentsOf(node)));
   }
+  if ([...chain].some(i => nodes[i].kind === 'align')) throw refusal('BAD_REFERENCE', 'Align: duplicating a body with a bound target face is not supported.');
   if ([...chain].some(i => nodes[i].kind === 'face-end-extrude')) throw refusal('BAD_REFERENCE', 'Extrude to face: duplicating a body with a bound end face is not supported.');
   const order = [...chain].sort((a, b) => a - b), at = new Map(order.map((old, k) => [old, nodes.length + k]));
   const map = (i: number) => at.get(i) ?? i;

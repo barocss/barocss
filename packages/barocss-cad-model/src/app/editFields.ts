@@ -135,7 +135,7 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
       set: (n, insetMM) => replace(n, 1, { ...recipe, insetMM }) }];
   }
   const raw = editFieldsRaw(nodes, i, bearingAssembly, scope, params ?? scope?.doc?.parameters ?? {});
-  if (!params || nodes[i]?.kind === 'linear-span-pattern') return raw;
+  if (!params || nodes[i]?.kind === 'linear-span-pattern' || nodes[i]?.kind === 'align') return raw;
   return raw.map(f => f.kind !== 'number' || 'bind' in f || (nodes[i]?.kind === 'sew' && f.key === 'tol')
     || (nodes[i]?.kind === 'hole' && /^(step|about)[01]$/.test(f.key)) ? f : {
     ...f,
@@ -717,6 +717,14 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       out.push({ kind: 'choice', key: 'plane', label: 'Plane', options, get: n => self<typeof node>(n).plane, set: (n, v) => replace(n, i, { ...self<typeof node>(n), plane: v as typeof node.plane }) });
       break;
     }
+    case 'align':
+      number('gap', 'Gap', 'mm', n => (n as typeof node).gap, (n, gap) => ({ ...(n as typeof node), gap }));
+      out.push({ kind: 'choice', key: 'lineUp', label: 'Line up', options: [{ value: 'touch', label: 'Touch only' }, { value: 'centre', label: 'Touch, middles lined up' }],
+        get: n => self<typeof node>(n).lineUp, set: (n, value) => {
+          if (value !== 'touch' && value !== 'centre') return [...n];
+          return replace(n, i, { ...self<typeof node>(n), lineUp: value });
+        } });
+      break;
     case 'scale':
       number('k', 'Factor', undefined, n => (n as typeof node).factor, (n, factor) => ({ ...(n as typeof node), factor }));
       [0, 1, 2].forEach(k => number('p' + k, 'Pivot ' + 'XYZ'[k], 'mm',

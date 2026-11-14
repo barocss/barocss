@@ -3,6 +3,8 @@ import { assertPocketFloorBindings, pocketFloorSource, resolvePocketFloor } from
 import { resolveDrivenSketch } from '../sketch/driven';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
+import { alignFeatures } from './alignPlacement';
+import { alignDocumentProblem } from './alignRecipe';
 import { faceEndExtrudeHeight, faceEndExtrudeProblem } from './faceEndExtrude';
 import { throughCutHeight, throughCutProblem } from './throughCut';
 import { regionExtrudeProblem, resolveExtrudeRegion } from './regionExtrude';
@@ -135,6 +137,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       if (node.cutDepth !== undefined) throw coded('BAD_REFERENCE', 'Through all requires the current native document prefix.');
       return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
     case 'region-extrude': throw coded('BAD_REFERENCE', 'Extrude region requires the current source sketch.');
+    case 'align': throw coded('BAD_REFERENCE', 'Align requires the current native document prefix.');
     case 'face-end-extrude': throw coded('BAD_REFERENCE', 'Extrude to face requires the current native document prefix.');
     case 'revolve':
       if (node.axisRef !== undefined) throw refusal('BAD_REFERENCE', 'A linked Revolve axis requires the current native document prefix.');
@@ -586,6 +589,8 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   if (circularProblem) throw coded('VALUE', circularProblem);
   const regionProblem = regionExtrudeProblem(doc);
   if (regionProblem) throw coded('BAD_REFERENCE', `Extrude region: ${regionProblem}`);
+  const alignProblem = alignDocumentProblem(doc);
+  if (alignProblem) throw coded('BAD_REFERENCE', alignProblem);
   const faceEndProblem = faceEndExtrudeProblem(doc);
   if (faceEndProblem) throw coded('BAD_REFERENCE', `Extrude to face: ${faceEndProblem}`);
   const cutDepthProblem = throughCutProblem(doc);
@@ -650,6 +655,13 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       const resolved = { ...node, ...resolveRevolveAxis(doc, i, node, prefix) };
       delete resolved.axisRef;
       features.push(...featuresOf(resolved, i, CadPartLimits.features - features.length));
+      return;
+    }
+    if (node.kind === 'align') {
+      if (node.suppressed) {
+        if (gone.has(node.parent.node)) gone.add(i);
+        else pass(i, node.parent);
+      } else features.push(...alignFeatures(doc, node, i, features));
       return;
     }
     if (node.kind === 'face-end-extrude') {

@@ -5,7 +5,7 @@ import { clickModelCommand } from './model-rail-helper.mjs';
 const pins = ['apps/cad-studio/src/App.tsx', 'apps/cad-studio/src/viewport/useViewportPicking.ts',
   'packages/barocss-cad-model/src/app/alignCommand.ts'];
 const f = await createFlow({
-  name: 'align-retarget-preview', output: process.argv[2], envFrozen: 'D1199_SOURCE_FROZEN',
+  name: 'align-retarget-preview', output: process.argv[2], envFrozen: process.argv.includes('--history') ? 'D1202_SOURCE_FROZEN' : 'D1199_SOURCE_FROZEN',
   initialFiles: pins, requiredFrozen: pins,
   qualification: 'Align uses the original face the pointer hits after results reorder in preview.',
   limits: ['Desktop WebGPU, top faces of three root native boxes, fixed Gap 2 mm.'],
@@ -22,6 +22,7 @@ console.log(JSON.stringify(partSnapshot(doc).outputs.map(output => ({
 `,
 });
 const baseline = process.argv.includes('--baseline');
+const history = process.argv.includes('--history');
 const ref = node => ({ node, side: 'solid' });
 const seed = {
   format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
@@ -44,17 +45,19 @@ async function clickAt(point) {
   await f.page.mouse.click(...pixel);
 }
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-7, `${actual} vs ${expected}`);
-async function verify(label, doc, target) {
-  const offset = target === 'n5.top' ? [89, 5, -6] : [44, 3, -10];
-  assert.deepEqual(doc.nodes.at(-1), { kind: 'translate', parent: ref(6), offset, id: 'n7' });
+async function verify(label, doc, target, gap = 2, lineUp = 'centre') {
+  const linked = doc.nodes.at(-1).kind === 'align';
+  const top = target === 'n5.top' ? 12 : 8, [targetX, targetY] = target === 'n5.top' ? [89, 5] : [44, 3];
+  const offset = [lineUp === 'centre' ? targetX : 0, lineUp === 'centre' ? targetY : 0, top + gap - 20];
+  const movingKey = linked ? 'b6' : 'b7';
+  if (!linked) assert.deepEqual(doc.nodes.at(-1), { kind: 'translate', parent: ref(6), offset, id: 'n7' });
   assert.deepEqual(doc.nodes.slice(0, seed.nodes.length), seed.nodes);
   const result = await f.inspect(label, doc);
-  assert.deepEqual(result.map(body => body.key).sort(), ['b3', 'b5', 'b7']);
+  assert.deepEqual(result.map(body => body.key).sort(), ['b3', 'b5', movingKey]);
   const boxes = {
     b3: { volume: 2560, min: [40, 0, 0], max: [60, 16, 8] },
     b5: { volume: 7200, min: [80, 0, 0], max: [110, 20, 12] },
-    b7: target === 'n5.top' ? { volume: 720, min: [89, 5, 14], max: [101, 15, 20] }
-      : { volume: 720, min: [44, 3, 10], max: [56, 13, 16] },
+    [movingKey]: { volume: 720, min: [offset[0], offset[1], top + gap], max: [offset[0] + 12, offset[1] + 10, top + gap + 6] },
   };
   for (const { key, valid, volume, centroid, vertices } of result) {
     assert.equal(valid, true);
@@ -83,7 +86,7 @@ await f.run(async () => {
   await clickAt([50, 8, 8]);
   await hud().locator('.status.ok').waitFor();
   assert.match((await f.snapshot('b-preview')).hud, /Onto.*n3[.]top/);
-  await f.page.waitForFunction(() => window.__studioSection().shownKeys.join() === 'b3,b5,b7');
+  await f.page.waitForFunction(() => /^b3,b5,b[67]$/.test(window.__studioSection().shownKeys.join()));
   await f.same(seed);
   if (!baseline) {
     await clickAt([50, 8, 16]);
@@ -107,4 +110,37 @@ await f.run(async () => {
   await f.same(seed);
   await f.redo();
   await f.same(applied);
+  if (!history) return;
+  assert.deepEqual(applied.nodes.at(-1), {
+    kind: 'align', version: 1, parent: ref(1), id: 'n6',
+    source: { feature: 'n1', face: 'n1.top', axis: 'z', sign: 1 },
+    target: { body: ref(5), feature: 'n5', face: 'n5.top', axis: 'z', sign: 1 },
+    gap: 2, lineUp: 'centre',
+  });
+  await f.openFeatureEditor(6);
+  assert.match((await f.snapshot('history-bound-faces')).editor, /Source facen1[.]topTarget facen5[.]top/);
+  const gap = f.editor().getByLabel('Gap', { exact: true }), lineup = f.editor().getByLabel('Line up', { exact: true });
+  assert.equal(await gap.inputValue(), '2');
+  assert.equal(await lineup.inputValue(), 'centre');
+  await gap.fill('4');
+  await lineup.selectOption('touch');
+  const expected = structuredClone(applied);
+  Object.assign(expected.nodes.at(-1), { gap: 4, lineUp: 'touch' });
+  const edited = await f.applyEditor(applied, 'history-gap-and-line-up');
+  assert.deepEqual(edited.doc, expected);
+  await verify('history-native', expected, 'n5.top', 4, 'touch');
+  await f.undo();
+  await f.same(applied);
+  await f.redo();
+  await f.same(expected);
+
+  await f.newPage();
+  const [reopen] = await Promise.all([f.page.waitForEvent('filechooser'), button('Open').click()]);
+  await reopen.setFiles({ name: 'align-history.bcad', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(expected)) });
+  await f.same(expected);
+  await verify('reopened-native', expected, 'n5.top', 4, 'touch');
+  await f.openFeatureEditor(6);
+  assert.equal(await f.editor().getByLabel('Gap', { exact: true }).inputValue(), '4');
+  assert.equal(await f.editor().getByLabel('Line up', { exact: true }).inputValue(), 'touch');
+  await f.snapshot('reopened-align-history');
 });

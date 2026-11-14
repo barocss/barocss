@@ -2,7 +2,7 @@
 // on" and "align" do: a picked face of the body to move, then a click on the face it goes to. The body is
 // turned (a quarter or half turn about X, Y or Z through its centre) when the faces do not already face each
 // other, then moved so they touch — or touch with their middles lined up — with an optional gap.
-import { withNode, type Axis, type ModelNode } from '../engine/doc';
+import { withNode, type AlignFace, type Axis, type ModelNode } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Command, Ctx, Values } from './commands';
 import { dot, cross } from '../engine/vec3';
@@ -11,6 +11,7 @@ type V3 = [number, number, number];
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 const r6 = (x: number) => Math.round(x * 1e6) / 1e6 || 0;
 import { refOf } from './bodyRef';
+import { featureId } from '../engine/ids';
 import { refusal } from '../engine/refusal';
 
 /** v turned right-handed about coordinate axis k by deg (multiples of 90° come out exact). */
@@ -31,6 +32,12 @@ export function turnOnto(from: readonly number[], to: readonly number[]): { axis
   if (c < -0.5) return { axis: [0, 1, 2].find(k => Math.abs(from[k]) < 0.5) as 0 | 1 | 2, deg: 180 };
   const ax = cross(from, to), k = [0, 1, 2].find(i => Math.abs(ax[i]) > 0.5) as 0 | 1 | 2;
   return { axis: k, deg: ax[k] > 0 ? 90 : -90 };
+}
+
+export function alignFaceBinding(ctx: Ctx, pick: { body: number; face: number }): AlignFace | null {
+  const body = ctx.bodies[pick.body], face = body?.mesh.faces[pick.face];
+  if (!body?.ref || body.ref.side !== 'solid' || !face?.nativeAlignFace || !face.nativePlaneName) return null;
+  return { feature: featureId(ctx.doc.nodes, body.ref.node), face: face.nativePlaneName, ...face.nativeAlignFace };
 }
 
 function source(ctx: Ctx): { body: BodyResult; index: number; normal: V3; centroid: V3; name: string } | null {
@@ -63,12 +70,20 @@ export const alignCommand: Command = {
     if (hit.face.body === s.index) return { error: 'Pick a face of another body to put it on.' };
     const f = ctx.bodies[hit.face.body]?.mesh.faces[hit.face.face]; if (!f) return null;
     if (f.kind !== 'plane') return { error: 'Pick a flat face to put it on.' };
-    const next: Values = { ...v, target: 'face', tnx: f.normal[0], tny: f.normal[1], tnz: f.normal[2], tcx: f.centroid[0], tcy: f.centroid[1], tcz: f.centroid[2], tname: f.name.split('+')[0] };
+    const next: Values = { ...v, target: 'face', tnx: f.normal[0], tny: f.normal[1], tnz: f.normal[2], tcx: f.centroid[0], tcy: f.centroid[1], tcz: f.centroid[2], tname: f.name.split('+')[0], targetBody: hit.face.body, targetFace: hit.face.face };
     return next;
   },
   build: (ctx, v) => {
     const s = source(ctx), body = s?.body ?? wholeBody(ctx); if (!body) throw refusal('ALIGN_PICK', 'Pick the face of the body to move.');
-    const gap = Number(v.gap) || 0, { min, max } = body.mesh.bounds, pivot = [0, 1, 2].map(k => r6((min[k] + max[k]) / 2)) as V3;
+    const gap = Number(v.gap) || 0;
+    const targetPick = { body: Number(v.targetBody), face: Number(v.targetFace) };
+    const sourceBinding = s && alignFaceBinding(ctx, ctx.selection.faces[0]);
+    const targetBinding = v.target === 'face' && alignFaceBinding(ctx, targetPick);
+    if (sourceBinding && targetBinding && targetPick.body !== s?.index && !ctx.doc.instances?.length) {
+      return withNode(ctx.doc, { kind: 'align', version: 1, parent: refOf(body), source: sourceBinding,
+        target: { ...targetBinding, body: refOf(ctx.bodies[targetPick.body]) }, gap, lineUp: v.align === 'centre' ? 'centre' : 'touch' });
+    }
+    const { min, max } = body.mesh.bounds, pivot = [0, 1, 2].map(k => r6((min[k] + max[k]) / 2)) as V3;
     let parent = refOf(body), doc = ctx.doc, delta: V3;
     if (!s) {
       // The whole body down (or up) onto the floor.

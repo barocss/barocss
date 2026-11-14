@@ -413,6 +413,23 @@ export interface RoundedRectangleInsetNode {
  * (engine/references.ts). `held`: why it is suppressed until the user picks a reference it stores again
  * (one opened that could not be told; references.ts).
  */
+export interface AlignFace {
+  feature: string;
+  face: string;
+  axis: Axis;
+  sign: 1 | -1;
+}
+
+export interface AlignNode {
+  kind: 'align';
+  version: 1;
+  parent: BodyRef;
+  source: AlignFace;
+  target: AlignFace & { body: BodyRef };
+  gap: number;
+  lineUp: 'touch' | 'centre';
+}
+
 export type ModelNode = ModelNodeBase & NodeExtras;
 /** What the studio keeps on any node besides the feature itself (see the fields above). */
 export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<string, string>; sigs?: Record<string, Sig>; held?: string; /** Bought or made, the person's override (O142: the BOM's default by kind when unset). */ bought?: boolean };
@@ -434,6 +451,7 @@ type ModelNodeBase = DrivenSketchNode | RoundedRectangleInsetNode | SketchNode |
   | { kind: 'rotate'; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim]; made?: Made }
   | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz'; keep?: boolean }
   /** About `pivot` (none: the origin). */
+  | AlignNode
   | { kind: 'scale'; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   | { kind: 'linear-span-pattern'; parent: BodyRef; axis: Axis; span: number; count: number }
@@ -1043,6 +1061,7 @@ export const usesOf = (node: ModelNode, nodes?: readonly ModelNode[]): number[] 
   : node.kind === 'frame' && node.trims?.some(t => 'body' in t) ? [...parentsOf(node), ...node.trims.flatMap(t => 'body' in t ? [t.body.node] : [])]
   : node.kind === 'revolve' && node.axisRef
     ? [node.sketch, ...(nodes ? nodes.flatMap((_, i) => featureId(nodes, i) === node.axisRef!.sourceFeature ? [i] : []) : [])]
+  : node.kind === 'align' ? [node.parent.node, node.target.body.node]
   : node.kind === 'face-end-extrude' ? [node.sketch, node.target.body.node]
   : node.kind === 'extrude' && node.cutDepth === 'through' ? throughCutSources(node, nodes) : parentsOf(node);
 
@@ -1258,6 +1277,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'sheet-contour': return `Sheet profile T${n(node.thickness)}${node.path.length > 2 ? ` · ${node.path.length - 2} bend${node.path.length > 3 ? 's' : ''}` : ''}`;
     case 'sew': return `Sew ${node.names.length} surfaces`;
     case 'fillet': return (node.radii ? `Fillet R${n(node.radii[0].radius)}→${n(node.radii[node.radii.length - 1].radius)}` : `Fillet R${n(node.radius)}`) + (node.section?.kind === 'conic' ? ` conic ρ${fmt(node.section.rho)}` : node.section?.kind === 'g2' ? ' G2' : '');
+    case 'align': return 'Align';
     case 'union': return 'Union';
     case 'intersect': return 'Intersect';
     case 'difference': return 'Subtract';

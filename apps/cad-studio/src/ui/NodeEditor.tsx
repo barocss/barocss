@@ -207,6 +207,10 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onRel
       {invalidDimensions.map(({ field, rule }) => <div key={field.key} className="hud-error" role="status">{field.label} · {featureNumberRange(rule)}.</div>)}
       {lengthProblem && <div className="hud-error" role="status">{lengthProblem}</div>}
       {modeProblem && <div className="hud-error" role="status">{modeProblem}</div>}
+      {node?.kind === 'align' && <>
+        <div className="field"><span>Source face</span><span>{node.source.face}</span></div>
+        <div className="field"><span>Target face</span><span>{node.target.face}</span></div>
+      </>}
       {cutSource && <div className="field"><span>Cut source</span><span>{cutSource}</span></div>}
       {fields.length ? fields.map(f => {
         const rule = f.kind === 'number' ? historyNumberRule(draft, index, f.key) : undefined;
